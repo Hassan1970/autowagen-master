@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autowagen Master — Supplier purchase screen (all sections explained)</title>
+  <style>
+    @page { margin: 12mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 11pt;
+      line-height: 1.5;
+      color: #222;
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 16px 18px 32px;
+      background: #fff;
+    }
+    h1 {
+      font-size: 1.4rem;
+      margin: 0 0 6px;
+      color: #0a0a0a;
+    }
+    .subtitle { color: #555; font-size: 10.5pt; margin: 0 0 16px; }
+    .print-hint {
+      background: #fff8e6;
+      border: 1px solid #e6c200;
+      padding: 10px 14px;
+      font-size: 10pt;
+      margin-bottom: 22px;
+      border-radius: 4px;
+    }
+    .nav-box {
+      background: #f8f9fa;
+      border-left: 4px solid #c8102e;
+      padding: 10px 14px;
+      margin-bottom: 22px;
+      font-size: 10pt;
+    }
+    h2 {
+      font-size: 1rem;
+      margin: 26px 0 12px;
+      color: #c8102e;
+      border-bottom: 2px solid #c8102e;
+      padding-bottom: 4px;
+    }
+    .zones { display: flex; flex-direction: column; gap: 16px; }
+    .zone {
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 14px 16px 14px 54px;
+      position: relative;
+      background: #fafafa;
+      page-break-inside: avoid;
+    }
+    .zone .letter {
+      position: absolute;
+      left: 12px;
+      top: 14px;
+      min-width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #c8102e;
+      color: #fff;
+      font-weight: 800;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .zone .letter.intro {
+      background: #0a0a0a;
+      font-size: 11px;
+      border-radius: 6px;
+      padding: 0 8px;
+      width: auto;
+    }
+    .zone h3 { margin: 0 0 10px; font-size: 1rem; color: #0a0a0a; }
+    .row { margin: 8px 0 0; font-size: 10.5pt; }
+    .row strong { color: #000; display: inline-block; min-width: 5.5em; }
+    .summary {
+      margin-top: 28px;
+      padding: 14px 16px;
+      background: #0a0a0a;
+      color: #fff;
+      border-radius: 6px;
+      font-size: 10.5pt;
+    }
+    .summary h2 { color: #fff; border-color: #c8102e; margin-top: 0; }
+    .summary ul { margin: 8px 0 0; padding-left: 1.2em; }
+    .summary li { margin: 6px 0; }
+    footer {
+      margin-top: 28px;
+      padding-top: 12px;
+      border-top: 1px solid #ccc;
+      font-size: 9pt;
+      color: #666;
+    }
+    kbd { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+    @media print {
+      body { padding: 0; }
+      .print-hint { border-style: dashed; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Supplier purchase screen — all sections explained</h1>
+  <p class="subtitle"><strong>Autowagen Master</strong> · For shop staff and training · Example URL pattern: <code>supplier_purchase_edit.php?id=2</code> (Purchase #2)</p>
+
+  <div class="print-hint">
+    <strong>Save as PDF:</strong> Open this file in Chrome or Edge → <kbd>Ctrl</kbd>+<kbd>P</kbd> → <strong>Save as PDF</strong> / <strong>Microsoft Print to PDF</strong> → Save.
+  </div>
+
+  <div class="nav-box">
+    <strong>How to open this screen in the app:</strong> Sign in → top menu <strong>Inventory</strong> → <strong>Supplier purchases</strong> → click a purchase row, or use <strong>New supplier purchase</strong> to create one. You can also open a purchase from <strong>All parts</strong> via the <strong>Purchase #</strong> link in the From column.
+  </div>
+
+  <h2>Screen map (top to bottom)</h2>
+  <p style="margin-top:0;font-size:10.5pt;color:#444;">Letters A–G match the teaching layout. The real page may show a small <strong>All purchases</strong> link next to the title.</p>
+
+  <div class="zones">
+
+    <div class="zone">
+      <span class="letter intro">TOP</span>
+      <h3>Page title and short intro</h3>
+      <p class="row"><strong>What:</strong> The heading (e.g. <em>Purchase #2</em>) and one or two lines of help text: choose <em>who</em> you bought from, then add <em>parts</em> to this purchase.</p>
+      <p class="row"><strong>Why:</strong> One purchase = one seller (or one batch deal) and many part lines. The intro reminds staff of that rule.</p>
+      <p class="row"><strong>When:</strong> Every time you open the page — read it once when training; no button to click here.</p>
+    </div>
+
+    <div class="zone">
+      <span class="letter">A</span>
+      <h3>Reference</h3>
+      <p class="row"><strong>What:</strong> <em>Invoice / bundle name</em> (optional) and <em>Notes</em> (free text).</p>
+      <p class="row"><strong>Why:</strong> So you can find this buy later (e.g. “inv002”, delivery instructions, internal reminders).</p>
+      <p class="row"><strong>When:</strong> When you create the purchase or change the reference or notes.</p>
+      <p class="row"><strong>How:</strong> Edit the fields → click red <strong>Save purchase</strong> (section E).</p>
+    </div>
+
+    <div class="zone">
+      <span class="letter">B</span>
+      <h3>Bill (ZAR) — what you owe for this buy</h3>
+      <p class="row"><strong>What:</strong> <em>Bill / invoice amount</em>, <em>bill date</em>, optional <em>due date</em>.</p>
+      <p class="row"><strong>Why:</strong> This is the money you owe the supplier for <em>this batch</em>. It feeds <strong>Remaining</strong> in Payments (F) and the report <strong>Inventory → Accounts payable (owed)</strong>. It is not the sum of part “asking” prices — those are your sell prices per line (G).</p>
+      <p class="row"><strong>When:</strong> When you know the supplier’s total (you can update if the invoice was wrong).</p>
+      <p class="row"><strong>How:</strong> Fill in → <strong>Save purchase</strong> (E).</p>
+    </div>
+
+    <div class="zone">
+      <span class="letter">C</span>
+      <h3>Supplier or private seller</h3>
+      <p class="row"><strong>What:</strong> Toggle: <em>Registered supplier</em> (dropdown) or <em>Private individual</em> (name, SA ID, phone).</p>
+      <p class="row"><strong>Why:</strong> Clear record of <em>who</em> you bought from. One seller per purchase; every part added under this purchase belongs to that deal.</p>
+      <p class="row"><strong>When:</strong> At setup; again only if seller details change.</p>
+      <p class="row"><strong>How:</strong> Select supplier or fill private fields → <strong>Save purchase</strong> (E).</p>
+    </div>
+
+    <div class="zone">
+      <span class="letter">D</span>
+      <h3>ID / address on file</h3>
+      <p class="row"><strong>What:</strong> File uploads: <em>ID / CIPC scan</em>, <em>Proof of residence</em>, and the “I have this on file” tick where it applies.</p>
+      <p class="row"><strong>Why:</strong> Second-Hand Goods Act style paper trail, especially for <strong>private</strong> sellers. A registered company supplier may often leave these empty.</p>
+      <p class="row"><strong>When:</strong> When you receive scans or replace documents.</p>
+      <p class="row"><strong>How:</strong> <em>Choose file</em> → <strong>Save purchase</strong> (E).</p>
+    </div>
+
+    <div class="zone">
+      <span class="letter">E</span>
+      <h3>Save purchase (red button)</h3>
+      <p class="row"><strong>What:</strong> Submits the main form: Reference (A), Bill (B), Supplier/private (C), uploads (D).</p>
+      <p class="row"><strong>Why:</strong> Payments use a separate small form and the blue <strong>Add</strong> button — so the red button only saves the “header” and files.</p>
+      <p class="row"><strong>When:</strong> After any change to A, B, C, or D.</p>
+      <p class="row"><strong>Not for:</strong> Logging payments — use F → <strong>Add</strong>.</p>
+    </div>
+
+    <div class="zone">
+      <span class="letter">F</span>
+      <h3>Payments (ZAR)</h3>
+      <p class="row"><strong>What:</strong> Summary: <em>Remaining</em>, <em>Bill</em>, <em>Paid</em>; list of past payments; form: amount, paid-on date, method, bank ref, note, then <strong>Add</strong>.</p>
+      <p class="row"><strong>Why:</strong> The bill is what you owe; each payment line is money you already sent. Remaining = bill minus total paid (for this purchase).</p>
+      <p class="row"><strong>When:</strong> Each time you pay this supplier for <em>this</em> purchase (full or part payment — part payment = multiple lines).</p>
+      <p class="row"><strong>How:</strong> Fill the row → blue <strong>Add</strong>. Do not use <strong>Save purchase</strong> for this.</p>
+    </div>
+
+    <div class="zone">
+      <span class="letter">G</span>
+      <h3>Parts in this purchase</h3>
+      <p class="row"><strong>What:</strong> Table: SKU, part name, line type (e.g. OEM new, replacement), asking price, <strong>Edit</strong>; button <strong>Add part to this purchase</strong>.</p>
+      <p class="row"><strong>Why:</strong> Links physical stock lines to this buy. Seller and compliance stay on the purchase; each part holds selling price and other part details (yard, etc.) on the part edit screen.</p>
+      <p class="row"><strong>When:</strong> When stock arrives or when you need to fix a line.</p>
+      <p class="row"><strong>How:</strong> <strong>Add part…</strong> or <strong>Edit</strong> — save on those pages. Changing only the part does not require <strong>Save purchase</strong> unless you also changed A–D.</p>
+    </div>
+
+    <div class="zone">
+      <span class="letter intro">APP</span>
+      <h3>App footer (bottom of every page)</h3>
+      <p class="row"><strong>What:</strong> Copyright line, version (e.g. v1.0), sometimes a <strong>DEBUG</strong> badge in development.</p>
+      <p class="row"><strong>Why:</strong> Standard app information — not part of purchase workflow.</p>
+      <p class="row"><strong>When:</strong> No action required.</p>
+    </div>
+
+  </div>
+
+  <div class="summary">
+    <h2>One-line rules for staff</h2>
+    <ul>
+      <li><strong>Header</strong> (reference, bill, seller, files) → <strong>Save purchase</strong>.</li>
+      <li><strong>Money out</strong> to supplier for this purchase → <strong>Payments</strong> → <strong>Add</strong>.</li>
+      <li><strong>Stock lines</strong> → <strong>Parts in this purchase</strong> → Add part / Edit part screens.</li>
+    </ul>
+  </div>
+
+  <footer>
+    Autowagen Master · Client / staff manual · Supplier purchase screen — full section guide · ZAR &amp; South African compliance context
+  </footer>
+
+</body>
+</html>

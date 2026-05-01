@@ -1,0 +1,20 @@
+# Markdown backups (`docs/md_backups/`)
+
+This folder holds **point-in-time copies** of the project’s main documentation files from the repo root and `docs/`.
+
+## What gets copied
+
+- `CLAUDE.md` — live project memory (read first every session)
+- `ROADMAP.md` — stage plan
+- `HOW_TO_START_NEW_CHAT.md` — handoff prompt
+- `docs/TRAINING_SCREENSHOTS.md` — training image guide
+
+## Latest snapshot
+
+Subfolder **`2026-04-28/`** — created when Stage 6 AR / statement docs were synced.
+
+To make a **new** backup after big edits: create a dated folder (e.g. `2026-05-01/`) and copy the same files into it (Windows: select files → copy → paste into the new folder). Or ask Cursor to “backup `.md` files again”.
+
+## Note
+
+These copies are **not** a substitute for **Git** history. Commit as usual; use this folder if you want quick human-readable snapshots without opening Git.

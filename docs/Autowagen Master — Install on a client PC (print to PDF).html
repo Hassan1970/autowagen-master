@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<!-- saved from url=(0070)file:///C:/laragon/www/autowagen-master/docs/client_install_print.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Autowagen Master — Install on a client PC (print to PDF)</title>
+<style>
+  :root { --aw-red: #c8102e; --aw-black: #0a0a0a; }
+  body { font-family: system-ui, Segoe UI, Roboto, sans-serif; line-height: 1.45; color: var(--aw-black); max-width: 48rem; margin: 0 auto; padding: 1.5rem; background: #fafafa; }
+  .banner { background: var(--aw-black); color: #fff; padding: 1rem 1.25rem; border-bottom: 4px solid var(--aw-red); margin: -1.5rem -1.5rem 1.5rem -1.5rem; }
+  .banner h1 { margin: 0; font-size: 1.15rem; letter-spacing: .08em; }
+  .banner .sub { font-size: .85rem; opacity: .88; margin-top: .35rem; }
+  h2 { color: var(--aw-red); font-size: 1rem; text-transform: uppercase; letter-spacing: .06em; margin-top: 1.75rem; border-bottom: 1px solid #ddd; padding-bottom: .25rem; }
+  h3 { font-size: .95rem; margin: 1rem 0 .4rem; }
+  ol, ul { padding-left: 1.25rem; }
+  li { margin: .35rem 0; }
+  .howpdf { background: #fff3cd; border: 1px solid #ffc107; padding: .75rem 1rem; border-radius: 4px; margin-bottom: 1.5rem; }
+  .howpdf strong { color: var(--aw-red); }
+  code, .mono { font-family: ui-monospace, Consolas, monospace; font-size: .88em; background: #f0f0f0; padding: .1em .35em; border-radius: 3px; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; margin: .75rem 0; }
+  th, td { border: 1px solid #ccc; padding: .45rem .6rem; text-align: left; }
+  th { background: #eee; }
+  .no-print { }
+  @media print {
+    @page { margin: 14mm; size: A4; }
+    body { background: #fff; max-width: 100%; padding: 0; font-size: 10pt; }
+    .banner { margin: 0 0 1rem 0; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .howpdf { background: #fff8e5; print-color-adjust: exact; }
+    .no-print { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <h1><span style="color:var(--aw-red);">AUTOWAGEN</span> MASTER</h1>
+  <div class="sub">Install on a client computer (Windows + Laragon) — staff sheet</div>
+</div>
+
+<div class="howpdf no-print">
+  <strong>How to save this as a PDF:</strong> Press <kbd>Ctrl</kbd>+<kbd>P</kbd> (or menu <strong>Print</strong>). Choose <strong>Save as PDF</strong> or <strong>Microsoft Print to PDF</strong>. In Edge/Chrome you may need <strong>More settings</strong> → turn on <strong>Background graphics</strong> if colours do not print.
+</div>
+
+<p class="small">This app runs in a browser on the client PC. You need <strong>PHP 8</strong>, <strong>MySQL</strong>, and the project files. The easiest bundle on Windows is <strong>Laragon</strong>.</p>
+
+<h2>1. Install Laragon on the client PC</h2>
+<ol>
+  <li>Download Laragon from <strong>laragon.org</strong> and install it.</li>
+  <li>Start Laragon and click <strong>Start All</strong> so Apache and MySQL run.</li>
+  <li>Use <strong>PHP 8.x</strong> (Laragon menu → PHP).</li>
+  <li>For <strong>Site backup (ZIP)</strong> in the program: open <strong>PHP → php.ini</strong>, find <code>extension=zip</code> (remove the leading <code>;</code> if present), save, then restart Apache.</li>
+</ol>
+
+<h2>2. Copy the project folder</h2>
+<ol>
+  <li>Copy the whole folder <strong class="mono">autowagen-master</strong> to the client machine, for example:<br>
+    <code>C:\laragon\www\autowagen-master\</code></li>
+  <li>Copy <strong>everything</strong> (PHP files, <code>sql</code>, <code>config</code>, <code>includes</code>, <code>auth</code>, <code>uploads/.htaccess</code>, etc.).</li>
+</ol>
+
+<h2>3. Create the database</h2>
+<ol>
+  <li>Open <code>http://localhost/phpmyadmin</code></li>
+  <li>Create database <strong class="mono">autowagen_master</strong> (collation utf8mb4 if asked).</li>
+  <li>Open the <strong>SQL</strong> tab. Run each script from the project’s <code>sql\</code> folder <strong>once</strong>, in this order (skip any already applied):</li>
+</ol>
+<table>
+  <thead><tr><th>Order</th><th>File</th><th>Note</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td><code>01_auth.sql</code></td><td>Users / login</td></tr>
+    <tr><td>2</td><td><code>02_epc.sql</code></td><td>EPC tree; optional extra <code>02b</code>…<code>02h</code> if you use them</td></tr>
+    <tr><td>3</td><td><code>03_master_data.sql</code></td><td>Vehicles, customers, suppliers</td></tr>
+    <tr><td>4</td><td><code>03b_vehicle_extras.sql</code></td><td>Vehicle fields</td></tr>
+    <tr><td>5</td><td><code>03c_proof_of_residence.sql</code></td><td>Vehicle proof of residence</td></tr>
+    <tr><td>6</td><td><code>03d_customer_compliance.sql</code></td><td>Customer SHGA docs</td></tr>
+    <tr><td>7</td><td><code>04_inventory.sql</code></td><td>Parts</td></tr>
+    <tr><td>8</td><td><code>04b_part_tpp_compliance.sql</code></td><td>TPP columns</td></tr>
+    <tr><td>9</td><td><code>04c_supplier_purchases.sql</code></td><td>Purchases</td></tr>
+    <tr><td>10</td><td><code>04d_supplier_accounts_payable.sql</code></td><td>AP</td></tr>
+    <tr><td>11</td><td><code>05_pos.sql</code></td><td>Invoices / POS</td></tr>
+    <tr><td>12</td><td><code>06a_customer_account.sql</code></td><td>Account customers (optional but recommended)</td></tr>
+  </tbody>
+</table>
+<p class="small">If you are <strong>importing a full SQL dump</strong> from another PC instead, use phpMyAdmin <strong>Import</strong> on <code>autowagen_master</code> and skip re-running scripts that are already in the dump.</p>
+
+<h2>4. Configure <code>config/secrets.local.php</code></h2>
+<ol>
+  <li>On the client PC there must be a file: <code>config/secrets.local.php</code> (this file is not in Git — create it on each machine).</li>
+  <li>Copy from <code>config/secrets.live.php.example</code> or another machine’s template. It must return PHP array keys <code>db</code> and <code>app</code>.</li>
+  <li>Set MySQL: <code>host</code> (usually <code>localhost</code>), <code>name</code> = <code>autowagen_master</code>, <code>user</code>, <code>pass</code> (Laragon default is often user <code>root</code>, empty password).</li>
+  <li>Set <code>app.url</code> to the URL used in the browser, e.g. <code>http://localhost/autowagen-master</code> (no trailing slash — see your main <code>CLAUDE.md</code>).</li>
+  <li>Set <code>app.debug</code> to <code>true</code> only while testing on local.</li>
+</ol>
+<p><strong>Never</strong> email <code>secrets.local.php</code> in plain text or commit it to a public repo.</p>
+
+<h2>5. Open the app and log in</h2>
+<ol>
+  <li>Browser: <code>http://localhost/autowagen-master/</code> (or the URL you set in <code>app.url</code>).</li>
+  <li>Use the owner account created by <code>01_auth.sql</code> (your project may use username <code>hassan</code> — use whatever was set when the database was built).</li>
+</ol>
+
+<h2>6. Uploads and permissions</h2>
+<ul>
+  <li>Folder <code>uploads/</code> must exist and be writable so photos and scans save correctly.</li>
+  <li>Keep <code>uploads/.htaccess</code> in place for security.</li>
+</ul>
+
+<h2>7. Moving data from your PC to the client’s</h2>
+<ol>
+  <li><strong>Files:</strong> In the program (owner/admin): <strong>Dashboard → Site backup</strong> → create ZIP, download. Unzip on the client under <code>www\autowagen-master</code> or merge <code>uploads</code> as needed.</li>
+  <li><strong>Database:</strong> On your PC: phpMyAdmin → database <code>autowagen_master</code> → <strong>Export</strong> → SQL. On client: <strong>Import</strong> that file into their <code>autowagen_master</code>.</li>
+  <li>On the client, still create or edit <code>secrets.local.php</code> for <strong>their</strong> MySQL and URL.</li>
+</ol>
+
+<h2>Quick reference</h2>
+<table>
+  <tbody>
+    <tr><th>Need</th><th>What to use</th></tr>
+    <tr><td>Runtime</td><td>Laragon: Apache + PHP 8 + MySQL</td></tr>
+    <tr><td>Code</td><td>Full <code>autowagen-master</code> under <code>C:\laragon\www\</code></td></tr>
+    <tr><td>Database</td><td><code>autowagen_master</code> + SQL scripts in order, or Import dump</td></tr>
+    <tr><td>Config</td><td><code>config/secrets.local.php</code></td></tr>
+    <tr><td>Login URL</td><td><code>…/auth/login.php</code></td></tr>
+  </tbody>
+</table>
+
+<p class="small" style="margin-top:2rem;">Autowagen Master — internal install sheet. Full live state: <code>CLAUDE.md</code> in the project.</p>
+
+
+
+</body></html>

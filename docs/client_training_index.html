@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autowagen Master — Training guides for your team</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 11pt;
+      line-height: 1.55;
+      color: #222;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 28px 20px 48px;
+      background: #fff;
+    }
+    h1 {
+      font-size: 1.35rem;
+      margin: 0 0 6px;
+      color: #0a0a0a;
+      border-bottom: 3px solid #c8102e;
+      padding-bottom: 10px;
+    }
+    .tagline { color: #555; font-size: 10.5pt; margin: 0 0 20px; }
+    .card {
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+      background: #fafafa;
+    }
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+      color: #c8102e;
+    }
+    .card p { margin: 0 0 10px; font-size: 10.5pt; }
+    .card a {
+      display: inline-block;
+      margin-top: 4px;
+      color: #c8102e;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .card a:hover { text-decoration: underline; }
+    .note {
+      font-size: 9.5pt;
+      color: #666;
+      border-left: 3px solid #0a0a0a;
+      padding: 10px 14px;
+      margin-top: 24px;
+      background: #f8f9fa;
+    }
+    footer {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid #ccc;
+      font-size: 9pt;
+      color: #666;
+    }
+    kbd { background: #eee; padding: 1px 6px; border-radius: 3px; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+
+  <h1>Autowagen Master — training guides</h1>
+  <p class="tagline">Plain-language steps for <strong>shop staff</strong> using the system day to day. Open each link in <strong>Chrome</strong> or <strong>Edge</strong>. To save a handout: <kbd>Ctrl</kbd>+<kbd>P</kbd> → <strong>Save as PDF</strong>.</p>
+
+  <div class="card">
+    <h2>Install on a new PC (IT / owner)</h2>
+    <p>Laragon, database, <code>secrets.local.php</code>, SQL order, copying data from another machine. Save as PDF the same way (<kbd>Ctrl</kbd>+<kbd>P</kbd>).</p>
+    <a href="client_install_print.html">Open: Client PC install →</a>
+  </div>
+
+  <div class="card" style="border:2px solid #c8102e;background:#fff;">
+    <h2>Complete system manual (start → finish)</h2>
+    <p><strong>Main handout for clients:</strong> login, dashboard, EPC, vehicles, customers, suppliers, parts, supplier purchases, accounts payable, POS — step by step. Includes <strong>30 figure slots</strong> for screenshots (<code>full-01</code> … <code>full-30</code>). Add your PNGs under <code>docs/manual_screenshots/</code> and uncomment each <code>&lt;img&gt;</code> in that file.</p>
+    <a href="complete_system_manual.html">Open: Complete system manual →</a>
+  </div>
+
+  <div class="card">
+    <h2>Engine &amp; shop data — long PDF notes</h2>
+    <p><strong>Owner / documentation:</strong> EPC levels under Engine, tables (<code>parts</code>, <code>part_epc_links</code>, <code>epc_full_view</code>), Engines submenu lanes vs EPC, SQL file list. Print to PDF the same way.</p>
+    <a href="ENGINE_AND_SHOP_DATA_NOTES_PRINT.html">Open: Engine &amp; shop data notes (print to PDF) →</a>
+  </div>
+
+  <div class="card">
+    <h2>Public website (shop) — where data comes from</h2>
+    <p>For staff: which screens to use (<strong>Inventory → Edit part</strong>, EPC link, <strong>List on public website</strong>), Engines menu lanes (naming rules), stripping stock, SKU vs customer view, local vs live database.</p>
+    <a href="shop_staff_data_guide.html">Open: Shop — staff data guide →</a>
+  </div>
+
+  <div class="card">
+    <h2>Sales invoice (POS)</h2>
+    <p>Draft invoices, search parts, add lines, customer &amp; SA compliance (SHGA) checks, finalize, record payments, print.</p>
+    <a href="invoice_screen_full_guide.html">Open: Sales invoice — full guide →</a>
+  </div>
+
+  <div class="card">
+    <h2>Supplier purchases (quick sheet)</h2>
+    <p>Short A–G sheet: one screen, main actions — good for the counter or a laminated page.</p>
+    <a href="manual_supplier_purchase_screen.html">Open: Supplier purchase — quick sheet →</a>
+  </div>
+
+  <div class="card">
+    <h2>Supplier purchases (full guide)</h2>
+    <p>What each section is for, why it matters, when to use it, and how — batch buys, bills, accounts payable.</p>
+    <a href="supplier_purchase_screen_full_guide.html">Open: Supplier purchase — full guide →</a>
+  </div>
+
+  <p class="note"><strong>Note:</strong> These guides describe the <strong>software screens</strong>. Your shop’s own rules (pricing, refunds, who may finalize sales) stay your internal policy. If something in the app changes, ask your supplier for an updated PDF.</p>
+
+  <footer>
+    Autowagen Master · Client / staff training index · ZAR · SHGA references follow SA Second-Hand Goods Act expectations for record-keeping; not legal advice.
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autowagen Master — Complete system manual (start to finish)</title>
+  <style>
+    @page { margin: 12mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 11pt;
+      line-height: 1.52;
+      color: #222;
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 10px 18px 40px;
+      background: #fff;
+    }
+    h1 { font-size: 1.35rem; margin: 0 0 6px; color: #0a0a0a; }
+    .subtitle { color: #555; font-size: 9.5pt; margin: 0 0 14px; }
+    .print-hint {
+      background: #fff8e6;
+      border: 1px solid #e6c200;
+      padding: 6px 12px;
+      font-size: 9pt;
+      margin-bottom: 12px;
+      border-radius: 4px;
+    }
+    .toc {
+      background: #f8f9fa;
+      border-left: 4px solid #c8102e;
+      padding: 10px 14px 14px;
+      margin-bottom: 18px;
+      font-size: 10pt;
+    }
+    .toc h2 { margin: 0 0 8px; font-size: 11pt; color: #c8102e; border: none; }
+    .toc ol { margin: 0; padding-left: 1.2em; }
+    .toc li { margin: 4px 0; }
+    .toc a { color: #0d6efd; text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+    h2.chapter {
+      font-size: 1.05rem;
+      margin: 22px 0 10px;
+      color: #fff;
+      background: #0a0a0a;
+      padding: 8px 12px;
+      border-radius: 4px;
+      border-left: 5px solid #c8102e;
+      page-break-after: avoid;
+    }
+    h3 { font-size: 0.98rem; margin: 14px 0 8px; color: #c8102e; }
+    p, li { font-size: 10.5pt; }
+    ol.steps { margin: 8px 0; padding-left: 1.25em; }
+    ol.steps li { margin: 8px 0; }
+    .muted { color: #555; font-size: 9.5pt; }
+    kbd { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 0.88em; }
+    .shot-box {
+      margin: 10px 0 16px;
+      border: 2px dashed #adb5bd;
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: #f8f9fa;
+      page-break-inside: avoid;
+    }
+    .shot-box .cap { font-size: 9.5pt; color: #495057; margin: 0 0 6px; line-height: 1.35; }
+    .shot-box .file { font-family: ui-monospace, Consolas, monospace; font-size: 8.5pt; color: #6c757d; word-break: break-all; }
+    .shot-box img { max-width: 100%; height: auto; display: block; margin-top: 6px; border: 1px solid #ccc; border-radius: 4px; }
+    table.chart { width: 100%; border-collapse: collapse; font-size: 9pt; margin-top: 12px; }
+    table.chart th, table.chart td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; }
+    table.chart th { background: #f1f1f1; }
+    footer { margin-top: 28px; padding-top: 12px; border-top: 1px solid #ccc; font-size: 9pt; color: #666; }
+    @media print {
+      body { padding: 0; }
+      .print-hint { border-style: dashed; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1 id="top">Autowagen Master — complete system manual</h1>
+  <p class="subtitle"><strong>For shop owner &amp; staff.</strong> Walkthrough from opening the app through master data, inventory, buying in parts, and selling on POS. Screens marked <strong>Figure</strong> are for your own PNG captures (see §0).</p>
+
+  <div class="print-hint">
+    <strong>Save as PDF:</strong> Chrome or Edge → <kbd>Ctrl</kbd>+<kbd>P</kbd> → <strong>Save as PDF</strong>.<br>
+    <strong>Screenshots:</strong> This file is written for detail first. Your images go in <code>docs/manual_screenshots/</code>. For each <strong>Figure</strong>, save the file with the exact name shown, then remove <code>&lt;!--</code> and <code>--&gt;</code> around that figure’s <code>&lt;img&gt;</code> line. See <code>TRAINING_SCREENSHOTS.md</code>.
+  </div>
+
+  <nav class="toc" aria-label="Table of contents">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#s0">Using this manual &amp; screenshots</a></li>
+      <li><a href="#s1">Opening the app &amp; signing in</a></li>
+      <li><a href="#s2">Dashboard &amp; top menu</a></li>
+      <li><a href="#s3">EPC — parts catalogue tree</a></li>
+      <li><a href="#s4">Master data — vehicles</a></li>
+      <li><a href="#s5">Master data — customers</a></li>
+      <li><a href="#s6">Master data — suppliers</a></li>
+      <li><a href="#s7">Inventory — parts (list &amp; add/edit)</a></li>
+      <li><a href="#s8">Inventory — supplier purchases &amp; accounts payable</a></li>
+      <li><a href="#s9">POS — sales invoices (start to paid)</a></li>
+      <li><a href="#s10">Roles &amp; who can do what</a></li>
+      <li><a href="#appendix-a">Appendix — screenshot file checklist</a></li>
+    </ol>
+  </nav>
+
+  <!-- ===================== §0 ===================== -->
+  <h2 class="chapter" id="s0">0 — Using this manual &amp; screenshots</h2>
+  <p><strong>What you hold.</strong> This is the <em>full</em> written guide in one document. It is meant to match what Autowagen Master does today: vehicles you strip or stock, customers you sell to, suppliers you buy from, physical parts, batch purchases, money you owe suppliers, and shop-floor sales (POS).</p>
+  <p><strong>Why screenshots matter.</strong> Text tells staff <em>what</em> to click; a picture shows <em>where</em> it is on their screen. This manual lists every recommended capture with a fixed filename so your folder stays organised.</p>
+  <p><strong>How to capture (Windows).</strong> Open the live page in your training database. Press <kbd>Win</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd>, drag around the area, paste into Paint, save as PNG into <code>docs/manual_screenshots/</code>. Then edit this HTML file and uncomment the matching <code>&lt;img&gt;</code> line under that figure.</p>
+  <p><strong>Order of training.</strong> New users: read §1 → §2, then either follow §4–§7 (stock in) before §9 (sales), or jump to §9 if someone else already loaded vehicles/parts.</p>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 0 (optional).</strong> Folder in File Explorer showing <code>manual_screenshots</code> with a few PNGs (for trainers only).</p>
+    <p class="file"><code>docs/manual_screenshots/full-00-readme-folder.png</code></p>
+    <!-- <img src="manual_screenshots/full-00-readme-folder.png" alt="Screenshots folder"> -->
+  </div>
+
+  <!-- ===================== §1 ===================== -->
+  <h2 class="chapter" id="s1">1 — Opening the app &amp; signing in</h2>
+  <h3>1.1 Browser address</h3>
+  <p>Autowagen Master runs in a normal web browser. On your workshop PC the address usually looks like:</p>
+  <p class="muted"><code>http://localhost/autowagen-master/</code> &nbsp;or the hostname your installer gave you.</p>
+  <p>The first page either sends you to the login screen or to the dashboard if you are already signed in.</p>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 1.</strong> Browser address bar showing your Autowagen URL (homepage or redirect).</p>
+    <p class="file"><code>docs/manual_screenshots/full-01-browser-url.png</code></p>
+    <!-- <img src="manual_screenshots/full-01-browser-url.png" alt="Browser URL"> -->
+  </div>
+  <h3>1.2 Login</h3>
+  <ol class="steps">
+    <li>Open the login page (<code>auth/login.php</code>).</li>
+    <li>Enter your <strong>username</strong> and <strong>password</strong> (your owner creates these in the database or an earlier setup step).</li>
+    <li>Click <strong>Log in</strong>. Wrong passwords may be rate-limited after several attempts (security).</li>
+  </ol>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 2.</strong> Full login form (username, password, submit).</p>
+    <p class="file"><code>docs/manual_screenshots/full-02-login-page.png</code></p>
+    <!-- <img src="manual_screenshots/full-02-login-page.png" alt="Login page"> -->
+  </div>
+  <h3>1.3 Logout</h3>
+  <p>Click your name (top right) → <strong>Logout</strong>. Always logout on a shared PC.</p>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 3.</strong> Top-right user menu open with Logout visible.</p>
+    <p class="file"><code>docs/manual_screenshots/full-03-logout-menu.png</code></p>
+    <!-- <img src="manual_screenshots/full-03-logout-menu.png" alt="Logout menu"> -->
+  </div>
+
+  <!-- ===================== §2 ===================== -->
+  <h2 class="chapter" id="s2">2 — Dashboard &amp; top menu</h2>
+  <p>After login you see the <strong>Dashboard</strong>. The black top bar is the same on (almost) every page.</p>
+  <h3>2.1 Menu map</h3>
+  <ul>
+    <li><strong>Dashboard</strong> — home / overview.</li>
+    <li><strong>EPC</strong> — electronic parts <em>catalogue</em> (categories), not your stock count.</li>
+    <li><strong>Master data</strong> — <strong>Vehicles</strong>, <strong>Customers</strong>, <strong>Suppliers</strong> (people &amp; companies you work with).</li>
+    <li><strong>Inventory</strong> — <strong>All parts</strong>, <strong>Add part</strong>, <strong>Accounts payable (owed)</strong>, <strong>Supplier purchases</strong>, <strong>New supplier purchase</strong>.</li>
+    <li><strong>POS</strong> — <strong>Sales invoices</strong>, <strong>New sale</strong>.</li>
+  </ul>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 4.</strong> Dashboard with top navigation visible (full width).</p>
+    <p class="file"><code>docs/manual_screenshots/full-04-dashboard.png</code></p>
+    <!-- <img src="manual_screenshots/full-04-dashboard.png" alt="Dashboard"> -->
+  </div>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 5.</strong> One dropdown open (e.g. <strong>Master data</strong> or <strong>Inventory</strong>) showing all items.</p>
+    <p class="file"><code>docs/manual_screenshots/full-05-nav-dropdown.png</code></p>
+    <!-- <img src="manual_screenshots/full-05-nav-dropdown.png" alt="Nav dropdown"> -->
+  </div>
+
+  <!-- ===================== §3 ===================== -->
+  <h2 class="chapter" id="s3">3 — EPC — parts catalogue tree</h2>
+  <p>The EPC is a <strong>six-level tree</strong> (e.g. Engine → … → Variant). You use it to <em>label</em> where a part belongs in the catalogue. It does <strong>not</strong> replace inventory: a sellable part still needs a row under <strong>Inventory → All parts</strong>.</p>
+  <h3>3.1 Browse tree (everyone)</h3>
+  <ol class="steps">
+    <li><strong>EPC → Browse tree</strong>.</li>
+    <li>Click through levels until you reach variants.</li>
+    <li>Use this when you need a standard label for documentation or linking.</li>
+  </ol>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 6.</strong> EPC browse page with at least two levels visible.</p>
+    <p class="file"><code>docs/manual_screenshots/full-06-epc-browse.png</code></p>
+    <!-- <img src="manual_screenshots/full-06-epc-browse.png" alt="EPC browse"> -->
+  </div>
+  <h3>3.2 Manage tree (owner / admin)</h3>
+  <p><strong>EPC → Manage tree</strong> adds/edits/deactivates catalogue nodes. Day-to-day yard staff rarely need this.</p>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 7.</strong> EPC admin / manage screen.</p>
+    <p class="file"><code>docs/manual_screenshots/full-07-epc-admin.png</code></p>
+    <!-- <img src="manual_screenshots/full-07-epc-admin.png" alt="EPC admin"> -->
+  </div>
+
+  <!-- ===================== §4 ===================== -->
+  <h2 class="chapter" id="s4">4 — Master data — vehicles</h2>
+  <p>Each <strong>vehicle</strong> is a unit in your yard: donor car, stock number, stripping status, legal papers, photos, and links to stripped parts.</p>
+  <h3>4.1 Vehicle list</h3>
+  <ol class="steps">
+    <li><strong>Master data → Vehicles</strong>.</li>
+    <li>Use search/filters as needed. Columns typically include stock code, make/model, status, papers completeness, yard location.</li>
+    <li><strong>Add vehicle</strong> opens the editor without an id.</li>
+  </ol>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 8.</strong> Vehicles admin list with at least one row.</p>
+    <p class="file"><code>docs/manual_screenshots/full-08-vehicles-admin.png</code></p>
+    <!-- <img src="manual_screenshots/full-08-vehicles-admin.png" alt="Vehicles list"> -->
+  </div>
+  <h3>4.2 Vehicle editor (sections)</h3>
+  <p>The edit screen is long; it is grouped into cards: stock &amp; identity, status &amp; specs, acquisition, <strong>legal papers</strong> (logbook, receipt, seller ID, proof of residence — as used in your build), <strong>photos</strong>, notes, yard, and <strong>linked EPC variants</strong>. After save, you can upload scans and photos.</p>
+  <p class="muted"><strong>Important:</strong> Stock code, VIN, and registration plate are uniqueness-checked — duplicates block save.</p>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 9.</strong> Vehicle edit — top / identity section.</p>
+    <p class="file"><code>docs/manual_screenshots/full-09-vehicle-edit-top.png</code></p>
+    <!-- <img src="manual_screenshots/full-09-vehicle-edit-top.png" alt="Vehicle edit top"> -->
+  </div>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 10.</strong> Vehicle edit — legal papers / upload area (any one paper card is enough for the shot).</p>
+    <p class="file"><code>docs/manual_screenshots/full-10-vehicle-edit-papers.png</code></p>
+    <!-- <img src="manual_screenshots/full-10-vehicle-edit-papers.png" alt="Vehicle papers"> -->
+  </div>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 11.</strong> Vehicle edit — photos gallery OR “parts stripped from this vehicle” table (if parts exist).</p>
+    <p class="file"><code>docs/manual_screenshots/full-11-vehicle-edit-photos-or-parts.png</code></p>
+    <!-- <img src="manual_screenshots/full-11-vehicle-edit-photos-or-parts.png" alt="Vehicle photos or parts"> -->
+  </div>
+
+  <!-- ===================== §5 ===================== -->
+  <h2 class="chapter" id="s5">5 — Master data — customers</h2>
+  <p>Customers are buyers (and contacts for on-account). For <strong>Second-Hand Goods Act</strong>-style sales, the system can require <strong>ID document</strong> and <strong>proof of address</strong> scans on the customer <em>before</em> certain POS lines can be finalized.</p>
+  <h3>5.1 Customer list &amp; modal</h3>
+  <ol class="steps">
+    <li><strong>Master data → Customers</strong>.</li>
+    <li>Add or edit via the modal: individual vs business drives SA ID vs company reg fields.</li>
+    <li>Upload compliance documents; list shows a <strong>Docs N/2</strong> style badge when wired in your build.</li>
+  </ol>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 12.</strong> Customers list.</p>
+    <p class="file"><code>docs/manual_screenshots/full-12-customers-admin.png</code></p>
+    <!-- <img src="manual_screenshots/full-12-customers-admin.png" alt="Customers list"> -->
+  </div>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 13.</strong> Customer modal with ID / proof-of-address upload cards visible.</p>
+    <p class="file"><code>docs/manual_screenshots/full-13-customer-compliance.png</code></p>
+    <!-- <img src="manual_screenshots/full-13-customer-compliance.png" alt="Customer compliance"> -->
+  </div>
+
+  <!-- ===================== §6 ===================== -->
+  <h2 class="chapter" id="s6">6 — Master data — suppliers</h2>
+  <p>Registered suppliers you buy from (as a business). Used when parts are sourced from a supplier rather than a once-off private seller (depending on how you use part source).</p>
+  <ol class="steps">
+    <li><strong>Master data → Suppliers</strong>.</li>
+    <li>Add contact name, phone, email, payment terms, etc.</li>
+    <li>List and edit like other master tables.</li>
+  </ol>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 14.</strong> Suppliers list with Add / edit visible.</p>
+    <p class="file"><code>docs/manual_screenshots/full-14-suppliers-admin.png</code></p>
+    <!-- <img src="manual_screenshots/full-14-suppliers-admin.png" alt="Suppliers"> -->
+  </div>
+
+  <!-- ===================== §7 ===================== -->
+  <h2 class="chapter" id="s7">7 — Inventory — parts (list &amp; add/edit)</h2>
+  <p>A <strong>part</strong> is sellable stock: SKU, name, source (stripped / OEM / replacement / third party), condition, status (on vehicle / available / reserved / sold / scrapped), qty, pricing, yard slot, photos, optional EPC links, and (for third party) compliance document fields or linkage to a <strong>supplier purchase</strong>.</p>
+  <h3>7.1 All parts</h3>
+  <ol class="steps">
+    <li><strong>Inventory → All parts</strong>.</li>
+    <li>Filter by source, status, vehicle, search SKU/name/yard.</li>
+    <li>From a <strong>draft invoice</strong> you may land here with a blue <strong>Back to invoice</strong> bar and an <strong>Add to invoice</strong> column (only when opened from POS with a return link; see §9).</li>
+  </ol>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 15.</strong> Parts inventory list with filters.</p>
+    <p class="file"><code>docs/manual_screenshots/full-15-parts-admin.png</code></p>
+    <!-- <img src="manual_screenshots/full-15-parts-admin.png" alt="Parts admin"> -->
+  </div>
+  <h3>7.2 Add / edit part</h3>
+  <ol class="steps">
+    <li><strong>Inventory → Add part</strong> or pencil icon on a row.</li>
+    <li>Choose <strong>source</strong> — the form shows different fields (vehicle link for stripped, supplier vs private for third party, etc.).</li>
+    <li>SKU may be suggested; condition and status must reflect reality before you sell.</li>
+    <li>Upload photos; link EPC variants if you use the catalogue.</li>
+    <li><strong>Save</strong>.</li>
+  </ol>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 16.</strong> Part edit — main identity / source / pricing section.</p>
+    <p class="file"><code>docs/manual_screenshots/full-16-part-edit-main.png</code></p>
+    <!-- <img src="manual_screenshots/full-16-part-edit-main.png" alt="Part edit main"> -->
+  </div>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 17.</strong> Part edit — photos or TPP / compliance area (whichever your roles use).</p>
+    <p class="file"><code>docs/manual_screenshots/full-17-part-edit-photos-or-tpp.png</code></p>
+    <!-- <img src="manual_screenshots/full-17-part-edit-photos-or-tpp.png" alt="Part edit photos TPP"> -->
+  </div>
+
+  <!-- ===================== §8 ===================== -->
+  <h2 class="chapter" id="s8">8 — Inventory — supplier purchases &amp; accounts payable</h2>
+  <p><strong>Supplier purchase</strong> = one buy transaction (from a supplier or private seller) with SHGA-related uploads once, then many <strong>parts</strong> linked to it. <strong>Accounts payable</strong> tracks the bill (ZAR) and payments until you owe R0.</p>
+  <h3>8.1 Purchase list &amp; new purchase</h3>
+  <ol class="steps">
+    <li><strong>Inventory → Supplier purchases</strong> — list existing batches.</li>
+    <li><strong>New supplier purchase</strong> — create header (seller/supplier, dates, uploads as per screen).</li>
+    <li>Open a purchase → add or open linked parts.</li>
+  </ol>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 18.</strong> Supplier purchases list.</p>
+    <p class="file"><code>docs/manual_screenshots/full-18-supplier-purchases-admin.png</code></p>
+    <!-- <img src="manual_screenshots/full-18-supplier-purchases-admin.png" alt="Purchases list"> -->
+  </div>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 19.</strong> Supplier purchase edit — seller area + SHGA / docs OR parts list (one scroll position).</p>
+    <p class="file"><code>docs/manual_screenshots/full-19-supplier-purchase-edit.png</code></p>
+    <!-- <img src="manual_screenshots/full-19-supplier-purchase-edit.png" alt="Purchase edit"> -->
+  </div>
+  <h3>8.2 Bill &amp; payments</h3>
+  <p>On the same purchase screen: enter <strong>bill amount</strong> and dates; add <strong>payment</strong> lines (multiple rows for split EFT, etc.). <strong>Save purchase</strong> vs payment actions follow your trainer’s shop rule-of-thumb (see supplier PDFs in <code>docs/</code>).</p>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 20.</strong> Purchase edit — bill / payments block.</p>
+    <p class="file"><code>docs/manual_screenshots/full-20-purchase-bill-payments.png</code></p>
+    <!-- <img src="manual_screenshots/full-20-purchase-bill-payments.png" alt="Bill payments"> -->
+  </div>
+  <h3>8.3 Accounts payable report</h3>
+  <ol class="steps">
+    <li><strong>Inventory → Accounts payable (owed)</strong>.</li>
+    <li>Review balances by purchase / party.</li>
+  </ol>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 21.</strong> AP report (owed) with at least one row.</p>
+    <p class="file"><code>docs/manual_screenshots/full-21-ap-report.png</code></p>
+    <!-- <img src="manual_screenshots/full-21-ap-report.png" alt="AP report"> -->
+  </div>
+
+  <!-- ===================== §9 ===================== -->
+  <h2 class="chapter" id="s9">9 — POS — sales invoices (start to paid)</h2>
+  <h3>9.1 New sale &amp; invoice list</h3>
+  <ol class="steps">
+    <li><strong>POS → New sale</strong> creates a <strong>draft</strong> and opens the editor.</li>
+    <li><strong>POS → Sales invoices</strong> lists draft/final/void; open any row to continue.</li>
+  </ol>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 22.</strong> Sales invoices list.</p>
+    <p class="file"><code>docs/manual_screenshots/full-22-invoices-admin.png</code></p>
+    <!-- <img src="manual_screenshots/full-22-invoices-admin.png" alt="Invoices list"> -->
+  </div>
+  <h3>9.2 Draft — customer &amp; lines</h3>
+  <ol class="steps">
+    <li>Select <strong>Customer</strong>, invoice date, optional <strong>Due date</strong> (on account), notes → <strong>Save draft</strong>.</li>
+    <li>Add lines: <strong>Select item…</strong> (search available parts), or numeric <strong>Part ID</strong>, or open <strong>All parts</strong> from the coloured links in the modal and use <strong>Add to invoice</strong> on available rows.</li>
+    <li><strong>Manual line</strong> for labour/fees (no stock).</li>
+    <li>Watch the <strong>Lines</strong> header: large running <strong>R … incl. VAT</strong> total updates with each line.</li>
+    <li>Remove a line with <strong>×</strong> while still draft.</li>
+  </ol>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 23.</strong> Draft invoice — customer + Lines table + bold total badge.</p>
+    <p class="file"><code>docs/manual_screenshots/full-23-invoice-draft-lines.png</code></p>
+    <!-- <img src="manual_screenshots/full-23-invoice-draft-lines.png" alt="Draft invoice lines"> -->
+  </div>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 24.</strong> <strong>Select item…</strong> modal with search + results.</p>
+    <p class="file"><code>docs/manual_screenshots/full-24-invoice-search-modal.png</code></p>
+    <!-- <img src="manual_screenshots/full-24-invoice-search-modal.png" alt="Search modal"> -->
+  </div>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 25.</strong> Parts list opened from invoice (<strong>Back to invoice</strong> + optional <strong>Add to invoice</strong>).</p>
+    <p class="file"><code>docs/manual_screenshots/full-25-parts-from-invoice.png</code></p>
+    <!-- <img src="manual_screenshots/full-25-parts-from-invoice.png" alt="Parts from invoice"> -->
+  </div>
+  <h3>9.3 SHGA (yellow box)</h3>
+  <p>If a line is <strong>stripped</strong> or not <strong>new</strong> condition, the customer usually needs ID + proof-of-address files. The app blocks <strong>Finalize</strong> until the <strong>selected customer</strong> has those uploads. Edit customer → upload → return to invoice.</p>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 26.</strong> Invoice showing SHGA badge on a line and/or yellow reminder card.</p>
+    <p class="file"><code>docs/manual_screenshots/full-26-invoice-shga.png</code></p>
+    <!-- <img src="manual_screenshots/full-26-invoice-shga.png" alt="Invoice SHGA"> -->
+  </div>
+  <h3>9.4 Finalize</h3>
+  <ol class="steps">
+    <li>Confirm every line, customer saved, compliance satisfied.</li>
+    <li><strong>Finalize invoice</strong> → confirm. System assigns invoice number, updates part stock / sold as designed.</li>
+  </ol>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 27.</strong> Final invoice header showing <strong>INV-…</strong> number (mask real customers if publishing).</p>
+    <p class="file"><code>docs/manual_screenshots/full-27-invoice-final-header.png</code></p>
+    <!-- <img src="manual_screenshots/full-27-invoice-final-header.png" alt="Final invoice"> -->
+  </div>
+  <h3>9.5 Payments &amp; print</h3>
+  <ol class="steps">
+    <li><strong>Remaining</strong> shows what the customer still owes; <strong>Add payment</strong> until paid (or leave balance for true credit terms).</li>
+    <li><strong>Print</strong> / PDF uses the letterhead area in the app — if the black bar is missing in Edge, turn on <strong>Background graphics</strong> in print settings.</li>
+  </ol>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 28.</strong> Payments section with at least one payment row or empty form.</p>
+    <p class="file"><code>docs/manual_screenshots/full-28-invoice-payments.png</code></p>
+    <!-- <img src="manual_screenshots/full-28-invoice-payments.png" alt="Payments"> -->
+  </div>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 29.</strong> Print preview or printed PDF first page (optional).</p>
+    <p class="file"><code>docs/manual_screenshots/full-29-invoice-print-preview.png</code></p>
+    <!-- <img src="manual_screenshots/full-29-invoice-print-preview.png" alt="Print preview"> -->
+  </div>
+  <p><strong>More POS detail.</strong> For a second deep document only about the invoice screen, also print <code>invoice_screen_full_guide.html</code> (zones A–F, S, P, etc.).</p>
+
+  <!-- ===================== §10 ===================== -->
+  <h2 class="chapter" id="s10">10 — Roles &amp; who can do what</h2>
+  <p>Your installation defines users with a <strong>role</strong> (e.g. owner, admin, manager, staff, viewer). Only some roles may add parts, finalize sales, manage EPC, or see prices. The exact matrix follows how your <code>auth_check.php</code> gates each page — if a menu item is missing, the login you used does not have that permission.</p>
+  <div class="shot-box">
+    <p class="cap"><strong>Figure 30 (optional).</strong> Top-right badge showing role name (e.g. owner).</p>
+    <p class="file"><code>docs/manual_screenshots/full-30-user-role-badge.png</code></p>
+    <!-- <img src="manual_screenshots/full-30-user-role-badge.png" alt="Role badge"> -->
+  </div>
+
+  <!-- ===================== Appendix ===================== -->
+  <h2 class="chapter" id="appendix-a">Appendix — screenshot file checklist</h2>
+  <p>Copy this table when batch-capturing. Every file lives in <code>docs/manual_screenshots/</code>.</p>
+  <table class="chart">
+    <thead>
+      <tr><th>#</th><th>Filename</th><th>What to capture</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>00</td><td>full-00-readme-folder.png</td><td>Optional: folder of PNGs</td></tr>
+      <tr><td>01</td><td>full-01-browser-url.png</td><td>Browser URL</td></tr>
+      <tr><td>02</td><td>full-02-login-page.png</td><td>Login</td></tr>
+      <tr><td>03</td><td>full-03-logout-menu.png</td><td>Logout menu</td></tr>
+      <tr><td>04</td><td>full-04-dashboard.png</td><td>Dashboard</td></tr>
+      <tr><td>05</td><td>full-05-nav-dropdown.png</td><td>Menu dropdown</td></tr>
+      <tr><td>06</td><td>full-06-epc-browse.png</td><td>EPC browse</td></tr>
+      <tr><td>07</td><td>full-07-epc-admin.png</td><td>EPC manage</td></tr>
+      <tr><td>08</td><td>full-08-vehicles-admin.png</td><td>Vehicles list</td></tr>
+      <tr><td>09</td><td>full-09-vehicle-edit-top.png</td><td>Vehicle edit top</td></tr>
+      <tr><td>10</td><td>full-10-vehicle-edit-papers.png</td><td>Vehicle papers</td></tr>
+      <tr><td>11</td><td>full-11-vehicle-edit-photos-or-parts.png</td><td>Photos or stripped parts</td></tr>
+      <tr><td>12</td><td>full-12-customers-admin.png</td><td>Customers list</td></tr>
+      <tr><td>13</td><td>full-13-customer-compliance.png</td><td>Customer uploads</td></tr>
+      <tr><td>14</td><td>full-14-suppliers-admin.png</td><td>Suppliers</td></tr>
+      <tr><td>15</td><td>full-15-parts-admin.png</td><td>Parts list</td></tr>
+      <tr><td>16</td><td>full-16-part-edit-main.png</td><td>Part edit main</td></tr>
+      <tr><td>17</td><td>full-17-part-edit-photos-or-tpp.png</td><td>Part photos / TPP</td></tr>
+      <tr><td>18</td><td>full-18-supplier-purchases-admin.png</td><td>Purchases list</td></tr>
+      <tr><td>19</td><td>full-19-supplier-purchase-edit.png</td><td>Purchase edit</td></tr>
+      <tr><td>20</td><td>full-20-purchase-bill-payments.png</td><td>Bill &amp; payments</td></tr>
+      <tr><td>21</td><td>full-21-ap-report.png</td><td>AP owed</td></tr>
+      <tr><td>22</td><td>full-22-invoices-admin.png</td><td>Sales invoices</td></tr>
+      <tr><td>23</td><td>full-23-invoice-draft-lines.png</td><td>Draft + total</td></tr>
+      <tr><td>24</td><td>full-24-invoice-search-modal.png</td><td>Search modal</td></tr>
+      <tr><td>25</td><td>full-25-parts-from-invoice.png</td><td>Parts + Back</td></tr>
+      <tr><td>26</td><td>full-26-invoice-shga.png</td><td>SHGA</td></tr>
+      <tr><td>27</td><td>full-27-invoice-final-header.png</td><td>Final INV#</td></tr>
+      <tr><td>28</td><td>full-28-invoice-payments.png</td><td>Payments</td></tr>
+      <tr><td>29</td><td>full-29-invoice-print-preview.png</td><td>Print/PDF</td></tr>
+      <tr><td>30</td><td>full-30-user-role-badge.png</td><td>Role (optional)</td></tr>
+    </tbody>
+  </table>
+
+  <footer>
+    Autowagen Master · Complete system manual · Text reflects staged build (PHP app + MySQL). Screenshots are your responsibility · Not legal advice · ZAR.
+  </footer>
+
+</body>
+</html>

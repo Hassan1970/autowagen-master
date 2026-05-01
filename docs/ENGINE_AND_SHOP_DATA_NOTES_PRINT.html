@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Engine data &amp; public shop — print to PDF</title>
+  <style>
+    @page { size: A4; margin: 14mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.48;
+      color: #111;
+      max-width: 190mm;
+      margin: 0 auto;
+      padding: 12px 16px 28px;
+    }
+    h1 {
+      font-size: 1.35rem;
+      color: #c8102e;
+      border-bottom: 3px solid #0a0a0a;
+      padding-bottom: 8px;
+      margin-top: 0;
+    }
+    h2 {
+      font-size: 1.08rem;
+      margin-top: 1.4em;
+      color: #0a0a0a;
+      border-left: 4px solid #c8102e;
+      padding-left: 10px;
+    }
+    h3 { font-size: 1rem; margin-top: 1em; }
+    table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin: 10px 0; }
+    th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; vertical-align: top; }
+    th { background: #f0f0f0; }
+    code, .mono { font-family: Consolas, "Courier New", monospace; font-size: 9pt; }
+    .note {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin: 10px 0;
+      font-size: 9.5pt;
+    }
+    .tree {
+      font-family: Consolas, monospace;
+      font-size: 9pt;
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 12px 14px;
+      white-space: pre;
+      overflow-x: auto;
+    }
+    .print-hint {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      padding: 10px 12px;
+      margin-bottom: 18px;
+      font-size: 10pt;
+    }
+    @media print {
+      .no-print { display: none !important; }
+      h2 { page-break-after: avoid; }
+      table { page-break-inside: avoid; }
+    }
+    ul.compact li { margin-bottom: 4px; }
+    .footer { margin-top: 2em; font-size: 8.5pt; color: #666; border-top: 1px solid #ccc; padding-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <div class="print-hint no-print">
+    <strong>Save as PDF:</strong> Open this file in <strong>Chrome</strong> or <strong>Edge</strong> → press <strong>Ctrl+P</strong> → choose <strong>Save as PDF</strong> (or Microsoft Print to PDF). Optional: set margins to Default.
+  </div>
+
+  <h1>Engine data &amp; public shop — reference notes</h1>
+  <p><strong>Autowagen Master</strong> — where engine-related data lives, how subcategories work, and how the website reads it. For owners and staff keeping documentation.</p>
+
+  <h2>1. Where the program reads data from</h2>
+  <p>All shop pages use <strong>PHP + PDO</strong> (<code>config/config.php</code>) to read one <strong>MySQL/MariaDB</strong> database (on Laragon usually <code>autowagen_master</code>; on hosting, the name in <code>secrets.live.php</code>). There is no separate “engine server” — engines on the site are <strong>normal inventory rows</strong> plus <strong>EPC links</strong>.</p>
+
+  <table>
+    <thead><tr><th>Topic</th><th>What you maintain in the app</th><th>Database</th></tr></thead>
+    <tbody>
+      <tr><td>Part for sale (name, price, qty, photos…)</td><td>Inventory → Edit part</td><td><code>parts</code>, <code>part_photos</code></td></tr>
+      <tr><td>“This part is an engine / cooling / … catalogue tag”</td><td>Same screen — EPC variant picker → saves links</td><td><code>part_epc_links</code> → <code>epc_variants</code> → … → <code>epc_categories</code></td></tr>
+      <tr><td>Flat path for filtering (e.g. category slug <code>engine</code>)</td><td>Built from tree (not edited by hand)</td><td>View <code>epc_full_view</code></td></tr>
+      <tr><td>Show on public website</td><td>Tick <strong>List on public website</strong></td><td><code>parts.list_online</code> (after <code>06b_web_shop.sql</code>)</td></tr>
+      <tr><td>Wrecks on Stripping stock</td><td>Master data → Vehicles + photos</td><td><code>vehicles</code>, <code>vehicle_photos</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>2. EPC tree — what “Engine” and subcategories really are</h2>
+  <p>The catalogue is a <strong>fixed-depth tree</strong> (Stage 2). Each part can be linked to one or more <strong>variants</strong> (bottom level). The shop’s <strong>Engines</strong> section keeps any part whose link path includes the top category with slug <strong><code>engine</code></strong>.</p>
+
+  <h3>Six levels (top → bottom)</h3>
+  <ol class="compact">
+    <li><strong>Category</strong> — e.g. <em>Engine</em> (<code>epc_categories.slug = engine</code>)</li>
+    <li><strong>Subcategory</strong> — e.g. Petrol, Diesel (<code>epc_subcategories</code>)</li>
+    <li><strong>Type</strong> — e.g. Inline 4, V6 (<code>epc_types</code>)</li>
+    <li><strong>Subsystem</strong> — e.g. Cooling, Lubrication (<code>epc_subsystems</code>)</li>
+    <li><strong>Component</strong> — e.g. Radiator (<code>epc_components</code>)</li>
+    <li><strong>Variant</strong> — e.g. OEM, Aftermarket (<code>epc_variants</code>) ← <strong>what you pick for the part</strong></li>
+  </ol>
+
+  <h3>Example paths from the seed SQL (<code>sql/02_epc.sql</code>)</h3>
+  <div class="tree">Engine
+└── Petrol
+    └── Inline 4
+        ├── Cooling
+        │   └── Radiator → OEM | Aftermarket
+        └── Lubrication → …
+
+Engine
+└── Diesel → …
+
+Brakes / Body … (other top categories, not “engine” slug)</div>
+
+  <p class="note"><strong>Your live tree may be larger</strong> if you ran optional expansion scripts (<code>02b</code>–<code>02h</code>). More subcategories = more precise tags, but the <strong>shop Engines page</strong> still groups everything whose <code>category_slug</code> is <code>engine</code>, regardless of Petrol/Diesel/Cooling, unless you add more shop filters later.</p>
+
+  <h2>3. How a part gets into “Engines” on the website</h2>
+  <ol class="compact">
+    <li>Part exists in <code>parts</code> with <code>is_active</code>, <code>status = available</code>, <code>qty_on_hand &gt; 0</code>, <code>list_online = 1</code>.</li>
+    <li>Row exists in <code>part_epc_links</code> linking <code>part_id</code> to some <code>variant_id</code>.</li>
+    <li>That variant joins through <code>epc_full_view</code> to a row where <code>category_slug = 'engine'</code>.</li>
+  </ol>
+  <p><strong>PHP file:</strong> <code>shop/category.php</code> — SQL joins <code>parts</code> → <code>part_epc_links</code> → <code>epc_full_view</code> and filters <code>efv.category_slug = :cat_slug</code> (for Engines, <code>engine</code>).</p>
+
+  <h2>4. Engines menu — three extra “lanes” (same Engine category)</h2>
+  <p>Besides <strong>All engine listings</strong>, the dropdown filters by <strong>words in <code>parts.name</code></strong> (not by EPC subcategory level). Staff must use consistent titles.</p>
+  <table>
+    <thead><tr><th>Menu item</th><th>URL</th><th>Meaning (name keywords)</th></tr></thead>
+    <tbody>
+      <tr><td>All engine listings</td><td><code>category.php?slug=engine</code></td><td>Every online part tagged under Engine in EPC</td></tr>
+      <tr><td>Engine parts (loose)</td><td><code>…&amp;line=parts</code></td><td>Excludes titles that look like “complete engine” / “cylinder head” patterns</td></tr>
+      <tr><td>Complete engines / sub-units</td><td><code>…&amp;line=complete</code></td><td>Title contains e.g. complete engine, long block, long motor, full engine, engine assembly, sub unit</td></tr>
+      <tr><td>Cylinder heads / bare</td><td><code>…&amp;line=heads</code></td><td>Title contains e.g. cylinder head, cyl head, bare head, head bare</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Code reference:</strong> <code>includes/shop_helpers.php</code> — <code>shop_normalize_engine_line()</code>, <code>shop_engine_line_sql_condition()</code>.</p>
+
+  <h2>5. EPC vs lanes (important)</h2>
+  <table>
+    <thead><tr><th>Layer</th><th>Decides</th></tr></thead>
+    <tbody>
+      <tr><td><strong>EPC tree</strong> (Petrol → Inline 4 → Cooling → Radiator → OEM)</td><td>Whether the part appears under the <strong>Engine</strong> shop category at all (and staff drill-down in admin)</td></tr>
+      <tr><td><strong>Engines dropdown lane</strong> (<code>line=parts|complete|heads</code>)</td><td>Which <strong>shop submenu</strong> the part appears in — based on <strong>part name text</strong> only</td></tr>
+    </tbody>
+  </table>
+  <p class="note">To drive lanes from EPC instead of names in the future, you would add a field on <code>parts</code> (e.g. assembly class) or map EPC components — that would need a small schema + code change.</p>
+
+  <h2>6. SQL files to remember</h2>
+  <ul class="compact">
+    <li><code>sql/02_epc.sql</code> — EPC tables + <code>epc_full_view</code> + seed Engine/Brakes/Body</li>
+    <li>Optional: <code>sql/02b</code> … <code>02h</code> — more categories / subcategories (see <code>README_EPC_EXPANSION.txt</code>)</li>
+    <li><code>sql/04_inventory.sql</code> — <code>parts</code>, <code>part_epc_links</code>, <code>part_photos</code></li>
+    <li><code>sql/06b_web_shop.sql</code> — <code>parts.list_online</code>, <code>shop_orders</code>, <code>shop_order_lines</code></li>
+    <li><code>sql/06e_shop_guest_enquiries.sql</code> — guest Message inbox</li>
+  </ul>
+
+  <h2>7. Staff checklist (engines on the web)</h2>
+  <ol class="compact">
+    <li>Edit part → set name, price, qty, available.</li>
+    <li>Link EPC path that ends under <strong>Engine</strong> (any valid sub-path you use).</li>
+    <li>Tick <strong>List on public website</strong>.</li>
+    <li>For submenu lanes: set <strong>part name</strong> wording per section 4.</li>
+    <li>Upload photos; save.</li>
+  </ol>
+
+  <h2>8. Related printable guides in <code>docs/</code></h2>
+  <ul class="compact">
+    <li><code>shop_staff_data_guide.html</code> — shop data overview for staff</li>
+    <li><code>client_training_index.html</code> — index of all training HTML</li>
+    <li><code>complete_system_manual.html</code> — full system walkthrough</li>
+  </ul>
+
+  <p class="footer no-print">Generate PDF from this HTML only. File: <code>docs/ENGINE_AND_SHOP_DATA_NOTES_PRINT.html</code> · Autowagen Master · 2026</p>
+
+</body>
+</html>

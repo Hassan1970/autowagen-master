@@ -1,0 +1,20 @@
+Mockup PNG files in this folder are for Windows Photos / Paint / your browser.
+
+Cursor often cannot preview PNGs from this path — that is normal.
+Double-click a .png in File Explorer, or right-click → Open with → Photos.
+
+---
+Engines menu (public shop)
+- All engine listings — everything EPC-tagged Engine + list_online.
+- Engine parts (loose) — part titles should NOT contain the assembly/head keyword phrases (see shop_engine_line_sql_condition in includes/shop_helpers.php).
+- Complete engines / sub-units — titles should include e.g. complete engine, long block, long motor, full engine, engine assembly, sub unit.
+- Cylinder heads / bare — titles should include e.g. cylinder head, cyl head, bare head, head bare.
+
+Gearbox menu (public shop) — visuals:
+- **PNG mock (navbar):** `shop-gearbox-nav-mockup.png` (same folder as engine mockups).
+- **HTML mock (browser):** `shop-gearbox-nav-mockup.html` — open in Chrome/Edge.
+
+URLs on the real site:
+- All gearbox listings — EPC category slug transmission-driveline + list_online.
+- Complete gearbox — titles with e.g. complete gearbox, gearbox assembly, full gearbox (see shop_gearbox_line_sql_condition in includes/shop_helpers.php).
+- Gearbox parts (loose) — EPC-tagged <strong>Transmission &amp; driveline</strong>; examples: <strong>Bell housing</strong>, <strong>Centre / center casing</strong>, <strong>Gears</strong> / gear sets, shafts, selectors. Titles must <strong>not</strong> match the “complete unit” phrases (see <code>shop_gearbox_line_sql_condition</code>).

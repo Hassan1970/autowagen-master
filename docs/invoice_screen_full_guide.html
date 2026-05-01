@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autowagen Master — Sales invoice screen (full guide)</title>
+  <style>
+    @page { margin: 12mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 11pt;
+      line-height: 1.5;
+      color: #222;
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 8px 18px 32px;
+      background: #fff;
+    }
+    h1 { font-size: 1.15rem; margin: 0 0 2px; color: #0a0a0a; }
+    .subtitle { color: #555; font-size: 9.5pt; margin: 0 0 8px; }
+    .print-hint {
+      background: #fff8e6;
+      border: 1px solid #e6c200;
+      padding: 4px 10px;
+      font-size: 9pt;
+      margin-bottom: 6px;
+      border-radius: 3px;
+    }
+    .nav-box {
+      background: #f8f9fa;
+      border-left: 3px solid #c8102e;
+      padding: 5px 10px;
+      margin-bottom: 10px;
+      font-size: 9.5pt;
+    }
+    h2 {
+      font-size: 0.95rem;
+      margin: 14px 0 6px;
+      color: #c8102e;
+      border-bottom: 2px solid #c8102e;
+      padding-bottom: 3px;
+    }
+    .zones { display: flex; flex-direction: column; gap: 16px; }
+    .zone {
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 14px 16px 14px 54px;
+      position: relative;
+      background: #fafafa;
+      page-break-inside: avoid;
+    }
+    .zone .letter {
+      position: absolute;
+      left: 12px;
+      top: 14px;
+      min-width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #c8102e;
+      color: #fff;
+      font-weight: 800;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .zone .letter.intro {
+      background: #0a0a0a;
+      font-size: 11px;
+      border-radius: 6px;
+      width: auto;
+      padding: 0 8px;
+    }
+    .zone h3 { margin: 0 0 10px; font-size: 1rem; color: #0a0a0a; }
+    .row { margin: 8px 0 0; font-size: 10.5pt; }
+    .row strong { color: #000; display: inline-block; min-width: 5.5em; }
+    .summary {
+      margin-top: 28px;
+      padding: 14px 16px;
+      background: #0a0a0a;
+      color: #fff;
+      border-radius: 6px;
+      font-size: 10.5pt;
+    }
+    .summary h2 { color: #fff; border-color: #c8102e; margin-top: 0; }
+    .summary ul { margin: 8px 0 0; padding-left: 1.2em; }
+    .summary li { margin: 6px 0; }
+    footer {
+      margin-top: 28px;
+      padding-top: 12px;
+      border-top: 1px solid #ccc;
+      font-size: 9pt;
+      color: #666;
+    }
+    kbd { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+    .shot-box {
+      margin: 10px 0 0;
+      border: 2px dashed #adb5bd;
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: #f8f9fa;
+      page-break-inside: avoid;
+    }
+    .shot-box .shot-caption { font-size: 9.5pt; color: #495057; margin: 0 0 6px; line-height: 1.35; }
+    .shot-box .shot-filename { font-family: ui-monospace, Consolas, monospace; font-size: 8.5pt; color: #6c757d; word-break: break-all; }
+    .shot-box img { max-width: 100%; height: auto; display: block; margin-top: 6px; border: 1px solid #ccc; border-radius: 4px; }
+    @media print { body { padding: 0; } .print-hint { border-style: dashed; } }
+  </style>
+</head>
+<body>
+
+  <h1>Sales invoice screen — full guide</h1>
+  <p class="subtitle"><strong>Autowagen Master</strong> · Stage 5 POS · Page: <code>invoice_edit.php</code> · Also: <strong>Draft invoice #</strong>… until finalized, then <strong>Invoice INV-…</strong><br>
+    <span style="font-size:9.5pt;color:#555;">Illustrated version: save PNGs into <code>docs/manual_screenshots/</code> per <strong>docs/TRAINING_SCREENSHOTS.md</strong>, then uncomment the <code>&lt;img&gt;</code> lines in this file.</span></p>
+
+  <div class="print-hint">
+    <strong>Save as PDF:</strong> Chrome or Edge → <kbd>Ctrl</kbd>+<kbd>P</kbd> → <strong>Save as PDF</strong>.
+  </div>
+
+  <div class="nav-box">
+    <strong>Open this screen:</strong> <strong>POS</strong> → <strong>New sale</strong> (creates a draft) or <strong>Sales invoices</strong> → <strong>Open</strong> on a row.
+    <strong>Add parts:</strong> button <strong>Select item…</strong> (search + pick row) <em>or</em> numeric <strong>Part ID</strong> box <em>or</em> from <strong>All parts</strong> (see zone <strong>P</strong>) when opened from the modal links.
+  </div>
+
+  <h2>Invoice states (draft → final → void)</h2>
+  <ul style="font-size:10.5pt;">
+    <li><strong>Draft</strong> — You can change customer, dates, notes, add/remove lines. Nothing has been taken from stock yet.</li>
+    <li><strong>Final</strong> — Invoice number assigned (e.g. <code>INV-2026-00001</code>). Part-linked stock is reduced; parts may become <strong>Sold</strong>. You can record <strong>Payments</strong>.</li>
+    <li><strong>Void</strong> — Cancelled for accounting; <strong>stock is not</strong> automatically put back — fix parts manually if it was a mistake.</li>
+  </ul>
+
+  <h2>Screen map (draft — match your screenshots)</h2>
+  <p style="font-size:10.5pt;color:#333;margin:0 0 8px">Each zone below has a grey <strong>Figure</strong> box: that is where your PNG goes (filename shown). Until you add files, print/PDF still works as a text-only manual.</p>
+
+  <div class="zones">
+
+    <div class="zone">
+      <span class="letter intro">TOP</span>
+      <h3>Title row &amp; link</h3>
+      <p class="row"><strong>What:</strong> Main heading (<em>Draft invoice #1</em> or <em>Invoice INV-…</em>), one-line hint under it, and <strong>All invoices</strong> back to the list.</p>
+      <p class="row"><strong>Why:</strong> You always know which record you are in and how to return to the list.</p>
+      <p class="row"><strong>When:</strong> Every visit.</p>
+      <p class="row"><strong>How:</strong> No save — navigation only. Green/red alerts may appear below after an action (save, finalize, error).</p>
+      <div class="shot-box">
+        <p class="shot-caption"><strong>Figure.</strong> Draft title row, <strong>All invoices</strong> link, and alert area.</p>
+        <p class="shot-filename">Save as: <code>docs/manual_screenshots/invoice-00-top.png</code></p>
+        <!-- <img src="manual_screenshots/invoice-00-top.png" alt="Invoice top"> -->
+      </div>
+    </div>
+
+    <div class="zone">
+      <span class="letter">A</span>
+      <h3>Customer &amp; dates (+ Save draft)</h3>
+      <p class="row"><strong>What:</strong> <em>Customer</em> dropdown (active customers from Master data). <em>Invoice date</em> (tax/document date). <em>Due date (on account)</em> — optional; use when the buyer pays later so you know when money was expected. <em>Notes</em>. Red <strong>Save draft</strong>.</p>
+      <p class="row"><strong>Why:</strong> The customer is required before <strong>Finalize</strong>. Due date is stored for your process (future: overdue / reminders — not auto-email yet). Notes stay on the invoice row in the database.</p>
+      <p class="row"><strong>When:</strong> While the invoice is a <strong>draft</strong>. After finalizing, this block becomes a read-only summary (same info, no edit).</p>
+      <p class="row"><strong>How:</strong> Choose customer and dates → click <strong>Save draft</strong>. You must save a customer before finalize will work.</p>
+      <div class="shot-box">
+        <p class="shot-caption"><strong>Figure.</strong> Customer dropdown, invoice date, due date, notes, <strong>Save draft</strong>.</p>
+        <p class="shot-filename">Save as: <code>docs/manual_screenshots/invoice-01-customer-dates.png</code></p>
+        <!-- <img src="manual_screenshots/invoice-01-customer-dates.png" alt="Customer and dates"> -->
+      </div>
+    </div>
+
+    <div class="zone">
+      <span class="letter">B</span>
+      <h3>Lines</h3>
+      <p class="row"><strong>What:</strong> Table of everything you are selling on this invoice: description, qty, amounts ex VAT, VAT, column total incl VAT per line. In the card header, a <strong>large bold</strong> badge shows the running <strong>total incl. VAT</strong> for the whole invoice (updates every time you add or remove a line). In draft, each row can have <strong>×</strong> to remove.</p>
+      <p class="row"><strong>Why:</strong> This is the legal/commercial breakdown of the sale. Totals feed <strong>Finalize</strong> and later <strong>Payments</strong> (what the customer owes).</p>
+      <p class="row"><strong>When:</strong> Build lines in draft; after final they are fixed (no delete from here).</p>
+      <p class="row"><strong>How:</strong> Add rows with <strong>S</strong> (search modal), <strong>P</strong> (full parts list from invoice), <strong>C</strong> (part ID), or <strong>D</strong> (manual line). <strong>SHGA</strong> badge on a row means second-hand / stripped buyer rules — see <strong>F</strong>.</p>
+      <div class="shot-box">
+        <p class="shot-caption"><strong>Figure.</strong> Lines table + header badge showing <strong>R … incl. VAT</strong> (large / bold on screen).</p>
+        <p class="shot-filename">Save as: <code>docs/manual_screenshots/invoice-02-lines-running-total.png</code></p>
+        <!-- <img src="manual_screenshots/invoice-02-lines-running-total.png" alt="Lines and running total"> -->
+      </div>
+    </div>
+
+    <div class="zone">
+      <span class="letter">S</span>
+      <h3>Select item… (search modal)</h3>
+      <p class="row"><strong>What:</strong> Opens from the red <strong>Select item…</strong> button (draft, permission to edit). Type part name, SKU, or vehicle — results show only <strong>Available</strong> stock. Click a row to load <strong>Part ID</strong>, <strong>Qty</strong>, and <strong>Price ex VAT</strong> into the add form on the page; then click <strong>Add to invoice</strong> (or equivalent) on the main page.</p>
+      <p class="row"><strong>Why:</strong> Faster than memorizing numeric IDs. You can still override price before adding (e.g. discount).</p>
+      <p class="row"><strong>When:</strong> Draft only.</p>
+      <p class="row"><strong>How:</strong> <strong>Select item…</strong> → type → pick row → set qty/price if needed → confirm add on the invoice. Optional: coloured links (<strong>Stripped</strong>, etc.) open <strong>All parts</strong> filtered — see <strong>P</strong>.</p>
+      <div class="shot-box">
+        <p class="shot-caption"><strong>Figure.</strong> Modal open with search box + at least one result row.</p>
+        <p class="shot-filename">Save as: <code>docs/manual_screenshots/invoice-03-select-item-modal.png</code></p>
+        <!-- <img src="manual_screenshots/invoice-03-select-item-modal.png" alt="Select item modal"> -->
+      </div>
+    </div>
+
+    <div class="zone">
+      <span class="letter">P</span>
+      <h3>All parts from invoice (Back + Add to invoice)</h3>
+      <p class="row"><strong>What:</strong> From the modal, links like <strong>Stripped</strong> open <strong>Inventory → All parts</strong> in the same tab with <code>return=invoice_edit.php?id=…</code>. A blue bar shows <strong>Back to invoice</strong>. On a <strong>draft</strong>, the table may include an <strong>Invoice</strong> column: <strong>Qty</strong> + <strong>Add to invoice</strong> posts straight to the draft (same rules: part must be <strong>Available</strong>, qty ≤ on hand). Search and pagination keep <strong>return</strong>.</p>
+      <p class="row"><strong>Why:</strong> Lets staff browse the full list (including not-yet-available rows) and jump back without relying only on browser <strong>Back</strong>.</p>
+      <p class="row"><strong>When:</strong> Draft only for <strong>Add to invoice</strong>; <strong>Back</strong> works anytime you used the modal link.</p>
+      <p class="row"><strong>How:</strong> Click coloured source link → find part → if <strong>Available</strong>, set qty → <strong>Add to invoice</strong>. If status is e.g. <strong>On vehicle</strong>, edit the part first to <strong>Available</strong>.</p>
+      <div class="shot-box">
+        <p class="shot-caption"><strong>Figure.</strong> Parts list with blue <strong>Back to invoice</strong> and at least one <strong>Add to invoice</strong> control.</p>
+        <p class="shot-filename">Save as: <code>docs/manual_screenshots/invoice-04-parts-admin-return.png</code></p>
+        <!-- <img src="manual_screenshots/invoice-04-parts-admin-return.png" alt="Parts list from invoice"> -->
+      </div>
+    </div>
+
+    <div class="zone">
+      <span class="letter">C</span>
+      <h3>Add part by numeric Part ID</h3>
+      <p class="row"><strong>What:</strong> Fields <em>Part ID</em>, <em>Qty</em>, optional price override, blue <strong>Add</strong> — same outcome as the modal once ID and qty are filled.</p>
+      <p class="row"><strong>Why:</strong> Links the sale to real stock. The system copies the part’s <strong>asking price</strong> and <strong>VAT %</strong> at add time (unless you override price).</p>
+      <p class="row"><strong>When:</strong> Draft only. Part must be <strong>Available</strong> and quantity must not exceed <strong>qty on hand</strong>.</p>
+      <p class="row"><strong>How:</strong> Get ID from <strong>Inventory → All parts</strong> or from the URL on <strong>Edit part</strong> (<code>?id=</code>) → type ID → <strong>Add</strong>. No separate <strong>Save draft</strong> for lines — each Add saves immediately.</p>
+      <div class="shot-box">
+        <p class="shot-caption"><strong>Figure.</strong> Part ID box + qty + <strong>Add</strong> (and <strong>Select item…</strong> in the same card area).</p>
+        <p class="shot-filename">Save as: <code>docs/manual_screenshots/invoice-05-add-part-card.png</code></p>
+        <!-- <img src="manual_screenshots/invoice-05-add-part-card.png" alt="Add part card"> -->
+      </div>
+    </div>
+
+    <div class="zone">
+      <span class="letter">D</span>
+      <h3>Manual line (labour, fee, etc.)</h3>
+      <p class="row"><strong>What:</strong> Free-text description, qty, <strong>price ex VAT</strong>, <strong>VAT %</strong>, <strong>Add manual line</strong>.</p>
+      <p class="row"><strong>Why:</strong> Not everything is a stock part (delivery, fitting, misc.). These lines do not touch parts stock.</p>
+      <p class="row"><strong>When:</strong> Draft only.</p>
+      <p class="row"><strong>How:</strong> Fill fields → <strong>Add manual line</strong>.</p>
+    </div>
+
+    <div class="zone">
+      <span class="letter">E</span>
+      <h3>Finalize invoice</h3>
+      <p class="row"><strong>What:</strong> Large green <strong>Finalize invoice</strong> button (draft only).</p>
+      <p class="row"><strong>Why:</strong> Locks the sale: assigns <strong>invoice number</strong>, runs <strong>SHGA check</strong> if needed, reduces stock / marks parts <strong>Sold</strong> when quantity goes to zero.</p>
+      <p class="row"><strong>When:</strong> Only when customer is set, at least one line exists, and you are sure the sale is correct.</p>
+      <p class="row"><strong>How:</strong> Click → confirm browser dialog. If SHGA fails, complete customer docs in <strong>Customers</strong> first, then try again.</p>
+    </div>
+
+    <div class="zone">
+      <span class="letter">F</span>
+      <h3>SHGA reminder (yellow box, draft)</h3>
+      <p class="row"><strong>What:</strong> Short note: stripped or not-new-condition parts need buyer <strong>ID + proof of address</strong> on file. Button <strong>Open customers</strong>.</p>
+      <p class="row"><strong>Why:</strong> Matches South African Second-Hand Goods Act expectation for buyers of certain used/stripped goods. The program <strong>blocks finalize</strong> until compliance files exist on the <strong>selected customer</strong>.</p>
+      <p class="row"><strong>When:</strong> Whenever you sell affected lines (badge <strong>SHGA</strong> on line).</p>
+      <p class="row"><strong>How:</strong> Edit customer → upload scans → save → return to invoice → finalize.</p>
+    </div>
+
+    <div class="zone">
+      <span class="letter intro">FIN</span>
+      <h3>After finalize — Payments (ZAR)</h3>
+      <p class="row"><strong>What:</strong> Shows <strong>Remaining</strong> (still owed), <strong>Paid</strong>, list of payment lines, form to <strong>Add payment</strong> (amount, date, method, ref).</p>
+      <p class="row"><strong>Why:</strong> This is your <strong>accounts receivable</strong> for this invoice: total minus payments. Full payment = remaining goes to R 0.</p>
+      <p class="row"><strong>When:</strong> Every time the customer pays (cash, EFT, card). You can log several part-payments.</p>
+      <p class="row"><strong>How:</strong> Fill amount (not more than remaining) → <strong>Add payment</strong>. <strong>×</strong> on a row soft-removes a wrongly entered payment.</p>
+    </div>
+
+    <div class="zone">
+      <span class="letter intro">PR</span>
+      <h3>Print · Void (final only)</h3>
+      <p class="row"><strong>What:</strong> <strong>Print</strong> uses the browser printer (save PDF if you want). <strong> Void invoice</strong> marks the invoice void — does <strong>not</strong> return parts to stock automatically.</p>
+      <p class="row"><strong>Why:</strong> Paper trail and rare corrections.</p>
+      <p class="row"><strong>When:</strong> Print anytime when final; void only if business rules allow and you will fix stock if needed.</p>
+    </div>
+
+    <div class="zone">
+      <span class="letter intro">VD</span>
+      <h3>Void state</h3>
+      <p class="row"><strong>What:</strong> Grey banner explaining the invoice is void; no new payments.</p>
+      <p class="row"><strong>Why:</strong> Avoid treating cancelled invoices as active debt.</p>
+    </div>
+
+  </div>
+
+  <div class="summary">
+    <h2>Quick order of work (happy path)</h2>
+    <ol>
+      <li><strong>POS → New sale</strong> → draft opens.</li>
+      <li><strong>A</strong> — Customer + dates + <strong>Save draft</strong>.</li>
+      <li><strong>S</strong> / <strong>C</strong> / <strong>P</strong> / <strong>D</strong> — Add all lines (search modal, part ID, full parts list from modal links, or manual line).</li>
+      <li>Watch zone <strong>B</strong> — running <strong>total incl. VAT</strong> in the Lines header updates after each add.</li>
+      <li>If any line shows <strong>SHGA</strong> → <strong>F</strong> — fix customer docs.</li>
+      <li><strong>E</strong> — <strong>Finalize invoice</strong>.</li>
+      <li><strong>FIN</strong> — Record <strong>Payments</strong> until remaining is R 0 (or leave balance for true on-account until they pay).</li>
+    </ol>
+  </div>
+
+  <footer>
+    Autowagen Master · Invoice / POS training sheet · ZAR · Screenshot filenames are suggestions — see <code>docs/TRAINING_SCREENSHOTS.md</code> · SHGA notes are business-process guidance.
+  </footer>
+
+</body>
+</html>

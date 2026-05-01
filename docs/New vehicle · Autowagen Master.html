@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<!-- saved from url=(0050)http://localhost/autowagen-master/vehicle_edit.php -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>New vehicle · Autowagen Master</title>
+<link href="./New vehicle · Autowagen Master_files/bootstrap.min.css" rel="stylesheet">
+<link href="./New vehicle · Autowagen Master_files/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+  body { background:#f5f5f5; }
+  .navbar-brand { font-weight:700; letter-spacing:.12em; color:#c8102e !important; }
+  .navbar-aw { background:#0a0a0a; border-bottom:3px solid #c8102e; }
+  .navbar-aw .nav-link, .navbar-aw .navbar-text { color:#e9e9e9 !important; }
+  .navbar-aw .nav-link:hover { color:#c8102e !important; }
+  .badge-role { background:#c8102e; }
+</style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-aw px-3">
+  <a class="navbar-brand" href="http://localhost/autowagen-master/main_dashboard.php">
+    <i class="bi bi-truck-front"></i> AUTOWAGEN
+  </a>
+
+  <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="mainNav">
+    <ul class="navbar-nav me-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="http://localhost/autowagen-master/main_dashboard.php">
+          <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="http://localhost/autowagen-master/vehicle_edit.php#">
+          <i class="bi bi-diagram-3"></i> EPC
+        </a>
+        <ul class="dropdown-menu">
+          <li>
+            <a class="dropdown-item" href="http://localhost/autowagen-master/epc_browse.php">
+              <i class="bi bi-eye"></i> Browse tree
+            </a>
+          </li>
+                      <li>
+              <a class="dropdown-item" href="http://localhost/autowagen-master/epc_admin.php">
+                <i class="bi bi-pencil-square"></i> Manage tree
+              </a>
+            </li>
+                  </ul>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="http://localhost/autowagen-master/vehicle_edit.php#">
+          <i class="bi bi-people"></i> Master data
+        </a>
+        <ul class="dropdown-menu">
+          <li>
+            <a class="dropdown-item" href="http://localhost/autowagen-master/vehicles_admin.php">
+              <i class="bi bi-truck"></i> Vehicles
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" href="http://localhost/autowagen-master/customers_admin.php">
+              <i class="bi bi-people-fill"></i> Customers
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" href="http://localhost/autowagen-master/suppliers_admin.php">
+              <i class="bi bi-truck-flatbed"></i> Suppliers
+            </a>
+          </li>
+        </ul>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="http://localhost/autowagen-master/vehicle_edit.php#">
+          <i class="bi bi-box-seam"></i> Inventory
+        </a>
+        <ul class="dropdown-menu">
+          <li>
+            <a class="dropdown-item" href="http://localhost/autowagen-master/parts_admin.php">
+              <i class="bi bi-list-ul"></i> All parts
+            </a>
+          </li>
+                      <li>
+              <a class="dropdown-item" href="http://localhost/autowagen-master/part_edit.php">
+                <i class="bi bi-plus-lg"></i> Add part
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item" href="http://localhost/autowagen-master/supplier_ap_report.php">
+                <i class="bi bi-cash-coin"></i> Accounts payable (owed)
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item" href="http://localhost/autowagen-master/supplier_purchases_admin.php">
+                <i class="bi bi-collection"></i> Supplier purchases
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="http://localhost/autowagen-master/supplier_purchase_edit.php">
+                <i class="bi bi-plus-square-dotted"></i> New supplier purchase
+              </a>
+            </li>
+                  </ul>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="http://localhost/autowagen-master/vehicle_edit.php#">
+          <i class="bi bi-cart-check"></i> POS
+        </a>
+        <ul class="dropdown-menu">
+          <li>
+            <a class="dropdown-item" href="http://localhost/autowagen-master/invoices_admin.php">
+              <i class="bi bi-receipt"></i> Sales invoices
+            </a>
+          </li>
+                      <li>
+              <a class="dropdown-item" href="http://localhost/autowagen-master/invoice_edit.php?new=1">
+                <i class="bi bi-plus-lg"></i> New sale
+              </a>
+            </li>
+                  </ul>
+      </li>
+    </ul>
+
+    <ul class="navbar-nav">
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="http://localhost/autowagen-master/vehicle_edit.php#">
+          <i class="bi bi-person-circle"></i>
+          hassan nizamie          <span class="badge badge-role ms-1">owner</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><span class="dropdown-item-text small text-muted">
+            Signed in as <strong>hassan</strong>
+          </span></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="http://localhost/autowagen-master/auth/logout.php">
+            <i class="bi bi-box-arrow-right"></i> Logout
+          </a></li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<main class="container-fluid py-4">
+
+<div class="container">
+
+  <!-- ===================== Page header ===================== -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h1 class="h4 mb-1">
+        <i class="bi bi-truck"></i>
+        Add new vehicle                      </h1>
+          </div>
+    <a class="btn btn-sm btn-outline-dark" href="http://localhost/autowagen-master/vehicles_admin.php">
+      <i class="bi bi-arrow-left"></i> All vehicles
+    </a>
+  </div>
+
+  
+  <!-- ===================== MAIN SAVE FORM (multipart for file uploads) ===================== -->
+  <form method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrf" value="4f0cc684697834a2687c0db711fa99a4ebc7c496ccb1f6f53b16b5d471900079">
+    <input type="hidden" name="action" value="save">
+
+    <!-- ----- Card A: Stock & Identity ----- -->
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <h2 class="h6 text-uppercase text-muted mb-3">
+          <i class="bi bi-tag"></i> Stock &amp; identity
+        </h2>
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label small">Stock code *</label>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text">AWG-</span>
+              <input class="form-control font-monospace" name="stock_code" maxlength="16" placeholder="0001" value="" required="">
+            </div>
+            <div class="form-text small">Saved as <code>AWG-XXXX</code>. Must be unique.</div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small">Make *</label>
+            <input class="form-control form-control-sm" name="make" required="" value="">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small">Model *</label>
+            <input class="form-control form-control-sm" name="model" required="" value="">
+          </div>
+          <div class="col-md-1">
+            <label class="form-label small">Year</label>
+            <input class="form-control form-control-sm" name="year" type="number" min="1900" max="2100" value="">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small">Body type</label>
+            <input class="form-control form-control-sm" name="body_type" maxlength="40" placeholder="Sedan, Bakkie, SUV…" value="">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label small">VIN</label>
+            <input class="form-control form-control-sm font-monospace" name="vin" maxlength="32" value="">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small">Plate</label>
+            <input class="form-control form-control-sm" name="plate" maxlength="20" value="">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small">Engine code</label>
+            <input class="form-control form-control-sm" name="engine_code" maxlength="40" value="">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small">Colour</label>
+            <input class="form-control form-control-sm" name="colour" maxlength="40" value="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ----- Card B: Status / specs ----- -->
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <h2 class="h6 text-uppercase text-muted mb-3">
+          <i class="bi bi-gear"></i> Status &amp; specs
+        </h2>
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label small">Status</label>
+            <select class="form-select form-select-sm" name="status">
+                              <option value="intake" selected="">
+                  Intake                </option>
+                              <option value="stripping">
+                  Being stripped                </option>
+                              <option value="stripped">
+                  Stripped                </option>
+                              <option value="scrapped">
+                  Scrapped                </option>
+                              <option value="shell_sold">
+                  Shell sold                </option>
+                          </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small">Transmission</label>
+            <select class="form-select form-select-sm" name="transmission">
+                              <option value="manual">
+                  Manual                </option>
+                              <option value="automatic">
+                  Automatic                </option>
+                              <option value="cvt">
+                  CVT                </option>
+                              <option value="semi_auto">
+                  Semi-auto                </option>
+                              <option value="unknown" selected="">
+                  Unknown                </option>
+                          </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small">Fuel type</label>
+            <select class="form-select form-select-sm" name="fuel_type">
+                              <option value="petrol">
+                  Petrol                </option>
+                              <option value="diesel">
+                  Diesel                </option>
+                              <option value="hybrid">
+                  Hybrid                </option>
+                              <option value="electric">
+                  Electric                </option>
+                              <option value="lpg">
+                  LPG                </option>
+                              <option value="unknown" selected="">
+                  Unknown                </option>
+                          </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small">Mileage (km)</label>
+            <input class="form-control form-control-sm" name="mileage" type="number" min="0" value="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ----- Card C: Acquisition ----- -->
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <h2 class="h6 text-uppercase text-muted mb-3">
+          <i class="bi bi-cash-stack"></i> Acquisition
+        </h2>
+        <p class="text-muted small mb-3">
+          Use <strong>Supplier</strong> when you bought from a registered business
+          (auction, salvage yard). Use the <strong>Private seller</strong> fields
+          when you bought from an individual — South African law requires capturing
+          their full name and ID number.
+        </p>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label small">Supplier (registered business)</label>
+            <select class="form-select form-select-sm" name="supplier_id">
+              <option value="0">— None / private seller —</option>
+                              <option value="1">
+                  HASSAN NIZAMIE                </option>
+                          </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small">Seller's full name (private)</label>
+            <input class="form-control form-control-sm" name="seller_name" maxlength="150" value="">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small">SA ID number</label>
+            <input class="form-control form-control-sm font-monospace" name="seller_id_number" maxlength="20" placeholder="13 digits" value="">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small">Seller phone</label>
+            <input class="form-control form-control-sm" name="seller_phone" maxlength="30" value="">
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label small">Purchase price (R)</label>
+            <input class="form-control form-control-sm" name="purchase_price" type="number" min="0" step="0.01" value="">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small">Date acquired</label>
+            <input class="form-control form-control-sm" name="date_acquired" type="date" value="">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small">Purchase notes</label>
+            <input class="form-control form-control-sm" name="purchase_notes" maxlength="500" placeholder="e.g. accident damage, engine seized, sold cheap…" value="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ----- Card D: Legal papers (SA law) ----- -->
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <h2 class="h6 text-uppercase text-muted mb-3">
+          <i class="bi bi-shield-check"></i> Legal papers on file (SA law)
+        </h2>
+                  <p class="text-muted small mb-2">
+            Tick the boxes for any papers you already have. You can upload the
+            scanned files once the vehicle is created (this section becomes
+            available after the first save).
+          </p>
+        
+        <div class="row g-3">
+                      <div class="col-md-6 col-lg-3">
+              <div class="border rounded p-3 h-100">
+                <div class="form-check mb-2">
+                  <input class="form-check-input" type="checkbox" id="flag_logbook" name="has_logbook" value="1">
+                  <label class="form-check-label" for="flag_logbook">
+                    <strong>Vehicle log book</strong> — I have this on file
+                  </label>
+                </div>
+
+                                  <p class="small text-muted mb-2"><i class="bi bi-file-earmark"></i> No scan uploaded yet.</p>
+                
+                                  <p class="small text-muted fst-italic mb-0">
+                    Upload becomes available after the first save.
+                  </p>
+                              </div>
+            </div>
+                      <div class="col-md-6 col-lg-3">
+              <div class="border rounded p-3 h-100">
+                <div class="form-check mb-2">
+                  <input class="form-check-input" type="checkbox" id="flag_receipt" name="has_sellers_receipt" value="1">
+                  <label class="form-check-label" for="flag_receipt">
+                    <strong>Seller's receipt</strong> — I have this on file
+                  </label>
+                </div>
+
+                                  <p class="small text-muted mb-2"><i class="bi bi-file-earmark"></i> No scan uploaded yet.</p>
+                
+                                  <p class="small text-muted fst-italic mb-0">
+                    Upload becomes available after the first save.
+                  </p>
+                              </div>
+            </div>
+                      <div class="col-md-6 col-lg-3">
+              <div class="border rounded p-3 h-100">
+                <div class="form-check mb-2">
+                  <input class="form-check-input" type="checkbox" id="flag_id_copy" name="has_seller_id_copy" value="1">
+                  <label class="form-check-label" for="flag_id_copy">
+                    <strong>Copy of seller's SA ID</strong> — I have this on file
+                  </label>
+                </div>
+
+                                  <p class="small text-muted mb-2"><i class="bi bi-file-earmark"></i> No scan uploaded yet.</p>
+                
+                                  <p class="small text-muted fst-italic mb-0">
+                    Upload becomes available after the first save.
+                  </p>
+                              </div>
+            </div>
+                      <div class="col-md-6 col-lg-3">
+              <div class="border rounded p-3 h-100">
+                <div class="form-check mb-2">
+                  <input class="form-check-input" type="checkbox" id="flag_proof_residence" name="has_proof_of_residence" value="1">
+                  <label class="form-check-label" for="flag_proof_residence">
+                    <strong>Seller's proof of residence</strong> — I have this on file
+                  </label>
+                </div>
+
+                                  <p class="small text-muted mb-2"><i class="bi bi-file-earmark"></i> No scan uploaded yet.</p>
+                
+                                  <p class="small text-muted fst-italic mb-0">
+                    Upload becomes available after the first save.
+                  </p>
+                              </div>
+            </div>
+                  </div>
+      </div>
+    </div>
+
+    <!-- ----- Card E: Yard / general notes / active flag ----- -->
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <h2 class="h6 text-uppercase text-muted mb-3">
+          <i class="bi bi-geo-alt"></i> Yard &amp; general notes
+        </h2>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label small">Yard location</label>
+            <input class="form-control form-control-sm" name="yard_location" maxlength="80" placeholder="Bay 3 / Row B-12 / Behind workshop" value="">
+          </div>
+          <div class="col-md-8">
+            <label class="form-label small">General notes</label>
+            <textarea class="form-control form-control-sm" name="notes" rows="2"></textarea>
+          </div>
+
+                      <div class="col-md-6">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" checked="">
+                <label class="form-check-label" for="is_active">Active (visible in lists)</label>
+              </div>
+            </div>
+            <div class="col-md-6 text-end">
+              <button class="btn btn-danger" type="submit">
+                <i class="bi bi-save"></i> Create vehicle              </button>
+            </div>
+                  </div>
+      </div>
+    </div>
+
+    <!-- File upload reminder for the legal-paper section above. The browser
+         needs the form to be enctype=multipart/form-data, which is set on
+         the <form> element. No further hidden inputs needed. -->
+  </form>
+
+  <!-- ===================== Photos (only after vehicle exists) ===================== -->
+  
+  <!-- ===================== Stage 4: Parts stripped from this vehicle ===================== -->
+  
+  <!-- ===================== EPC variant links (unchanged from Stage 3) ===================== -->
+      <p class="text-muted small">Photos and EPC variant links can be attached after the vehicle is created.</p>
+  </div>
+
+</main>
+
+<footer class="text-center text-muted py-4 small">
+  © 2026 Autowagen Master · v1.0
+      · <span class="badge bg-warning text-dark">DEBUG</span>
+  </footer>
+
+<script src="./New vehicle · Autowagen Master_files/bootstrap.bundle.min.js.download"></script>
+
+
+</body></html>

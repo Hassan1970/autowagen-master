@@ -1,0 +1,4 @@
+# ZIP backups must not be downloadable directly from the browser.
+# Use backups_admin.php → Download (owner/admin only).
+
+Require all denied

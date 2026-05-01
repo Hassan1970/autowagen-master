@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autowagen Master — handoff &amp; session notes · 2026-04-30 · print to PDF</title>
+  <style>
+    @media print {
+      body { font-size: 11pt; }
+      .no-print { display: none !important; }
+      a[href]::after { content: ""; }
+    }
+    body { font-family: Georgia, "Times New Roman", serif; max-width: 48rem; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; color: #111; line-height: 1.45; }
+    h1 { font-size: 1.35rem; border-bottom: 3px solid #c8102e; padding-bottom: 0.35rem; }
+    h2 { font-size: 1.1rem; margin-top: 1.75rem; color: #0a0a0a; }
+    h3 { font-size: 1rem; margin-top: 1.25rem; }
+    code, .mono { font-family: Consolas, "Courier New", monospace; font-size: 0.88em; background: #f2f2f2; padding: 0.1em 0.35em; border-radius: 3px; }
+    pre.box { background: #f8f8f8; border: 1px solid #ccc; padding: 0.75rem 1rem; white-space: pre-wrap; word-break: break-word; }
+    ul.compact li { margin: 0.25em 0; }
+    .muted { color: #555; font-size: 0.95rem; }
+    table { border-collapse: collapse; width: 100%; margin: 0.75rem 0; font-size: 0.95rem; }
+    th, td { border: 1px solid #ccc; padding: 0.4rem 0.5rem; text-align: left; vertical-align: top; }
+    th { background: #0a0a0a; color: #fff; }
+    .step { margin: 0.35rem 0; }
+  </style>
+</head>
+<body>
+
+<p class="muted no-print"><strong>Print to PDF:</strong> Chrome or Edge → Ctrl+P → Destination <strong>Save as PDF</strong> → Save.</p>
+
+<h1>Autowagen Master — handoff &amp; what we did (2026-04-30)</h1>
+<p class="muted">Project folder: <span class="mono">c:\laragon\www\autowagen-master</span>. Timezone for logs: Africa/Johannesburg (UTC+2).</p>
+
+<h2>1. When you come back — paste this in a new Cursor chat</h2>
+<pre class="box">Read CLAUDE.md from top to bottom first, especially section 10. Then continue from there. I'm new to coding — use numbered steps and tell me exactly what to click or type.</pre>
+<p>Longer copy is in the project root file <code>HOW_TO_START_NEW_CHAT.md</code> (Step 2 grey box).</p>
+
+<h2>2. Markdown backup (point-in-time copies)</h2>
+<p>These four files are copied into <strong><code>docs\md_backups\2026-04-30\</code></strong>:</p>
+<ul class="compact">
+  <li><code>CLAUDE.md</code> — live project memory (the main handoff file)</li>
+  <li><code>ROADMAP.md</code></li>
+  <li><code>HOW_TO_START_NEW_CHAT.md</code></li>
+  <li><code>docs\TRAINING_SCREENSHOTS.md</code></li>
+</ul>
+<p><strong>Note:</strong> The next chat should still read the <strong>real</strong> <code>CLAUDE.md</code> in the project root first. The <code>md_backups</code> folder is an extra safety copy. To refresh again later, say: <strong>“backup md files again”</strong>.</p>
+
+<h2>3. Web shop — test result</h2>
+<ul class="compact">
+  <li><strong>Web shop smoke-test:</strong> PASS (logged in <code>CLAUDE.md</code> §9).</li>
+  <li>Public shop URL (local Laragon): <span class="mono">http://localhost/autowagen-master/shop/</span></li>
+  <li>Parts need <strong>List on public website</strong> + correct source/condition rules; database needs <code>06b_web_shop.sql</code> applied for <code>list_online</code> / shop tables.</li>
+</ul>
+
+<h2>4. Gearbox menu (public shop) — same idea as Engines</h2>
+<ul class="compact">
+  <li><strong>Nav:</strong> <code>shop\_layout.php</code> — main item <strong>Gearbox</strong> with submenu: All gearbox listings, Complete gearbox, Gearbox parts (loose).</li>
+  <li><strong>EPC slug:</strong> <code>transmission-driveline</code> (from Stage 2 / <code>02b</code> categories). Parts must be EPC-linked there to show on these pages.</li>
+  <li><strong>Lanes:</strong> “Complete” vs “Parts” uses <strong>keywords in the part title</strong> (<code>parts.name</code>), not a new database column — see <code>shop_gearbox_line_sql_condition()</code> in <code>includes\shop_helpers.php</code>.</li>
+  <li><strong>Sale rules:</strong> Same as other shop parts (checkout vs enquiry per <code>shop_part_purchasable_online()</code>).</li>
+</ul>
+
+<h2>5. PHP files changed for Gearbox + shared category logic</h2>
+<table>
+  <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><code>includes\shop_helpers.php</code></td><td>Gearbox line normalizer + SQL; <code>shop_category_submenu_context()</code> for Engine + Gearbox.</td></tr>
+    <tr><td><code>shop\category.php</code></td><td>Uses submenu context; placeholders for engine + gearbox.</td></tr>
+    <tr><td><code>shop\_layout.php</code></td><td>Gearbox dropdown links.</td></tr>
+  </tbody>
+</table>
+<p><strong>No new SQL</strong> for Gearbox — existing EPC category must exist on the database.</p>
+
+<h2>6. Mockups (visual reference)</h2>
+<ul class="compact">
+  <li><code>docs\mockups\shop-gearbox-nav-mockup.html</code> — open in browser.</li>
+  <li><code>docs\mockups\shop-gearbox-nav-mockup.png</code> — image in same folder as other mockups.</li>
+  <li><code>docs\mockups\OPEN_HERE.txt</code> — short notes for Engines + Gearbox lanes.</li>
+</ul>
+
+<h2>7. Live server (reminder)</h2>
+<ul class="compact">
+  <li>Local (Laragon) and live (e.g. cPanel) are separate: upload changed PHP + run any missing <code>sql\</code> on <strong>live</strong> phpMyAdmin.</li>
+  <li>Do <strong>not</strong> overwrite live <code>config\secrets.live.php</code> with local secrets.</li>
+  <li>Safe pattern: backup live (files zip + DB export) → upload only changed paths → smoke-test.</li>
+</ul>
+
+<h2>8. Product photos on the shop</h2>
+<p>If cards show “No photo”, upload images in <strong>Inventory → Edit part</strong> (<code>part_edit.php</code>). Mockups are only design reference; real pictures are per part.</p>
+
+<h2>9. Other docs from this period (optional)</h2>
+<ul class="compact">
+  <li><code>docs\ENGINE_AND_SHOP_DATA_NOTES_PRINT.html</code> — print to PDF for engine/EPC/shop data notes.</li>
+  <li><code>docs\shop_staff_data_guide.html</code> — staff checklist for where shop data comes from.</li>
+</ul>
+
+<p class="muted" style="margin-top:2rem;">End of handoff sheet — 2026-04-30.</p>
+
+</body>
+</html>

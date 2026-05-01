@@ -1,0 +1,31 @@
+# Local secrets — NEVER commit
+config/secrets.local.php
+config/secrets.live.php
+
+# OS / IDE
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/
+
+# Logs and caches
+*.log
+logs/
+cache/
+tmp/
+
+# User uploads (kept on server only — but keep the security .htaccess in git)
+/uploads/*
+!/uploads/.htaccess
+public/uploads/
+
+# Backups & dumps
+*.sql.bak
+*.zip
+backup/
+# Site ZIP dumps under backups/ — track .htaccess only
+/backups/*
+!/backups/.htaccess
+
+# Composer (if added later)
+/vendor/

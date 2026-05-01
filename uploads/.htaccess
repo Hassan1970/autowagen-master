@@ -1,0 +1,26 @@
+# Security: never let Apache execute uploaded files as PHP / scripts.
+# Even if someone uploads a "photo.jpg.php", it must be served as static.
+
+<FilesMatch "\.(php|phps|phtml|phar|pl|py|cgi|sh|exe|bat|cmd)$">
+  Require all denied
+</FilesMatch>
+
+# Force a safe content type for anything else; deny script execution.
+<IfModule mod_php.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+  php_flag engine off
+</IfModule>
+
+# No directory listing of uploads.
+Options -Indexes -ExecCGI
+
+# Cache uploaded media a bit (browsers).
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault "access plus 7 days"
+</IfModule>
