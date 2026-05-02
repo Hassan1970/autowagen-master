@@ -3,7 +3,7 @@
 > This file is the source of truth for what we're building.
 > If a new chat ever loses context, just say "Read ROADMAP.md and continue".
 
-## Current state  (last updated: 2026-05-02 UTC+2 — shutdown handoff doc)
+## Current state  (last updated: 2026-05-02 UTC+2 — Stage 6 marked complete · sales summary credit notes)
 
 **Resume:** Open **`CLAUDE.md`** top → §2 & §10. **Shutdown ritual:** **`HOW_TO_START_NEW_CHAT.md`** “Before you shut down” + **`docs/session_pause_handoff_print.html`** (PDF checklist). **Stage 7 — Credit notes:** ✅ **DONE & TESTED** (hassan **Test B PASS** · **`sql/07_credit_notes.sql`** on **`autowagen_master`**). **Print notes:** **`docs/credit_notes_system_guide_print.html`** (system) · **`docs/credit_notes_ar_vs_cash_refund_print.html`** (locked **net due** + **AR cr. / Refund** split on AR & statement). **Owner / IT handouts:** **`docs/add_users_staff_guide_print.html`** (staff users · phpMyAdmin · bcrypt hash) · **`docs/database_update_backup_guide_print.html`** (full DB replace vs incremental migrations · keep customer data). Indexed in **`docs/client_training_index.html`**. **Markdown snapshots:** **`docs/md_backups/`** — optional dated folders; **`README.md`** explains.
 
@@ -33,7 +33,7 @@
   See `CLAUDE.md` §2–§3, §10 UI table.
   **Staff manuals:** `docs/invoice_screen_full_guide.html` (print → PDF) + `docs/TRAINING_SCREENSHOTS.md` (how to add real screenshots); supplier guides in same `docs/` folder.
   **Full system (one PDF):** `docs/complete_system_manual.html` — login through POS with ~30 screenshot placeholders (`full-NN-…`); start from `docs/client_training_index.html`.
-- 🟡 **Stage 6 — Reports, web shop, stripping, AR, sales summary, guest enquiries:** shipped in code; **`docs/CHANGELOG.md`** tracks details. **`sql/06a`** / **`06b`** / **`06e`** as needed per DB. **Reports** menu in nav (AP, AR, invoices, statements shortcut, shop orders/messages, sales summary, credit notes).
+- ✅ **Stage 6 — Reports, web shop, stripping, AR, sales summary (+ finalized credits by credit date when `07` applied), guest enquiries:** shipped · **`docs/CHANGELOG.md`** tracks details. **`sql/06a`** / **`06b`** / **`06e`** as needed per DB. **Reports** menu (AP, AR, invoices, statements shortcut, shop orders/messages, sales summary, credit notes).
 - ✅ **Stage 7 — Credit notes (returns):** DONE & TESTED *(2026-05-02 — hassan **Test B PASS**)*. **`sql/07_credit_notes.sql`** → `sales_credit_notes`, `sales_credit_note_lines`; UI **`credit_notes_admin.php`**, **`credit_note_edit.php`** — link to **INV‑…**, stock restore on finalize, **adjustment_type** **AR reduction** vs **cash refund**. **Balance / net due** subtracts **all** finalized credits; AR + statement extra columns split **AR cr.** vs **Refund cn.** *(2026-05-01)*. **`docs/BACKLOG_POST_STAGE7.md`** — supplier SMTP shop backlog. Handouts: **`docs/credit_notes_system_guide_print.html`**, **`docs/credit_notes_ar_vs_cash_refund_print.html`**. **New DB:** run **`07`** after **`05`** (see **`CLAUDE.md`** §10).
 
 **Owner account:** `hassan` (role = owner) in `users` table.
@@ -276,7 +276,7 @@ draft line price overrides, finalize / stock, payments, HTML letterhead on `invo
 bar (✅ tested by hassan, 2026-04-28).
 
 ### Stage 6 — Reports, Shop & polish
-**Started (2026-04-28):** Customer **AR** (`customer_ar_report.php`), **account flags** (`sql/06a_customer_account.sql`), **customer statement** (`customer_statement.php` — print, WhatsApp, mailto). **`sales_summary_report.php`** (2026-05-01 — POS turnover vs payments-by-date · **Reports** submenu · **no new SQL**). **Still to do:** **credit notes / customer returns** (schema + UI + stock reversal), optional shop enhancements, SMTP, fuller dashboards, legacy migration (see **`CLAUDE.md`** §2).
+**Done (2026-05-02 UTC+2 closure pass):** Customer **AR**, **statements**, **sales summary** (invoice / payment dates + **finalized credit notes by credit date** when **`07`** applied), **web shop**, **stripping catalogue**, **guest enquiries**, **Reports** nav. **Post–Stage 6 / backlog** (not this stage): **Stage 7** credit notes (separate milestone), SMTP, PayFast/Stripe, supplier AP return automation, migration scripts — **`docs/BACKLOG_POST_STAGE7.md`**.
 
 ## Migration policy
 - We do **not** import `autowagen (21).sql` directly. It has 70+ tables, many

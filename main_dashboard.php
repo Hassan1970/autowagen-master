@@ -87,9 +87,9 @@ include __DIR__ . '/includes/header.php';
       <p class="text-muted mb-3">
         Roadmap status (see <code>CLAUDE.md</code> for detail).
         Top menu includes <strong>Reports</strong> (graph icon): accounts payable/receivable, sales invoices,
-        sales summary, credit notes, customer statements shortcut, web shop orders and messages — plus
+        sales summary (with finalized credits when Stage&nbsp;7 SQL ran), credit notes, customer statements shortcut, web shop orders and messages — plus
         <strong>EPC</strong>, <strong>Master data</strong>, <strong>Inventory</strong>, and <strong>POS</strong>.
-        Still to choose: SMTP email, supplier returns tooling, optional online payments — see <code>docs/BACKLOG_POST_STAGE7.md</code>.
+        Optional next builds: SMTP email, supplier returns tooling, online payments — see <code>docs/BACKLOG_POST_STAGE7.md</code>.
       </p>
       <p class="small text-muted mb-2">
         <strong>Stages 1–7</strong> are marked <span class="badge bg-success text-white align-middle">done</span>.

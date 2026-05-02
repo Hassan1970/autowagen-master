@@ -303,7 +303,7 @@
     <tr><td>Accounts payable</td><td>We owe them</td><td><strong>Reports</strong> → Accounts payable (owed) <em>(staff+)</em></td><td><code>supplier_ap_report.php</code></td></tr>
     <tr><td>Accounts receivable</td><td>They owe us</td><td><strong>Reports</strong> → Accounts receivable (owed)</td><td><code>customer_ar_report.php</code></td></tr>
     <tr><td>Sales invoices (list)</td><td>—</td><td><strong>Reports</strong> or <strong>POS</strong> → Sales invoices</td><td><code>invoices_admin.php</code></td></tr>
-    <tr><td>Sales summary (period)</td><td>Turnover vs payments</td><td><strong>Reports</strong> → Sales summary (period)</td><td><code>sales_summary_report.php</code></td></tr>
+    <tr><td>Sales summary (period)</td><td>Turnover vs payments · finalized CNs by credit date (with <code>07</code>)</td><td><strong>Reports</strong> → Sales summary (period)</td><td><code>sales_summary_report.php</code></td></tr>
     <tr><td>Customer statement</td><td>They owe us (detail)</td><td><strong>Reports</strong> → Customer statements, <strong>Master data</strong> → Customers → Statement, or from AR row</td><td><code>customer_statement.php?id=…</code></td></tr>
     <tr><td>Web shop orders</td><td>Guest orders (website)</td><td><strong>Reports</strong> → Web shop orders <em>(staff+)</em></td><td><code>shop_orders_admin.php</code></td></tr>
     <tr><td>Web shop messages</td><td>Guest enquiries</td><td><strong>Reports</strong> → Web shop messages <em>(staff+)</em></td><td><code>shop_enquiries_admin.php</code></td></tr>
@@ -311,7 +311,7 @@
 </table>
 
 <div class="box" style="margin-top:1.25rem;">
-  <strong>Not in MVP</strong> (do not promise clients from this sheet): automated <strong>returns / refunds / credit notes</strong>; monthly sales dashboard; stock valuation report; SMTP email blasted from server. Extra reports = future build.
+  <strong>Not in MVP</strong> (do not promise from this sheet alone): monthly sales dashboard; stock valuation report; SMTP mass email from server; PayFast/Stripe on web checkout; supplier AP return automation. <strong>Customer credit notes</strong> = built (Stage&nbsp;7) — see Credit notes guide in <code>docs/client_training_index.html</code>.
 </div>
 
 <footer>

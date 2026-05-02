@@ -1,11 +1,13 @@
 <?php
 /**
- * POS sales summary — read-only aggregates by invoice date range (ZAR).
- * Excludes web shop orders (separate workflow). No new DB tables — uses Stage 5 data.
+ * POS sales summary — read-only aggregates by date range (ZAR).
+ * Invoices filtered by invoice date; payments by paid date; finalized credit notes
+ * (when Stage 7 tables exist) by credit note date. Excludes web shop orders.
  */
 
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/includes/auth_check.php';
+require_once __DIR__ . '/includes/credit_note_helpers.php';
 
 $tz       = new DateTimeZone('Africa/Johannesburg');
 $today    = (new DateTime('now', $tz))->format('Y-m-d');
@@ -42,6 +44,16 @@ $partLines         = 0;
 $manualLines       = 0;
 $invoiceRows       = [];
 $topCustomers      = [];
+
+/** Finalized credit notes in period — keyed by credit_date (Stage 7 when tables exist). */
+$cnPeriodCount       = 0;
+$cnPeriodTotal       = 0.0;
+$cnPeriodArCount     = 0;
+$cnPeriodArTotal     = 0.0;
+$cnPeriodCashCount   = 0;
+$cnPeriodCashTotal   = 0.0;
+$cnPeriodRows        = [];
+$cnTablesForSummary = false;
 
 if ($posReady) {
     $st = $pdo->prepare(
@@ -117,6 +129,45 @@ if ($posReady) {
     );
     $st->execute([':df' => $dateFrom, ':dt' => $dateTo]);
     $invoiceRows = $st->fetchAll(PDO::FETCH_ASSOC);
+
+    if (cn_tables_ready($pdo)) {
+        $cnTablesForSummary = true;
+        $st = $pdo->prepare(
+            "SELECT adjustment_type, COUNT(*) AS cnt, COALESCE(SUM(total_inc_vat), 0) AS tot
+             FROM sales_credit_notes
+             WHERE status = 'final' AND is_active = 1
+               AND credit_date >= :df AND credit_date <= :dt
+             GROUP BY adjustment_type"
+        );
+        $st->execute([':df' => $dateFrom, ':dt' => $dateTo]);
+        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+            $adj = (string) ($r['adjustment_type'] ?? '');
+            $cnt = (int) ($r['cnt'] ?? 0);
+            $tot = (float) ($r['tot'] ?? 0);
+            $cnPeriodCount += $cnt;
+            $cnPeriodTotal += $tot;
+            if ($adj === 'ar_reduction') {
+                $cnPeriodArCount = $cnt;
+                $cnPeriodArTotal = $tot;
+            } elseif ($adj === 'cash_refund') {
+                $cnPeriodCashCount = $cnt;
+                $cnPeriodCashTotal = $tot;
+            }
+        }
+
+        $st = $pdo->prepare(
+            'SELECT cn.id, cn.credit_no, cn.credit_date, cn.adjustment_type, cn.total_inc_vat,
+                    si.invoice_no
+             FROM sales_credit_notes cn
+             INNER JOIN sales_invoices si ON si.id = cn.invoice_id AND si.is_active = 1
+             WHERE cn.status = \'final\' AND cn.is_active = 1
+               AND cn.credit_date >= :df AND cn.credit_date <= :dt
+             ORDER BY cn.credit_date DESC, cn.id DESC
+             LIMIT 100'
+        );
+        $st->execute([':df' => $dateFrom, ':dt' => $dateTo]);
+        $cnPeriodRows = $st->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 
 $pageTitle = 'Sales summary (period)';
@@ -143,6 +194,9 @@ require_once __DIR__ . '/includes/header.php';
     <div class="aw-ss-print-meta">
       Invoice date from <strong><?= e($dateFrom) ?></strong> to <strong><?= e($dateTo) ?></strong> (Johannesburg)
       · <span class="text-muted">POS invoices only</span>
+      <?php if ($cnTablesForSummary): ?>
+        · <span class="text-muted">Credit notes below use each CN’s <strong>credit date</strong> in this range</span>
+      <?php endif; ?>
     </div>
   </div>
 
@@ -152,6 +206,9 @@ require_once __DIR__ . '/includes/header.php';
     “<strong>Payments (paid dates)</strong>” sums payment rows whose <strong>paid date</strong> falls in the range —
     useful for banking, different from invoiced turnover.
     <strong>Web shop guest orders</strong> are tracked under <strong>Reports → Web shop orders</strong>, not here.
+    <?php if ($cnTablesForSummary): ?>
+      <strong>Credit notes</strong> (finalized) appear in their own section when your database has Stage&nbsp;7 tables — filtered by <strong>credit note date</strong>, not invoice date.
+    <?php endif; ?>
   </div>
 
   <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3 no-print">
@@ -216,6 +273,85 @@ require_once __DIR__ . '/includes/header.php';
         </div>
       </div>
     </div>
+
+    <?php if ($cnTablesForSummary): ?>
+    <h2 class="h6 text-uppercase mb-2 mt-2" style="color:#c8102e;">
+      Credit notes finalized <span class="text-muted fw-normal text-lowercase">(credit dates in range)</span>
+    </h2>
+    <div class="row g-2 mb-3">
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #6f42c1 !important;">
+          <div class="card-body py-2">
+            <div class="small text-muted">All finalized credits</div>
+            <div class="h5 mb-0"><?= (int) $cnPeriodCount ?> notes</div>
+            <div class="h4 mb-0" style="color:#6f42c1;"><strong>R <?= number_format($cnPeriodTotal, 2) ?></strong></div>
+            <div class="small text-muted mb-0">Incl. VAT · reduces receivables / refunds</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body py-2">
+            <div class="small text-muted">AR reduction type</div>
+            <div class="h5 mb-0"><?= (int) $cnPeriodArCount ?> notes</div>
+            <div class="text-secondary"><strong>R <?= number_format($cnPeriodArTotal, 2) ?></strong></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body py-2">
+            <div class="small text-muted">Cash refund type</div>
+            <div class="h5 mb-0"><?= (int) $cnPeriodCashCount ?> notes</div>
+            <div class="text-secondary"><strong>R <?= number_format($cnPeriodCashTotal, 2) ?></strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-dark text-white small">
+        Credit notes list <span class="text-white-50">— up to 100 rows · matches AR “Refund” / “AR cr.” split</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 small">
+          <thead class="table-light">
+            <tr>
+              <th>Credit no.</th>
+              <th>Credit date</th>
+              <th>Type</th>
+              <th class="text-end">Total (incl. VAT)</th>
+              <th>Invoice</th>
+              <th class="no-print"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php if (!$cnPeriodRows): ?>
+              <tr><td colspan="6" class="text-muted text-center py-3">No finalized credit notes with credit dates in this range.</td></tr>
+            <?php else: ?>
+              <?php foreach ($cnPeriodRows as $cr): ?>
+                <?php
+                $adj = (string) ($cr['adjustment_type'] ?? '');
+                $adjLabel = $adj === 'cash_refund' ? 'Cash refund' : ($adj === 'ar_reduction' ? 'AR reduction' : $adj);
+                ?>
+                <tr>
+                  <td class="font-monospace"><?= $cr['credit_no'] ? e((string) $cr['credit_no']) : '—' ?></td>
+                  <td><?= e((string) $cr['credit_date']) ?></td>
+                  <td><?= e($adjLabel) ?></td>
+                  <td class="text-end fw-semibold">R <?= number_format((float) $cr['total_inc_vat'], 2) ?></td>
+                  <td class="font-monospace"><?= $cr['invoice_no'] ? e((string) $cr['invoice_no']) : '—' ?></td>
+                  <td class="no-print">
+                    <a class="btn btn-sm btn-outline-primary"
+                       href="<?= e(APP_URL) ?>/credit_note_edit.php?id=<?= (int) $cr['id'] ?>">Open</a>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            <?php endif; ?>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <?php endif; ?>
 
     <div class="row g-2 mb-4">
       <div class="col-md-6">
@@ -315,7 +451,11 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 
     <p class="small text-muted no-print mb-0">
-      <strong>Credit notes</strong> affect customer balances on the <strong>Accounts receivable</strong> report and <strong>invoice</strong> screen; this period summary is <strong>invoice / payment</strong> aggregates only — use AR + credit notes for returns detail.
+      <?php if ($cnTablesForSummary): ?>
+        <strong>Credit note</strong> figures above use each note’s <strong>credit date</strong>. Invoice cards still use <strong>invoice date</strong>. Full open balances stay on <strong>Accounts receivable</strong> and per-customer <strong>Statements</strong>.
+      <?php else: ?>
+        <strong>Credit notes</strong> (Stage&nbsp;7) affect AR and invoices; run <code>sql/07_credit_notes.sql</code> to show a credit-note period block on this report.
+      <?php endif; ?>
     </p>
   <?php endif; ?>
 </div>

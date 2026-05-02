@@ -30,6 +30,13 @@ Keep bullets honest — do not invent tests you did not run.
 
 ---
 
+## 2026-05-02 (time unknown) UTC+2 — Stage 6 closure · sales summary credit-note period block
+
+- **Recorder:** Hassan (with Cursor assistant)
+- **Summary:** **`sales_summary_report.php`** now lists finalized **credit notes** whose **credit date** falls in the report range (when **`sql/07_credit_notes.sql`** applied): totals, **AR reduction** vs **cash refund** split, printable table + Open links. Project memory: **`CLAUDE.md`** §2 Stage **6** = **DONE & TESTED**; backlog-only items remain in **`docs/BACKLOG_POST_STAGE7.md`**. Docs synced: **`ROADMAP.md`**, **`reports_staff_guide_print.html`**, **`complete_system_manual.html`**, **`sales_summary_report_client_print.html`**, **`main_dashboard.php`**.
+
+---
+
 ## 2026-05-02 (time unknown) UTC+2 — Git Laragon terminal → GitHub Print PDF guide
 
 - **Recorder:** Hassan (with Cursor assistant)

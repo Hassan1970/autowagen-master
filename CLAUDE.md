@@ -230,11 +230,11 @@ project. Old project stays untouched as read-only reference. Built in
   - **Handoff (2026-04-28 UTC+2):** If a chat **jumped topics**, read **§10 "Resume handoff"** — sums up returns backlog (defer), training PNGs, customer-docs UX; **no half-finished code**; next steps are **§10 "Suggested next session"**.
   - **Not in this MVP:** email/WhatsApp reminders (see §10 AR + reminders), quotes vs invoices split,
     full credit limits. On-account = use **Due date** + record partial **Payments** until Remaining = 0.
-- **Stage 6 — Reports / shop / polish:** 🟡 **IN PROGRESS (2026-04-28 UTC+2)** — **6a / AR / statements** shipped (code on disk):
+- **Stage 6 — Reports / shop / polish:** ✅ **DONE & TESTED** *(code complete 2026-05-01 UTC+2; sales summary + credits block shipped 2026-05-02 UTC+2)* — **6a / AR / statements / shop / stripping / enquiries / sales summary** on disk:
   - **Nav (2026-05-01 UTC+2):** top bar **Reports** dropdown — AP (staff+), AR (all logged-in), **Sales invoices** (all), Customers shortcut for statements, **Web shop orders** / **messages** (staff+) · removed duplicate links from **Inventory** / **POS** (`includes/header.php`); **`docs/complete_system_manual.html`**, **`docs/reports_staff_guide_print.html`**, supplier/Git printouts, **`CLAUDE.md` §10**, **`ROADMAP.md`** paths updated.
   - ✅ **`sql/06a_customer_account.sql`** applied on hassan’s `autowagen_master` *(verified 2026-04-29 UTC+2 — `customers.account_customer` / `credit_limit_zar`; AR + customer modal).*
   - **`customer_ar_report.php`** — **Reports → Accounts receivable (owed)** (visible to all logged-in roles). Balances = final invoices − payments − **finalized credits** (**net due** includes both **AR reduction** and **cash refund** types when **`07`** applied). Extra columns **AR cr.** / **Refund** show the **`adjustment_type`** split · **Overdue** vs **As at** · **Print / PDF** · note: **not** supplier AP (that is **Reports → Accounts payable (owed)** · staff roles).
-  - **`sales_summary_report.php`** — **Reports → Sales summary (period)** *(2026-05-01)*: read-only POS turnover by invoice date range vs payments by paid date · top customers · print/PDF · **no new SQL** (does not yet break out credit-note lines separately).
+  - **`sales_summary_report.php`** — **Reports → Sales summary (period)** *(2026-05-01 · CN block 2026-05-02)*: POS turnover by **invoice date** vs payments by **paid date** · finalized **credit notes** in range by **credit date** (when **`07`** applied) — totals + AR vs cash-refund split + list · top customers · print/PDF · **no new SQL**.
   - **MySQL 8 / strict:** AR SQL avoids invalid date literal `'0000-00-00'` (use `1900-01-01` + `IS NOT NULL` in SQL; PHP `ar_due_is_meaningful()` on statement/AR pages).
   - **`customer_statement.php`** — printable **customer account statement**; **WhatsApp** (`wa.me` text summary; attach PDF from Print); **Email** (`mailto:` opens PC mail client). Links: **Statement** on AR report + next to name on **Customers** list.
   - **`customer_quick_add.php`** — draft invoice → **New customer (quick)**; **`apply_customer=`** redirect.
@@ -266,7 +266,7 @@ project. Old project stays untouched as read-only reference. Built in
     Staff: **Inventory → Stripping stock (website)** (`includes/header.php`).
     **`shop/_layout.php`** nav adds **Stripping stock**. Uses existing
     `vehicles` + `vehicle_photos` — **no new SQL**.
-  - **Remaining Stage 6:** more reports, SMTP email from server (not built), PayFast/Stripe later, further polish.
+  - **Deferred (not Stage 6 — see `docs/BACKLOG_POST_STAGE7.md`):** SMTP server email, PayFast/Stripe on checkout, supplier AP return tooling, richer dashboards, legacy data migration scripts.
 
 - **Stage 7 — Credit notes (linked returns):** ✅ **DONE & TESTED** *(hassan Test B PASS 2026-05-02 UTC+2)* — **`sql/07_credit_notes.sql`** on **`autowagen_master`** · **Reports → Credit notes** / **New credit note** · draft→finalize verified.
   - **Tables:** `sales_credit_notes`, `sales_credit_note_lines` — always tied to a **final** `sales_invoices` row; **`CN-YYYY-NNNNN`** on finalize.
@@ -324,7 +324,7 @@ autowagen-master/
 │                                 SA ID/CIPC + Docs N/2; account customer + credit limit after **`06a`**)
 ├─ customer_quick_add.php        ← Stage 6 — minimal new customer from POS → back to draft invoice
 ├─ customer_ar_report.php        ← Stage 6 — AR: who owes us (balances by customer; **includes credits** after **`07`**)
-├─ sales_summary_report.php      ← Stage 6 — POS sales summary by date range (read-only)
+├─ sales_summary_report.php      ← Stage 6 — sales summary (invoice vs payments dates · finalized credits by credit_date after `07`)
 ├─ customer_statement.php        ← Stage 6 (+7) — statement; **AR cr.** / **Refund cn.** + net **Balance** when **`07`** applied
 ├─ credit_notes_admin.php      ← Stage 7 — list / start credit note from invoice
 ├─ credit_note_edit.php          ← Stage 7 — draft → finalize (stock restore, CN- number)
@@ -564,6 +564,8 @@ If the file approaches ~200 lines, **prune** the Session log
 ## 9. Session log — append-only, newest at top
 
 > Each entry: `YYYY-MM-DD HH:MM TZ — short description (who, what, result)`.
+
+- **2026-05-02 (time unknown) UTC+2** — **Stage 6 closure:** **`sales_summary_report.php`** — finalized **credit notes** in chosen period by **`credit_date`** (totals · AR reduction vs cash refund · table · links to **`credit_note_edit.php`**) when **`cn_tables_ready`** · **`CLAUDE.md`** §2 Stage **6** marked **DONE & TESTED** · deferred SMTP/PayFast/supplier AP → **`BACKLOG_POST_STAGE7.md`** · **`ROADMAP.md`** Stage 6 bullet · **`reports_staff_guide_print.html`** · **`complete_system_manual.html`** · **`sales_summary_report_client_print.html`** · **`main_dashboard.php`** copy · **`CHANGELOG`**.
 
 - **2026-05-02 (time unknown) UTC+2** — **Training PDF:** **`docs/git_laragon_terminal_start_to_finish_print.html`** — Laragon/Cursor terminal → **`cd`** → **`git status`** / **`git add .`** / **`git commit -m`** / **`git push`** · GitHub PAT · Credential Manager · “everything up-to-date” · Vim escape · **`docs/client_training_index.html`** · **`CHANGELOG`**.
 
@@ -1161,7 +1163,7 @@ run **`06a_customer_account.sql`**. If **`list_online` / shop** errors, run **`0
 | **This session report (Print → PDF)** | **`docs/session_report_reports_menu_print.html`** — Reports nav, SQL impact, viewer login, doc map, single next-step path |
 | **New sale / invoices** | **POS** → **New sale** or **Sales invoices** → `invoice_edit.php` / `invoices_admin.php` (same list also under **Reports → Sales invoices**). |
 | **New customer during a sale** | On a **draft** invoice, under Customer: **New customer (quick)** → `customer_quick_add.php` → returns with buyer selected; full record + SHGA scans: **Master data → Customers**. |
-| **Sales summary (period, POS)** | **Reports** → **Sales summary (period)** → `sales_summary_report.php` (needs **`05_pos.sql`** · **no extra SQL**) |
+| **Sales summary (period, POS)** | **Reports** → **Sales summary (period)** → `sales_summary_report.php` (**`05_pos.sql`** · finalized **credit notes** block needs **`07_credit_notes.sql`** · **no extra SQL**) |
 | **Who owes us (AR)** | **Reports** → **Accounts receivable (owed)** → `customer_ar_report.php` (needs **`05_pos.sql`**; optional **`06a`** for “account only” filter + `invoice_edit` due-date rule). |
 | **Customer account statement** | `customer_statement.php?id=N` — **Statement** link on AR report / next to name on **Customers** list; or **Reports → Customer statements (Customers list)**. **Print / PDF**; **WhatsApp** (text summary); **Email** (`mailto:`). Attach PDF from Print for full copy. |
 | **Site backup (ZIP)** | **Dashboard** → **Open backup**, or your **name** (top right) → **Site backup (ZIP)** → `backups_admin.php` (**owner / admin**). Files: `autowagen_backup_YYYY-MM-DD_HHMMSS.zip`. Database not included — export SQL separately in phpMyAdmin if needed. |

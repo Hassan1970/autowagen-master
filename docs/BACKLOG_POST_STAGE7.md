@@ -48,6 +48,6 @@ Not implemented. Means headline **Balance / Remaining / AR chased** would use `i
 
 ## Optional later
 
-- Sales summary: include credit-note lines in period aggregates (if you want profit-and-loss-style views).
+- **Sales summary:** finalized **credit-note** totals + list by **credit date** are on **`sales_summary_report.php`** when **`sql/07_credit_notes.sql`** is applied — no further P&amp;L-style line detail planned unless you request it.
 - Training PNGs for `docs/manual_screenshots/` and `complete_system_manual.html` figures.
 - **Ops docs:** printable **`docs/database_update_backup_guide_print.html`** (replace DB vs incremental SQL) · **`docs/add_users_staff_guide_print.html`** (new app users via `users` table).
