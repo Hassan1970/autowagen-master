@@ -4,6 +4,59 @@
 
 Use this list when you say **go** on the next build block. **Stage 7 credit notes** stay as implemented; **no new SQL** required for the AR/cash **display split** (already in code).
 
+**Printable ladder (same order):** **`docs/rollout_execution_order_print.html`** → browser → **Print → PDF**.
+
+---
+
+## Recommended execution order (Live → test → backlog → test → polish)
+
+Do **not** skip tests between phases. Finish one **phase** before starting the next.
+
+### Phase A — Live / ops (get hosting correct)
+
+1. On your **PC**, confirm the code you want is saved and pushed: **`git status`** clean, **`git push`** done (see **`docs/git_laragon_terminal_start_to_finish_print.html`**).
+2. Copy **program files** to the live host the way you always do (**FTP**, **cPanel File Manager**, or **`git pull`** on the server if your host allows it). At minimum, if the live menu is old: upload **`includes/header.php`**, **`main_dashboard.php`**, and any other files your session changed.
+3. On the **server**, ensure **`config/secrets.live.php`** exists and has the **live database** credentials (never commit real secrets to GitHub). Copy from **`config/secrets.live.php.example`** if needed.
+4. On the host **phpMyAdmin**: run any **`sql/*.sql`** files that this **live** database is still missing — same order as **`CLAUDE.md`** section 10 (e.g. **`05`**, **`06a`**, **`06b`**, **`06e`**, **`07`** as needed).
+5. Open the **live** site in the browser → **login** → check **Reports** dropdown and open **one** report. If something errors, fix **files** or **SQL** before Phase B.
+
+### Phase B — Test (prove live / daily use)
+
+1. **Login** · **Dashboard** loads.
+2. **POS:** open **Sales invoices** or **New sale** — one **draft** is enough; cancel or leave draft.
+3. **Reports:** open **Accounts receivable** and **Sales summary** — no white screen.
+4. **Public shop:** open **`/shop/`** on the **live** URL (no login) — page loads.
+5. Optional: **Credit notes** (if **`07`** ran on live DB): **Reports → Credit notes** opens.
+6. Write **PASS** or issues in **`CLAUDE.md`** section 9 (one dated line).
+
+### Phase C — New code (backlog — pick **one** block per project)
+
+Only after **A + B** are OK (or you consciously test only on Laragon first).
+
+| Order | Build | See below |
+|-------|--------|-----------|
+| 1 (often first) | **SMTP** / server email | § **SMTP / outbound email** |
+| 2 | **Supplier returns / AP credits** | § **Supplier returns / AP credits** |
+| 3 | **PayFast / Stripe** on shop | § **Online payments (shop)** |
+| 4 | **Alternate accountant net-due rule** | § **Alternate accountant rule** — explicit **go** only |
+
+Implement on **Laragon** first (`http://localhost/autowagen-master/`), then repeat **Phase A** deploy + **Phase D** tests on live.
+
+### Phase D — Test (after each backlog delivery)
+
+1. On **localhost**: exercise only the screens that changed (e.g. new mail button, new AP screen).
+2. **`git commit`** + **`git push`**.
+3. Deploy to **live** (Phase A steps 2–4 as needed).
+4. Repeat **Phase B** smoke checks plus **specific** checks for the new feature.
+5. **`CLAUDE.md`** §9 + **`docs/CHANGELOG.md`** / **`CHANGELOG.html`** (Recorder + time).
+
+### Phase E — Polish / docs
+
+1. **`docs/TRAINING_SCREENSHOTS.md`** — add real PNGs under **`docs/manual_screenshots/`** for **`complete_system_manual.html`** figures.
+2. Re-print **`docs/complete_system_manual.html`** → PDF for clients when screenshots exist.
+3. Optional: dated **`docs/md_backups/YYYY-MM-DD/`** copy of **`CLAUDE.md`**, **`ROADMAP.md`**, **`HOW_TO_START_NEW_CHAT.md`**.
+4. Ops handouts already in **`docs/client_training_index.html`** (database update, add users, Git, shutdown checklist).
+
 ---
 
 ## Done (2026-05-01 UTC+2 session) — accounting clarity

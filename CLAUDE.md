@@ -30,7 +30,7 @@ project. Old project stays untouched as read-only reference. Built in
 
 > Format: `Stage N — Title:  STATUS  (last verified YYYY-MM-DD HH:MM TZ)`
 >
-> **Last overnight handoff:** **2026-05-02 UTC+2** — **Stage 6** marked **DONE & TESTED** in §2 (sales summary + CN-by-date block). Backlog-only: **`docs/BACKLOG_POST_STAGE7.md`** (SMTP, supplier AP returns, PayFast). Next picks: live **`header.php`** deploy if Reports missing · optional web shop smoke-test · **`viewer`** user.
+> **Last overnight handoff:** **2026-05-02 UTC+2** — **Stage 6** done (sales summary + CN-by-date). **Rollout order:** **`docs/rollout_execution_order_print.html`** + **`BACKLOG_POST_STAGE7.md`** (Live/Ops → test → backlog → test → polish). Backlog builds: SMTP, supplier AP, PayFast. Next: Phase **A** deploy if live menus old · **`viewer`** user.
 
 - **Stage 1 — Foundation (auth, layout, config):** ✅ DONE & TESTED
   *(verified 2026-04-26, see Stage 1 deliverables below)*
@@ -309,7 +309,8 @@ autowagen-master/
 │  ├─ ar_report_and_customer_statement_explained_print.html ← AR report + statement: every section explained (PDF)
 │  ├─ credit_notes_system_guide_print.html    ← Stage 7 · credits · invoice/AR/statement · viewer vs shop → Print PDF
 │  ├─ credit_notes_ar_vs_cash_refund_print.html ← AR vs cash (locked net + split columns) → Print PDF
-│  └─ BACKLOG_POST_STAGE7.md        ← supplier returns · SMTP · shop payments (mini-roadmap)
+│  ├─ rollout_execution_order_print.html      ← Live → test → backlog → test → polish (Print → PDF)
+│  └─ BACKLOG_POST_STAGE7.md                  ← rollout ladder at top · supplier returns · SMTP · shop payments
 ├─ .gitignore
 ├─ index.php                    ← auth-aware redirect
 ├─ main_dashboard.php
@@ -564,6 +565,8 @@ If the file approaches ~200 lines, **prune** the Session log
 ## 9. Session log — append-only, newest at top
 
 > Each entry: `YYYY-MM-DD HH:MM TZ — short description (who, what, result)`.
+
+- **2026-05-02 (time unknown) UTC+2** — **Rollout ladder (hassan):** **`docs/BACKLOG_POST_STAGE7.md`** — phases **A–E** (Live/Ops → test → one backlog block → test → polish/docs); **`docs/rollout_execution_order_print.html`** · **`docs/client_training_index.html`** card · **`CLAUDE.md`** §3 + §10 table · **`CHANGELOG`**.
 
 - **2026-05-02 (time unknown) UTC+2** — **Stage 6 closure:** **`sales_summary_report.php`** — finalized **credit notes** in chosen period by **`credit_date`** (totals · AR reduction vs cash refund · table · links to **`credit_note_edit.php`**) when **`cn_tables_ready`** · **`CLAUDE.md`** §2 Stage **6** marked **DONE & TESTED** · deferred SMTP/PayFast/supplier AP → **`BACKLOG_POST_STAGE7.md`** · **`ROADMAP.md`** Stage 6 bullet · **`reports_staff_guide_print.html`** · **`complete_system_manual.html`** · **`sales_summary_report_client_print.html`** · **`main_dashboard.php`** copy · **`CHANGELOG`**.
 
@@ -1110,7 +1113,7 @@ Before switching off: **`HOW_TO_START_NEW_CHAT.md`** → **“Before you shut do
 
 ### Pause — 2026-05-01 end of day (hassan)
 
-**Stopped for today.** Next session: read **§10** from the top, then **`HOW_TO_START_NEW_CHAT.md`** Step 2 prompt. **Quick picks:** deploy **`includes/header.php`** to live if **Reports** missing · optional **§10 → A** web shop test · **`docs/BACKLOG_POST_STAGE7.md`** for post–Stage 7 work · **viewer** role in phpMyAdmin for read-only logins.
+**Stopped for today.** Next session: read **§10** from the top, then **`HOW_TO_START_NEW_CHAT.md`** Step 2 prompt. **Execution order:** **`docs/rollout_execution_order_print.html`** (print PDF) or **`docs/BACKLOG_POST_STAGE7.md`** — **Live/Ops → test → backlog → test → polish**. Quick picks within Phase A: **`includes/header.php`** to live if **Reports** missing · **`viewer`** role in phpMyAdmin.
 
 ### Where we are
 
@@ -1200,6 +1203,7 @@ run **`06a_customer_account.sql`**. If **`list_online` / shop** errors, run **`0
 | **Add staff users (viewer/staff · phpMyAdmin · hashes)** | **`docs/add_users_staff_guide_print.html`** |
 | **SQL / DB: full replace vs incremental (keep customer data)** | **`docs/database_update_backup_guide_print.html`** |
 | **Pause / shutdown — resume next session** | **`docs/session_pause_handoff_print.html`** · **`HOW_TO_START_NEW_CHAT.md`** (before shutdown block) |
+| **Rollout order (Live → test → backlog → polish)** | **`docs/rollout_execution_order_print.html`** · top of **`docs/BACKLOG_POST_STAGE7.md`** |
 | AI/project diary & “what next” | Repo root **`CLAUDE.md`** · especially **§10** |
 
 ### Suggested next session (pick one)

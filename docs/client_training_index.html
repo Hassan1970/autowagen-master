@@ -68,6 +68,12 @@
   <h1>Autowagen Master — training guides</h1>
   <p class="tagline">Plain-language steps for <strong>shop staff</strong> using the system day to day. Open each link in <strong>Chrome</strong> or <strong>Edge</strong>. To save a handout: <kbd>Ctrl</kbd>+<kbd>P</kbd> → <strong>Save as PDF</strong>.</p>
 
+  <div class="card" style="border:2px solid #198754;background:#f8fff9;">
+    <h2>Rollout order — Live → test → backlog → test → polish</h2>
+    <p><strong>Owner:</strong> The sequence hassan chose: deploy/hosting first, smoke-test, then pick <strong>one</strong> backlog build (SMTP, supplier AP, PayFast, etc.), test again, then training screenshots and PDFs. Full steps also at the top of <code>docs/BACKLOG_POST_STAGE7.md</code>.</p>
+    <a href="rollout_execution_order_print.html">Open: Rollout ladder checklist → Print / PDF</a>
+  </div>
+
   <div class="card" style="border:2px solid #0a0a0a;background:#fff;">
     <h2>Pause / shutdown — pick up where you stopped → PDF</h2>
     <p><strong>Before switching off the PC:</strong> save files, <code>git push</code>, one line at top of <code>CLAUDE.md</code> §9 + what’s next, optional copy of key <code>.md</code> files into <code>docs/md_backups/YYYY-MM-DD/</code>, optional phpMyAdmin DB Export. When you return: read <code>CLAUDE.md</code> §10 → new chat paste from <code>HOW_TO_START_NEW_CHAT.md</code>.</p>

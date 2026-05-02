@@ -30,6 +30,13 @@ Keep bullets honest — do not invent tests you did not run.
 
 ---
 
+## 2026-05-02 (time unknown) UTC+2 — Rollout ladder doc (Live → test → backlog → polish)
+
+- **Recorder:** Hassan (with Cursor assistant)
+- **Summary:** **`docs/BACKLOG_POST_STAGE7.md`** — new **Recommended execution order** phases A–E at top. **`docs/rollout_execution_order_print.html`** (Print/PDF checklist). **`docs/client_training_index.html`** green card · **`CLAUDE.md`** §3/§9/§10 + pause block.
+
+---
+
 ## 2026-05-02 (time unknown) UTC+2 — Stage 6 closure · sales summary credit-note period block
 
 - **Recorder:** Hassan (with Cursor assistant)

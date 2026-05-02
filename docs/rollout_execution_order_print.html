@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Autowagen Master — Rollout order: Live → test → backlog → test → polish</title>
+<style>
+  :root { --r:#c8102e; --k:#0a0a0a; }
+  @page { size: A4 portrait; margin: 12mm; }
+  body { margin:0 auto; max-width:175mm; padding:10mm 12mm 14mm; font-family:system-ui,sans-serif; font-size:9.6pt; line-height:1.42; color:var(--k); }
+  header { background:var(--k); color:#fff; padding:10px 14px; margin:-10mm -12mm 14px -12mm; border-bottom:4px solid var(--r); print-color-adjust:exact; }
+  header h1 { margin:0; font-size:11pt; letter-spacing:.06em; }
+  header span { color:var(--r); font-weight:700; }
+  header .sub { margin:5px 0 0; font-size:7.6pt; opacity:.92; }
+  .hint { font-size:8pt; background:#fff8e6; border:1px solid #ddc653; padding:8px 10px; margin-bottom:12px; border-radius:4px; }
+  @media print { .no-print{display:none!important;} body{padding:5mm;} }
+  h2 { font-size:10pt; color:var(--r); margin:14px 0 8px; border-bottom:1px solid #ccc; padding-bottom:3px; text-transform:uppercase; letter-spacing:.04em; page-break-after:avoid; }
+  ol.phase > li { margin:10px 0; font-weight:600; }
+  ol.phase ol { font-weight:normal; margin:6px 0 0; }
+  ol.phase ol li { margin:5px 0; }
+  .mono { font-family:Consolas,monospace; font-size:8.2pt; background:#f4f4f4; padding:2px 5px; border-radius:2px; }
+  table { width:100%; border-collapse:collapse; font-size:8.5pt; margin:8px 0; }
+  th, td { border:1px solid #bbb; padding:6px 8px; text-align:left; vertical-align:top; }
+  th { background:#efefef; }
+  .foot { margin-top:14px; padding-top:8px; border-top:1px solid #ccc; font-size:7.6pt; color:#555; }
+  kbd { border:1px solid #999; padding:0 4px; border-radius:3px; font-size:.88em; background:#eee; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span>ROLLOUT</span> — Live · test · backlog · test · polish</h1>
+  <div class="sub">Autowagen Master · owner checklist · mirror of <span class="mono">docs/BACKLOG_POST_STAGE7.md</span> · UTC+2</div>
+</header>
+
+<div class="hint no-print">
+  <strong>PDF:</strong> Open in <strong>Chrome</strong> or <strong>Edge</strong> → <kbd>Ctrl</kbd>+<kbd>P</kbd> → <strong>Save as PDF</strong> → <strong>Pages: All</strong> → <strong>Background graphics ON</strong>.
+</div>
+
+<p><strong>Use this order:</strong> finish each phase (with its test) before the next. Full backlog detail stays in <code>docs/BACKLOG_POST_STAGE7.md</code>.</p>
+
+<h2>Phase A — Live / ops</h2>
+<ol class="phase">
+  <li>PC: save work · <code>git push</code> · (<code>docs/git_laragon_terminal_start_to_finish_print.html</code>).</li>
+  <li>Upload or pull <strong>program files</strong> to hosting (FTP / cPanel / server git). If menus are old: at least <code>includes/header.php</code>, <code>main_dashboard.php</code>, plus any files you changed.</li>
+  <li>Server: <code>config/secrets.live.php</code> = live DB (copy from <code>secrets.live.php.example</code> — never commit real passwords).</li>
+  <li>Host <strong>phpMyAdmin</strong>: run missing <code>sql/*.sql</code> in order for <strong>that</strong> database (see <code>CLAUDE.md</code> section 10).</li>
+  <li>Browser: open <strong>live</strong> URL → login → <strong>Reports</strong> → one report loads.</li>
+</ol>
+
+<h2>Phase B — Test (after live is updated)</h2>
+<ol class="phase">
+  <li>Login · Dashboard.</li>
+  <li>POS: <strong>New sale</strong> or <strong>Sales invoices</strong> — open a draft.</li>
+  <li><strong>Reports:</strong> e.g. AR + Sales summary — no error page.</li>
+  <li>Guest: <code>/shop/</code> on the <strong>live</strong> base URL.</li>
+  <li>Optional: <strong>Credit notes</strong> if <code>07</code> ran on live DB.</li>
+  <li>Log <strong>PASS</strong> or issue in <code>CLAUDE.md</code> section 9.</li>
+</ol>
+
+<h2>Phase C — New code (backlog — one block at a time)</h2>
+<p>Only after A + B, unless you deliberately build on Laragon only first.</p>
+<table>
+  <thead><tr><th>Typical order</th><th>Topic</th><th>Detail</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>SMTP / server email</td><td>Statements or reminders from the server</td></tr>
+    <tr><td>2</td><td>Supplier AP returns</td><td>Credits on the buying side</td></tr>
+    <tr><td>3</td><td>PayFast / Stripe</td><td>Web checkout payments</td></tr>
+    <tr><td>4</td><td>Alternate net-due rule</td><td>Accountant spec only — explicit go</td></tr>
+  </tbody>
+</table>
+<p>Build on <strong>localhost</strong> first → then repeat Phase A deploy → Phase D.</p>
+
+<h2>Phase D — Test (after each backlog feature)</h2>
+<ol class="phase">
+  <li>Test changed screens on Laragon.</li>
+  <li><code>git commit</code> · <code>git push</code>.</li>
+  <li>Deploy to live (Phase A file/SQL steps as needed).</li>
+  <li>Smoke-test live again (Phase B + feature-specific checks).</li>
+  <li>Update <code>CLAUDE.md</code> section 9 and <code>docs/CHANGELOG.md</code> / <code>CHANGELOG.html</code>.</li>
+</ol>
+
+<h2>Phase E — Polish / docs</h2>
+<ol class="phase">
+  <li>Add PNGs per <code>docs/TRAINING_SCREENSHOTS.md</code> → <code>docs/manual_screenshots/</code>.</li>
+  <li>Print <code>complete_system_manual.html</code> → PDF when figures are filled.</li>
+  <li>Optional: <code>docs/md_backups/YYYY-MM-DD/</code> snapshot of key <code>.md</code> files.</li>
+  <li>Index of all printable guides: <code>docs/client_training_index.html</code>.</li>
+</ol>
+
+<div class="foot">
+  Pair with: <code>docs/database_update_backup_guide_print.html</code> · <code>docs/session_pause_handoff_print.html</code> · <code>HOW_TO_START_NEW_CHAT.md</code>
+</div>
+
+</body>
+</html>
