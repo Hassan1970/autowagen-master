@@ -30,7 +30,7 @@ project. Old project stays untouched as read-only reference. Built in
 
 > Format: `Stage N — Title:  STATUS  (last verified YYYY-MM-DD HH:MM TZ)`
 >
-> **Last overnight handoff:** **2026-05-02 UTC+2** — **Stage 6** done (sales summary + CN-by-date). **Rollout order:** **`docs/rollout_execution_order_print.html`** + **`BACKLOG_POST_STAGE7.md`** (Live/Ops → test → backlog → test → polish). Backlog builds: SMTP, supplier AP, PayFast. Next: Phase **A** deploy if live menus old · **`viewer`** user.
+> **Last overnight handoff:** **2026-05-02 (end of day) UTC+2** — **hassan** closed session. **When back:** **`HOW_TO_START_NEW_CHAT.md`** STEP **2** paste into new chat + read **`CLAUDE.md`** §**10** (**Pause — end of day**). **Next:** rollout **Phase A** (live deploy / `secrets.live.php` / host SQL) → **Phase B** test — **`docs/BACKLOG_POST_STAGE7.md`** or **`docs/rollout_execution_order_print.html`**.
 
 - **Stage 1 — Foundation (auth, layout, config):** ✅ DONE & TESTED
   *(verified 2026-04-26, see Stage 1 deliverables below)*
@@ -549,7 +549,7 @@ If the file approaches ~200 lines, **prune** the Session log
 - phpMyAdmin: `http://localhost/phpmyadmin` → DB `autowagen_master`
 - Run a SQL file: phpMyAdmin → click DB → **SQL** tab → paste contents
   of `sql/NN_*.sql` → click **Go**.
-- New chat handoff: see `HOW_TO_START_NEW_CHAT.md`.
+- New chat handoff: **`HOW_TO_START_NEW_CHAT.md`** (STEP **2** grey box) + read **`CLAUDE.md`** §**10**. Rollout order: **`docs/BACKLOG_POST_STAGE7.md`** top / **`docs/rollout_execution_order_print.html`**.
 - **Site backup (ZIP):** `backups_admin.php` (owner or admin only) — **Dashboard** card or your **name** menu (top right).
 - **Client PC install (PDF):** open `docs/client_install_print.html` in browser → **Print** → **Save as PDF**.
 - **Staff manual + web shop (PDF):** open **`docs/complete_system_manual.html`** → **Ctrl+P** → **Save as PDF** (screenshots optional).
@@ -565,6 +565,8 @@ If the file approaches ~200 lines, **prune** the Session log
 ## 9. Session log — append-only, newest at top
 
 > Each entry: `YYYY-MM-DD HH:MM TZ — short description (who, what, result)`.
+
+- **2026-05-02 (end of day) UTC+2** — **Session pause — hassan:** closing for the day. **When I return:** paste **`HOW_TO_START_NEW_CHAT.md`** STEP **2** into a new chat; read **`CLAUDE.md`** §**10** (**Pause — end of day**). **Next:** rollout **Phase A → B** (**`docs/BACKLOG_POST_STAGE7.md`** top / **`docs/rollout_execution_order_print.html`**). **Before PC off (optional):** **`HOW_TO`** “Before you shut down” · **`docs/session_pause_handoff_print.html`**. Repo pushed this session unless local edits pending.
 
 - **2026-05-02 (time unknown) UTC+2** — **Rollout ladder (hassan):** **`docs/BACKLOG_POST_STAGE7.md`** — phases **A–E** (Live/Ops → test → one backlog block → test → polish/docs); **`docs/rollout_execution_order_print.html`** · **`docs/client_training_index.html`** card · **`CLAUDE.md`** §3 + §10 table · **`CHANGELOG`**.
 
@@ -1111,9 +1113,19 @@ If the file approaches ~200 lines, **prune** the Session log
 
 Before switching off: **`HOW_TO_START_NEW_CHAT.md`** → **“Before you shut down the PC”** — Git **`commit`** + **`push`**, append **§9 Session log** (one line + what’s next), optional **`docs/md_backups/YYYY-MM-DD/`** copy and phpMyAdmin **Export**. **Print:** **`docs/session_pause_handoff_print.html`**. Next session: read **§10** then **`HOW_TO_START_NEW_CHAT.md`** Step **2** paste into a **new chat**.
 
-### Pause — 2026-05-01 end of day (hassan)
+### Pause — end of day (hassan — latest)
 
-**Stopped for today.** Next session: read **§10** from the top, then **`HOW_TO_START_NEW_CHAT.md`** Step 2 prompt. **Execution order:** **`docs/rollout_execution_order_print.html`** (print PDF) or **`docs/BACKLOG_POST_STAGE7.md`** — **Live/Ops → test → backlog → test → polish**. Quick picks within Phase A: **`includes/header.php`** to live if **Reports** missing · **`viewer`** role in phpMyAdmin.
+**Stopped for today.** When you come back:
+
+1. Open **`HOW_TO_START_NEW_CHAT.md`** → **STEP 2** → select the whole **grey box** → copy → **new Cursor chat** → paste → **Enter**.
+2. Or paste the shorter **“overnight”** block under Step 2 in that file (says you are back and continue rollout).
+3. The assistant will read **`CLAUDE.md`** (especially **section 10** and **section 2**). **Your next build order** is already written at the **top** of **`docs/BACKLOG_POST_STAGE7.md`**: **Phase A** Live/Ops → **Phase B** test → later **Phase C** backlog → **Phase D** test → **Phase E** polish. Printable: **`docs/rollout_execution_order_print.html`**.
+
+**No code left half-finished this session** (last pushes: rollout ladder docs + Stage 6 sales-summary credits block).
+
+### Pause — 2026-05-01 end of day (archived note)
+
+Older pause text — see **Pause — end of day (latest)** above. Rollout ladder + **`HOW_TO`** STEP 2 updated **2026-05-02**.
 
 ### Where we are
 

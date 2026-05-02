@@ -1,6 +1,6 @@
 # After Stage 7 — mini-roadmap (not scheduled)
 
-**Resume tomorrow:** project diary = **`CLAUDE.md`** (especially **§10** + **§9** session log) · new-chat paste = **`HOW_TO_START_NEW_CHAT.md`** Step 2–3.
+**Resume tomorrow:** **`HOW_TO_START_NEW_CHAT.md`** → **STEP 2** paste into new chat · project diary = **`CLAUDE.md`** (**§10** Pause + **§9** log) · rollout ladder at **top** of this file + **`docs/rollout_execution_order_print.html`**.
 
 Use this list when you say **go** on the next build block. **Stage 7 credit notes** stay as implemented; **no new SQL** required for the AR/cash **display split** (already in code).
 

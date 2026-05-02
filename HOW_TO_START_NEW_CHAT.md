@@ -39,13 +39,14 @@ Click inside the grey box, press **`Ctrl+A`** to select all, then
 **`Ctrl+C`** to copy:
 
 ```
-Read CLAUDE.md top-to-bottom first, especially section 10 "Resume
-handoff" if we jumped topics. Then continue from "Suggested next
-session". After every meaningful code/SQL/docs change: update sections
-2 and 9 of CLAUDE.md AND append the same dated entry (newest first) to
-docs/CHANGELOG.md and docs/CHANGELOG.html with Recorder name + UTC+2.
-I am new to coding — use numbered, plain-English instructions and tell
-me exactly what to click and type.
+Read CLAUDE.md top-to-bottom first, especially section 10 (Pause / handoff)
+and section 2 (live state). Then follow the rollout order at the top of
+docs/BACKLOG_POST_STAGE7.md — start at Phase A (Live/Ops) unless I say I
+already finished A and B. Optional print/PDF checklist: docs/rollout_execution_order_print.html
+After every meaningful code/SQL/docs change: update sections 2 and 9 of
+CLAUDE.md AND prepend docs/CHANGELOG.md and docs/CHANGELOG.html with
+Recorder name + UTC+2. I am new to coding — numbered, plain-English steps;
+tell me exactly what to click and type.
 ```
 
 ---
@@ -57,14 +58,24 @@ Click into the empty chat box, press **`Ctrl+V`**, then press
 
 ---
 
-That's it. The new agent will read `CLAUDE.md`, see exactly where
-we are, and continue from section 10 (**Resume handoff** if you diverted mid-session).
+That's it. The new agent will read `CLAUDE.md`, see **section 10**
+(**Pause — end of day**) and the rollout ladder in **`BACKLOG_POST_STAGE7.md`**,
+and continue from **Phase A** unless you say you finished more.
 
 ---
 
-## Paste this when you paused before finishing (e.g. web shop test)
+## Paste this when you paused before finishing (e.g. overnight / end of day)
 
-Use this **instead of** (or **after**) the grey box in Step 2 if you stopped mid-task:
+Use this **instead of** (or **after**) the grey box in Step 2 if you stopped for the night:
+
+```
+Read CLAUDE.md section 10 first — "Pause — end of day (latest)".
+I am back: continue the rollout ladder from docs/BACKLOG_POST_STAGE7.md
+(Phase A Live/Ops → B test → …) or I will tell you which phase I finished.
+Numbered steps only; I am new to coding.
+```
+
+**Older template (fixed date reference):**
 
 ```
 Read CLAUDE.md section 10 first — especially "Pause — 2026-05-01 end of day"

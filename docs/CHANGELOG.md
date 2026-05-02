@@ -30,6 +30,13 @@ Keep bullets honest — do not invent tests you did not run.
 
 ---
 
+## 2026-05-02 (end of day) UTC+2 — Overnight handoff (HOW_TO + CLAUDE pause)
+
+- **Recorder:** Hassan (with Cursor assistant)
+- **Summary:** **`HOW_TO_START_NEW_CHAT.md`** STEP 2 grey-box prompt refreshed (rollout · BACKLOG Phase A). **`CLAUDE.md`** §**2** handoff · §**9** pause line · §**10** **Pause — end of day (latest)**. **`docs/BACKLOG_POST_STAGE7.md`** resume line.
+
+---
+
 ## 2026-05-02 (time unknown) UTC+2 — Rollout ladder doc (Live → test → backlog → polish)
 
 - **Recorder:** Hassan (with Cursor assistant)
