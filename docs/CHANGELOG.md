@@ -30,6 +30,11 @@ Keep bullets honest — do not invent tests you did not run.
 
 ---
 
+## 2026-05-02 (time unknown) UTC+2 — Git Laragon terminal → GitHub Print PDF guide
+
+- **Recorder:** Hassan (with Cursor assistant)
+- **Summary:** New printable HTML **`docs/git_laragon_terminal_start_to_finish_print.html`** — linear steps from opening Laragon/Cursor terminal through **`git push`** with GitHub PAT, Credential Manager, “everything up-to-date”, Vim escape; indexed from **`docs/client_training_index.html`**; **`CLAUDE.md`** §3 + §10 quick-docs row.
+
 ## 2026-05-02 (time unknown) UTC+2 — Shutdown handoff (PC pause)
 
 - **Recorder:** Hassan (with Cursor assistant)

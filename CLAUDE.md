@@ -298,6 +298,7 @@ autowagen-master/
 │  ├─ supplier_purchase_screen_full_guide.html ← supplier purchase What/Why/When/How
 │  ├─ invoice_screen_full_guide.html        ← Stage 5 invoice / POS (detailed zones S/P + figure placeholders; print → PDF)
 │  ├─ git_github_handout_print.html          ← Session handout (hosting + GitHub; Print → PDF)
+│  ├─ git_laragon_terminal_start_to_finish_print.html ← Laragon terminal: cd → status → add → commit -m → push + PAT (Print → PDF)
 │  ├─ CHANGELOG.md                           ← dated changes Markdown (pair with CHANGELOG.html; newest first)
 │  ├─ CHANGELOG.html                         ← HTML mirror · Print → PDF
 │  ├─ developer_quick_sheet_print.html       ← laminate: Git + triple-changelog reminders (Print → PDF)
@@ -556,12 +557,15 @@ If the file approaches ~200 lines, **prune** the Session log
 - **Add staff users (roles, phpMyAdmin, password hash):** **`docs/add_users_staff_guide_print.html`** → open in **Chrome/Edge** → **Ctrl+P** → Save as PDF (**Pages: All**, clear text selection first — Cursor-only print may clip pages).
 - **Database updates (full replace vs keep data):** **`docs/database_update_backup_guide_print.html`** — same PDF workflow as above.
 - **Pause before PC shutdown:** **`docs/session_pause_handoff_print.html`** — Git · §9 · optional snapshot · DB export.
+- **Git terminal — start to finish (PDF):** **`docs/git_laragon_terminal_start_to_finish_print.html`** — Laragon/Cursor terminal → **`git push`** + PAT troubleshooting.
 
 ---
 
 ## 9. Session log — append-only, newest at top
 
 > Each entry: `YYYY-MM-DD HH:MM TZ — short description (who, what, result)`.
+
+- **2026-05-02 (time unknown) UTC+2** — **Training PDF:** **`docs/git_laragon_terminal_start_to_finish_print.html`** — Laragon/Cursor terminal → **`cd`** → **`git status`** / **`git add .`** / **`git commit -m`** / **`git push`** · GitHub PAT · Credential Manager · “everything up-to-date” · Vim escape · **`docs/client_training_index.html`** · **`CHANGELOG`**.
 
 - **2026-05-02 (time unknown) UTC+2** — **Shutdown handoff pack:** **`docs/session_pause_handoff_print.html`** · **`HOW_TO_START_NEW_CHAT.md`** “Before you shut down” · **`CLAUDE.md`** §10 handoff block · **`docs/client_training_index.html`** · **`docs/md_backups/README.md`** numbered steps · **`ROADMAP.md`** · **`docs/TRAINING_SCREENSHOTS.md`**.
 
@@ -1189,6 +1193,7 @@ run **`06a_customer_account.sql`**. If **`list_online` / shop** errors, run **`0
 | Supplier purchases | **`docs/manual_supplier_purchase_screen.html`** or **`supplier_purchase_screen_full_guide.html`** |
 | New PC install | **`docs/client_install_print.html`** |
 | Git workflow + triple changelog (Markdown/HTML/CLAUDE §9) | **`docs/developer_quick_sheet_print.html`** (+ **`CHANGELOG.md`**) |
+| **Git terminal — Laragon → GitHub start to finish** | **`docs/git_laragon_terminal_start_to_finish_print.html`** |
 | **AR report & statement — section-by-section PDF** | **`docs/ar_report_and_customer_statement_explained_print.html`** — Alerts, filters, every column · statement toolbar & table |
 | **Add staff users (viewer/staff · phpMyAdmin · hashes)** | **`docs/add_users_staff_guide_print.html`** |
 | **SQL / DB: full replace vs incremental (keep customer data)** | **`docs/database_update_backup_guide_print.html`** |

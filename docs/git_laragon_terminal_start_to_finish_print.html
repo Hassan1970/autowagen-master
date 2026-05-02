@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Git start → finish — Laragon terminal · Autowagen Master</title>
+<style>
+  :root { --r:#c8102e; --k:#0a0a0a; }
+  @page { size: A4 portrait; margin: 12mm; }
+  body { margin:0 auto; max-width:175mm; padding:8mm 11mm 12mm; font-family:system-ui,sans-serif; font-size:9.4pt; line-height:1.42; color:var(--k); }
+  header { background:var(--k); color:#fff; padding:10px 14px; margin:-8mm -11mm 12px -11mm; border-bottom:4px solid var(--r); print-color-adjust:exact; }
+  header h1 { margin:0; font-size:11.5pt; letter-spacing:.06em; }
+  header span { color:var(--r); font-weight:700; }
+  header .sub { margin:5px 0 0; font-size:7.6pt; opacity:.92; }
+  .hint { font-size:8pt; background:#fff8e6; border:1px solid #ddc653; padding:8px 10px; margin-bottom:11px; border-radius:4px; }
+  @media print { .no-print{display:none!important;} body{padding:4mm;} }
+  h2 { font-size:9.8pt; color:var(--r); margin:12px 0 6px; border-bottom:1px solid #ccc; padding-bottom:2px; text-transform:uppercase; letter-spacing:.05em; page-break-after:avoid; }
+  ol.big > li { margin:8px 0; }
+  .mono { font-family:Consolas,monospace; font-size:8.3pt; background:#f4f4f4; padding:2px 5px; border-radius:2px; word-break:break-all; }
+  .box { border-left:4px solid var(--r); padding:8px 11px; margin:8px 0; background:#fafafa; font-size:8.9pt; }
+  table { width:100%; border-collapse:collapse; font-size:8.4pt; margin:6px 0; }
+  th, td { border:1px solid #bbb; padding:5px 7px; text-align:left; vertical-align:top; }
+  th { background:#efefef; }
+  .foot { margin-top:12px; padding-top:8px; border-top:1px solid #ccc; font-size:7.6pt; color:#555; }
+  kbd { border:1px solid #999; padding:0 4px; border-radius:3px; font-size:.88em; background:#eee; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span>GIT</span> — Laragon terminal · start to finish</h1>
+  <div class="sub">Autowagen Master · <span class="mono">C:\laragon\www\autowagen-master</span> · GitHub HTTPS + token · UTC+2</div>
+</header>
+
+<div class="hint no-print">
+  <strong>PDF:</strong> Open this file in <strong>Chrome</strong> or <strong>Edge</strong> (double-click in File Explorer) → click blank space (no selection) → <kbd>Ctrl</kbd>+<kbd>P</kbd> → <strong>Save as PDF</strong> → <strong>Pages: All</strong> → <strong>Background graphics ON</strong>.
+</div>
+
+<h2>Part A — Open the terminal</h2>
+<ol class="big">
+  <li><strong>Laragon:</strong> Right-click the Laragon tray elephant → <strong>Terminal</strong> <em>or</em> open <strong>Cmder</strong> if you use it.</li>
+  <li><strong>Cursor:</strong> Menu <strong>Terminal → New Terminal</strong> <em>or</em> press <kbd>Ctrl</kbd>+<kbd>`</kbd> (backtick).</li>
+  <li><strong>Go to the project folder</strong> (type exactly, then Enter):
+    <div class="box mono">cd C:\laragon\www\autowagen-master</div>
+  </li>
+  <li><strong>Check you are in Git:</strong>
+    <div class="box mono">git status</div>
+    If you see branch name + file list → OK. If <strong>not a git repository</strong> → wrong folder; fix the <code>cd</code> path.</li>
+</ol>
+
+<h2>Part B — Save work on GitHub (every session you care about)</h2>
+<p>Three commands in order: <strong>stage</strong> → <strong>commit</strong> → <strong>push</strong>.</p>
+<ol class="big">
+  <li><strong>Stage everything</strong> (all saved files in the folder):
+    <div class="box mono">git add .</div>
+  </li>
+  <li><strong>Commit</strong> with message on the same line (avoids Vim opening):
+    <div class="box mono">git commit -m "Short plain English: what you changed"</div>
+    If it says <strong>nothing to commit, working tree clean</strong> → there were no new changes since last commit (still run <code>git push</code> if unsure).</li>
+  <li><strong>Push</strong> to GitHub:
+    <div class="box mono">git push</div>
+  </li>
+</ol>
+
+<h2>Part C — First time Git asks for login (HTTPS)</h2>
+<table>
+  <tr><th>Prompt</th><th>What to type</th></tr>
+  <tr><td>Username</td><td>Your <strong>GitHub username</strong> (same as in <code>github.com/yourname/…</code>).</td></tr>
+  <tr><td>Password</td><td><strong>Not</strong> your GitHub website password. Use a <strong>Personal Access Token</strong> (next section).</td></tr>
+</table>
+
+<h2>Part D — Create a Personal Access Token (once per token)</h2>
+<ol class="big">
+  <li>Browser → GitHub → profile photo → <strong>Settings</strong> → <strong>Developer settings</strong> → <strong>Personal access tokens</strong> → <strong>Tokens (classic)</strong> → <strong>Generate new token (classic)</strong>.</li>
+  <li><strong>Note:</strong> any <strong>unique</strong> label (e.g. <code>Laragon May 2026</code>). If GitHub says <strong>Note has already been taken</strong>, change the text.</li>
+  <li>Tick scope <strong>repo</strong> (full control of private repositories).</li>
+  <li><strong>Generate token</strong> → copy the token (<code>ghp_…</code>). Store it safely — GitHub shows it once.</li>
+  <li><strong>Never</strong> paste the token into chat or screenshots.</li>
+</ol>
+
+<h2>Part E — If push fails</h2>
+<table>
+  <tr><th>Message</th><th>What it means / fix</th></tr>
+  <tr><td><code>Password authentication is not supported</code> / <code>Invalid username or token</code></td><td>Use <strong>token</strong> as password, not site password. Or generate new token.</td></tr>
+  <tr><td><code>Everything up-to-date</code></td><td>Remote already has your commits. If you expected new files → run <code>git status</code>; if files listed → do Part B (<code>add</code>, <code>commit</code>, then <code>push</code>).</td></tr>
+  <tr><td>Git keeps wrong password</td><td>Windows <strong>Credential Manager</strong> → <strong>Windows Credentials</strong> → remove <code>git:https://github.com</code> → <code>git push</code> again → username + token.</td></tr>
+</table>
+
+<h2>Part F — If Vim opens after <code>git commit</code></h2>
+<p>You ran <code>git commit</code> without <code>-m "…"</code>. Options:</p>
+<ul>
+  <li><strong>Abort commit:</strong> <kbd>Esc</kbd> then type <code>:q!</code> <kbd>Enter</kbd>.</li>
+  <li><strong>Finish commit:</strong> <kbd>i</kbd>, type message line, <kbd>Esc</kbd>, <code>:wq</code> <kbd>Enter</kbd>.</li>
+</ul>
+<p class="box"><strong>Habit:</strong> always use <code>git commit -m "your message"</code> so Vim does not open.</p>
+
+<h2>Part G — Quick checklist (copy rhythm)</h2>
+<div class="box mono">
+cd C:\laragon\www\autowagen-master<br>
+git status<br>
+git add .<br>
+git commit -m "Describe today's changes"<br>
+git push<br>
+git status&nbsp;&nbsp;<span style="color:#555;">← should say working tree clean</span>
+</div>
+
+<h2>What Git does <em>not</em> backup</h2>
+<ul>
+  <li><strong>MySQL database</strong> — export with phpMyAdmin separately.</li>
+  <li>Files listed in <code>.gitignore</code> (e.g. local secrets, most of <code>uploads/</code>) — by design.</li>
+</ul>
+
+<div class="foot">
+  Wider Git/hosting context: <code>docs/git_github_handout_print.html</code> · Triple changelog habit: <code>docs/developer_quick_sheet_print.html</code> · Index: <code>docs/client_training_index.html</code>
+</div>
+
+</body>
+</html>
