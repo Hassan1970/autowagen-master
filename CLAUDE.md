@@ -30,7 +30,7 @@ project. Old project stays untouched as read-only reference. Built in
 
 > Format: `Stage N — Title:  STATUS  (last verified YYYY-MM-DD HH:MM TZ)`
 >
-> **Last overnight handoff:** **2026-05-01 UTC+2 (end of day)** — hassan paused; next session read **`§10` → “Pause”** block, then **`HOW_TO_START_NEW_CHAT.md`** Step 2–3. Likely picks: upload **`includes/header.php`** + **`main_dashboard.php`** to live if Reports missing · optional **`§10` → A** web shop smoke-test · **`docs/BACKLOG_POST_STAGE7.md`** · **viewer** user in phpMyAdmin.
+> **Last overnight handoff:** **2026-05-02 UTC+2** — **Stage 6** marked **DONE & TESTED** in §2 (sales summary + CN-by-date block). Backlog-only: **`docs/BACKLOG_POST_STAGE7.md`** (SMTP, supplier AP returns, PayFast). Next picks: live **`header.php`** deploy if Reports missing · optional web shop smoke-test · **`viewer`** user.
 
 - **Stage 1 — Foundation (auth, layout, config):** ✅ DONE & TESTED
   *(verified 2026-04-26, see Stage 1 deliverables below)*
