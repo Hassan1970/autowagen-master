@@ -3,11 +3,9 @@
 > This file is the source of truth for what we're building.
 > If a new chat ever loses context, just say "Read ROADMAP.md and continue".
 
-## Current state  (last updated: 2026-05-02 UTC+2 — shutdown handoff doc)
+## Current state  (last updated: 2026-05-01 UTC+2 — break snapshot)
 
-**Resume:** Open **`CLAUDE.md`** top → §2 & §10. **Shutdown ritual:** **`HOW_TO_START_NEW_CHAT.md`** “Before you shut down” + **`docs/session_pause_handoff_print.html`** (PDF checklist). **Stage 7 — Credit notes:** ✅ **DONE & TESTED** (hassan **Test B PASS** · **`sql/07_credit_notes.sql`** on **`autowagen_master`**). **Print notes:** **`docs/credit_notes_system_guide_print.html`** (system) · **`docs/credit_notes_ar_vs_cash_refund_print.html`** (locked **net due** + **AR cr. / Refund** split on AR & statement). **Owner / IT handouts:** **`docs/add_users_staff_guide_print.html`** (staff users · phpMyAdmin · bcrypt hash) · **`docs/database_update_backup_guide_print.html`** (full DB replace vs incremental migrations · keep customer data). Indexed in **`docs/client_training_index.html`**. **Markdown snapshots:** **`docs/md_backups/`** — optional dated folders; **`README.md`** explains.
-
-**Near-term backlog:** see **`docs/BACKLOG_POST_STAGE7.md`** (supplier returns, SMTP, shop payments). **Credit note AR/cash split (display + locked net rule)** — ✅ in app *(2026-05-01 UTC+2)* — `customer_ar_report.php`, `customer_statement.php`, `invoice_edit.php`, `includes/credit_note_helpers.php`, `docs/credit_notes_ar_vs_cash_refund_print.html`.
+**Resume:** Open **`CLAUDE.md`** top → §2 **Stage 7** (credit notes) & §10 — run **`sql/07_credit_notes.sql`** on the DB if CN pages error; smoke-test **Reports → Credit notes**. **Markdown snapshots:** **`docs/md_backups/2026-05-01/`** (see **`README.md`** there).
 
 ---
 
@@ -34,7 +32,7 @@
   **Staff manuals:** `docs/invoice_screen_full_guide.html` (print → PDF) + `docs/TRAINING_SCREENSHOTS.md` (how to add real screenshots); supplier guides in same `docs/` folder.
   **Full system (one PDF):** `docs/complete_system_manual.html` — login through POS with ~30 screenshot placeholders (`full-NN-…`); start from `docs/client_training_index.html`.
 - 🟡 **Stage 6 — Reports, web shop, stripping, AR, sales summary, guest enquiries:** shipped in code; **`docs/CHANGELOG.md`** tracks details. **`sql/06a`** / **`06b`** / **`06e`** as needed per DB. **Reports** menu in nav (AP, AR, invoices, statements shortcut, shop orders/messages, sales summary, credit notes).
-- ✅ **Stage 7 — Credit notes (returns):** DONE & TESTED *(2026-05-02 — hassan **Test B PASS**)*. **`sql/07_credit_notes.sql`** → `sales_credit_notes`, `sales_credit_note_lines`; UI **`credit_notes_admin.php`**, **`credit_note_edit.php`** — link to **INV‑…**, stock restore on finalize, **adjustment_type** **AR reduction** vs **cash refund**. **Balance / net due** subtracts **all** finalized credits; AR + statement extra columns split **AR cr.** vs **Refund cn.** *(2026-05-01)*. **`docs/BACKLOG_POST_STAGE7.md`** — supplier SMTP shop backlog. Handouts: **`docs/credit_notes_system_guide_print.html`**, **`docs/credit_notes_ar_vs_cash_refund_print.html`**. **New DB:** run **`07`** after **`05`** (see **`CLAUDE.md`** §10).
+- 🟡 **Stage 7 — Credit notes (returns):** **`sql/07_credit_notes.sql`** adds `sales_credit_notes` / `sales_credit_note_lines`; UI **`credit_notes_admin.php`**, **`credit_note_edit.php`** — link to **INV‑…**, stock restore on finalize, AR reduction vs cash refund; invoice + AR + statement balances subtract finalized credits (**⛔ run `07`** before use).
 
 **Owner account:** `hassan` (role = owner) in `users` table.
 **Tables in `autowagen_master`:** `users`, `user_login_attempts`,
@@ -48,8 +46,6 @@
 **plus Stage 4:** `parts`, `part_photos`, `part_epc_links`,
 **plus 4c:** `supplier_purchases`,
 **plus 4d:** `supplier_purchase_payments`, and bill columns on `supplier_purchases`.
-**plus Stage 5 (when `05_pos.sql` run):** `sales_invoices`, `sales_invoice_lines`, `sales_invoice_payments`.
-**plus Stage 7 (when `07_credit_notes.sql` run):** `sales_credit_notes`, `sales_credit_note_lines`.
 
 ### 🟡 Open housekeeping
 

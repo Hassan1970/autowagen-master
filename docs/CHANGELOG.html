@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Autowagen Master — CHANGELOG</title>
+<style>
+  :root { --r: #c8102e; --k: #0a0a0a; }
+  body { font-family: system-ui, Segoe UI, sans-serif; line-height: 1.5; max-width: 52rem; margin: 0 auto; padding: 1.25rem; color: var(--k); background: #fafafa; }
+  .banner { background: var(--k); color: #fff; padding: 1rem 1.2rem; border-bottom: 4px solid var(--r); margin: -1.25rem -1.25rem 1.25rem; }
+  .banner h1 { margin: 0; font-size: 1.1rem; letter-spacing: .06em; }
+  .banner .sub { opacity: .9; font-size: .82rem; margin-top: .35rem; }
+  .hint { background: #fff8e6; border: 1px solid #e6c200; padding: .75rem 1rem; border-radius: 4px; margin-bottom: 1rem; font-size: .9rem; }
+  h2 { color: var(--r); font-size: 1rem; margin-top: 1.5rem; border-bottom: 1px solid #ddd; padding-bottom: .25rem; }
+  h3 { font-size: .95rem; margin: .75rem 0 .35rem; color: var(--k); }
+  hr.rule { border: none; border-top: 1px solid #ccc; margin: 2rem 0 1rem; }
+  ul { padding-left: 1.25rem; }
+  li { margin: .35rem 0; }
+  code { background: #eee; padding: .1em .35em; border-radius: 3px; font-size: .85em; }
+  @media print {
+    body { background: #fff; font-size: 10pt; }
+    .hint { border-style: dashed; print-color-adjust: exact; }
+    .banner { print-color-adjust: exact; margin: 0 0 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <h1>AUTOWAGEN MASTER · CHANGE LOG</h1>
+  <div class="sub">HTML mirror of <code>docs/CHANGELOG.md</code> · Newest first · Time <strong>UTC+2</strong> (Johannesburg)</div>
+</div>
+
+<div class="hint">
+  <strong>PDF:</strong> <kbd style="background:#eee;padding:2px 6px;border-radius:3px;">Ctrl+P</kbd> → Save as PDF. Prepend each new release at the top of <strong>Entries</strong> (same text as <code>CHANGELOG.md</code>).
+</div>
+
+<h2>Maintainer protocol</h2>
+<p>After meaningful <strong>code / SQL / docs / config</strong> changes:</p>
+<ol>
+  <li><strong>Prepend</strong> one block into <code>docs/CHANGELOG.md</code> immediately under the changelog history separator (still <strong>newest-first</strong>).</li>
+  <li><strong>Prepend</strong> the same block in this HTML under <strong>Entries</strong>.</li>
+  <li>Add one line to <code>CLAUDE.md</code> §9 Session log.</li>
+  <li>Fields: <strong>date + time UTC+2</strong>, <strong>Recorder name</strong>, short <strong>Summary</strong>, optional <strong>Files</strong>.</li>
+</ol>
+
+<hr class="rule">
+
+<h2>Entries</h2>
+
+<h3>2026-05-02 (time unknown) UTC+2 — Shutdown handoff (PC pause)</h3>
+<ul>
+  <li><strong>Recorder:</strong> Hassan (with Cursor assistant)</li>
+  <li><strong>Summary:</strong> <code>session_pause_handoff_print.html</code>, <code>HOW_TO_START_NEW_CHAT.md</code> shutdown ritual, <code>CLAUDE.md</code> §10, <code>md_backups/README.md</code> steps.</li>
+</ul>
+
+<h3>2026-05-02 (time unknown) UTC+2 — Markdown docs sync (IT guides)</h3>
+<ul>
+  <li><strong>Recorder:</strong> Hassan (with Cursor assistant)</li>
+  <li><strong>Summary:</strong> <code>HOW_TO_START_NEW_CHAT.md</code>, <code>ROADMAP.md</code>, <code>docs/TRAINING_SCREENSHOTS.md</code>, <code>docs/md_backups/README.md</code>, <code>CLAUDE.md</code> §8/§10/§9 · <code>docs/BACKLOG_POST_STAGE7.md</code> optional bullet.</li>
+  <li><strong>Links:</strong> <code>add_users_staff_guide_print.html</code>, <code>database_update_backup_guide_print.html</code>, PDF-from-browser tip.</li>
+</ul>
+
+<h3>2026-05-02 (time unknown) UTC+2 — Printable DB update guide (full replace vs incremental)</h3>
+<ul>
+  <li><strong>Recorder:</strong> Hassan (with Cursor assistant)</li>
+  <li><strong>Summary:</strong> Added <code>docs/database_update_backup_guide_print.html</code> — replace entire DB vs incremental <code>sql/*.sql</code> while keeping customer data.</li>
+  <li><strong>Files:</strong> <code>docs/client_training_index.html</code> · <code>CLAUDE.md</code> §3 + §9</li>
+</ul>
+
+<h3>2026-05-01 (time unknown) UTC+2 — Credit notes: AR vs refund reporting split</h3>
+<ul>
+  <li><strong>Recorder:</strong> Hassan (with Cursor assistant)</li>
+  <li><strong>Summary:</strong> Net due unchanged; AR + statement split columns; helpers; <code>BACKLOG_POST_STAGE7.md</code>; training PDF updated.</li>
+  <li><strong>Files:</strong> <code>credit_note_helpers.php</code>, <code>customer_ar_report.php</code>, <code>customer_statement.php</code>, <code>invoice_edit.php</code>, <code>credit_note_edit.php</code>, <code>docs/credit_notes_ar_vs_cash_refund_print.html</code>, <code>docs/BACKLOG_POST_STAGE7.md</code>, <code>ROADMAP.md</code>, <code>sales_summary_report.php</code> footnote.</li>
+</ul>
+
+<h3>2026-05-02 (time unknown) UTC+2 — AR vs cash refund PDF · ROADMAP Stage 7</h3>
+<ul>
+  <li><strong>Recorder:</strong> Hassan (with Cursor assistant)</li>
+  <li><strong>Summary:</strong> <code>credit_notes_ar_vs_cash_refund_print.html</code> · training index · <code>ROADMAP.md</code> current state + backlog.</li>
+</ul>
+
+<h3>2026-05-02 (time unknown) UTC+2 — Test B PASS · Credit notes</h3>
+<ul>
+  <li><strong>Recorder:</strong> Hassan (with Cursor assistant)</li>
+  <li><strong>Summary:</strong> Stage 7 smoke-test §10 B — <code>07</code> applied · draft→finalize PASS · <code>CLAUDE.md</code> §2/§9 updated.</li>
+</ul>
+
+<h3>2026-05-01 (break snapshot) UTC+2 — Markdown backup + Stage 7 sync</h3>
+<ul>
+  <li><strong>Recorder:</strong> Hassan (with Cursor assistant)</li>
+  <li><strong>Summary:</strong> <code>docs/md_backups/2026-05-01/</code> · README latest snapshot · <code>CLAUDE.md</code> Stage 7 · <code>ROADMAP.md</code> · pause handoff.</li>
+</ul>
+
+<h3>2026-05-01 (time unknown) UTC+2 — Client handout · Sales summary (PDF)</h3>
+<ul>
+  <li><strong>Recorder:</strong> Hassan (with Cursor assistant)</li>
+  <li><strong>Summary:</strong> <code>sales_summary_report_client_print.html</code> · client briefing + mock screen · training index.</li>
+</ul>
+
+<h3>2026-05-01 (time unknown) UTC+2 — Sales summary report (POS · no SQL)</h3>
+
+<ul>
+  <li><strong>Recorder:</strong> Hassan (with Cursor assistant)</li>
+  <li><strong>Summary:</strong> <code>sales_summary_report.php</code> · <strong>Reports → Sales summary (period)</strong> · turnover vs payments-by-date · Print/PDF. Credit notes backlog.</li>
+</ul>
+
+<h3>2026-05-01 (time unknown) UTC+2 — Session report (Print → PDF)</h3>
+<ul>
+  <li><strong>Recorder:</strong> Hassan (with Cursor assistant)</li>
+  <li><strong>Summary:</strong> <code>docs/session_report_reports_menu_print.html</code> — Reports nav, live/SQL, viewer login, docs index, one next step.</li>
+</ul>
+
+<h3>2026-05-01 (time unknown) UTC+2 — Reports menu in top nav</h3>
+<ul>
+  <li><strong>Recorder:</strong> Hassan (with Cursor assistant)</li>
+  <li><strong>Summary:</strong> New <strong>Reports</strong> dropdown in <code>includes/header.php</code>; docs + <code>CLAUDE.md</code> / <code>ROADMAP.md</code> paths updated. No SQL / secrets.</li>
+</ul>
+
+<h3>2026-05-02 — Reports staff guide (print PDF)</h3>
+<ul>
+  <li><strong>Recorder:</strong> Hassan (with Cursor assistant)</li>
+  <li><strong>Summary:</strong> <code>reports_staff_guide_print.html</code> · AP · AR · statement · web orders · illustration layouts.</li>
+</ul>
+
+<h3>2026-05-02 (time unknown) UTC+2 — CLAUDE §10 reminders + quick docs table</h3>
+<ul>
+  <li><strong>Recorder:</strong> Hassan (with Cursor assistant)</li>
+  <li><strong>Summary:</strong> Pinned <strong>06e</strong> prerequisite; not-built MVP list; “what open next” paths in <code>CLAUDE.md</code> §10.</li>
+</ul>
+
+<h3>2026-05-01 follow-up UTC+2 — Developer quick sheet (laminate-friendly)</h3>
+<ul>
+  <li><strong>Recorder:</strong> Hassan (with Cursor assistant)</li>
+  <li><strong>Summary:</strong> <code>docs/developer_quick_sheet_print.html</code> — compact Git + triple-changelog reminders; linked from training index · <code>CLAUDE.md</code> §3.</li>
+  <li><strong>Files:</strong> <code>docs/developer_quick_sheet_print.html</code>, <code>docs/client_training_index.html</code>, <code>CLAUDE.md</code></li>
+</ul>
+
+<h3>2026-05-01 approx. 12:00 UTC+2 — Documentation: full manual shop chapters + changelog system</h3>
+<ul>
+  <li><strong>Recorder:</strong> Hassan (with Cursor assistant)</li>
+  <li><strong>Summary:</strong> Expanded <code>complete_system_manual.html</code> with public web shop, staff orders, stripping catalogue, web shop messages, AR/backups, roles renumbered. Optional figures <strong>full-31</strong>…<strong>full-36</strong>. New <code>CHANGELOG.md</code> + this <code>CHANGELOG.html</code>. Training index + TRAINING_SCREENSHOTS note updated.</li>
+  <li><strong>Files:</strong> <code>docs/complete_system_manual.html</code>, <code>docs/CHANGELOG.md</code>, <code>docs/CHANGELOG.html</code>, <code>docs/TRAINING_SCREENSHOTS.md</code>, <code>docs/client_training_index.html</code>, <code>CLAUDE.md</code></li>
+</ul>
+
+<h3>2026-05-01 — earlier UTC+2 — Git/GitHub printable handouts</h3>
+<ul>
+  <li><strong>Recorder:</strong> Hassan</li>
+  <li><strong>Summary:</strong> Git workflow handout in <code>docs/git_github_handout_print.html</code> (expanded full-session version).</li>
+</ul>
+
+</body>
+</html>

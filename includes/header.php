@@ -200,24 +200,8 @@ $pageTitle = $pageTitle ?? 'Dashboard';
           </li>
           <?php if (function_exists('user_has_role') && user_has_role('owner', 'admin', 'manager', 'staff')): ?>
             <li>
-              <a class="dropdown-item" href="<?= e(APP_URL) ?>/shop_orders_admin.php">
-                <i class="bi bi-bag-check"></i> Web shop orders
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item" href="<?= e(APP_URL) ?>/shop_enquiries_admin.php">
-                <i class="bi bi-chat-dots"></i> Web shop messages
-              </a>
-            </li>
-            <li>
               <a class="dropdown-item" href="<?= e(APP_URL) ?>/part_edit.php">
                 <i class="bi bi-plus-lg"></i> Add part
-              </a>
-            </li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-              <a class="dropdown-item" href="<?= e(APP_URL) ?>/supplier_ap_report.php">
-                <i class="bi bi-cash-coin"></i> Accounts payable (owed)
               </a>
             </li>
             <li><hr class="dropdown-divider"></li>
@@ -236,17 +220,70 @@ $pageTitle = $pageTitle ?? 'Dashboard';
       </li>
       <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#">
-          <i class="bi bi-cart-check"></i> POS
+          <i class="bi bi-graph-up-arrow"></i> Reports
         </a>
         <ul class="dropdown-menu">
+          <li><span class="dropdown-header">Money owed</span></li>
+          <?php if (function_exists('user_has_role') && user_has_role('owner', 'admin', 'manager', 'staff')): ?>
+            <li>
+              <a class="dropdown-item" href="<?= e(APP_URL) ?>/supplier_ap_report.php">
+                <i class="bi bi-wallet2"></i> Accounts payable (owed)
+              </a>
+            </li>
+          <?php endif; ?>
+          <li>
+            <a class="dropdown-item" href="<?= e(APP_URL) ?>/customer_ar_report.php">
+              <i class="bi bi-cash-stack"></i> Accounts receivable (owed)
+            </a>
+          </li>
+          <li><hr class="dropdown-divider"></li>
+          <li><span class="dropdown-header">Sales &amp; customers</span></li>
           <li>
             <a class="dropdown-item" href="<?= e(APP_URL) ?>/invoices_admin.php">
               <i class="bi bi-receipt"></i> Sales invoices
             </a>
           </li>
           <li>
-            <a class="dropdown-item" href="<?= e(APP_URL) ?>/customer_ar_report.php">
-              <i class="bi bi-cash-stack"></i> Accounts receivable (owed)
+            <a class="dropdown-item" href="<?= e(APP_URL) ?>/sales_summary_report.php">
+              <i class="bi bi-bar-chart-line"></i> Sales summary (period)
+            </a>
+          </li>
+          <?php if (function_exists('user_has_role') && user_has_role('owner', 'admin', 'manager', 'staff')): ?>
+            <li>
+              <a class="dropdown-item" href="<?= e(APP_URL) ?>/credit_notes_admin.php">
+                <i class="bi bi-arrow-counterclockwise"></i> Credit notes
+              </a>
+            </li>
+          <?php endif; ?>
+          <li>
+            <a class="dropdown-item" href="<?= e(APP_URL) ?>/customers_admin.php">
+              <i class="bi bi-file-earmark-text"></i> Customer statements (Customers list)
+            </a>
+          </li>
+          <?php if (function_exists('user_has_role') && user_has_role('owner', 'admin', 'manager', 'staff')): ?>
+            <li><hr class="dropdown-divider"></li>
+            <li><span class="dropdown-header">Web shop</span></li>
+            <li>
+              <a class="dropdown-item" href="<?= e(APP_URL) ?>/shop_orders_admin.php">
+                <i class="bi bi-bag-check"></i> Web shop orders
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="<?= e(APP_URL) ?>/shop_enquiries_admin.php">
+                <i class="bi bi-chat-dots"></i> Web shop messages (guest enquiries)
+              </a>
+            </li>
+          <?php endif; ?>
+        </ul>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#">
+          <i class="bi bi-cart-check"></i> POS
+        </a>
+        <ul class="dropdown-menu">
+          <li>
+            <a class="dropdown-item" href="<?= e(APP_URL) ?>/invoices_admin.php">
+              <i class="bi bi-receipt"></i> Sales invoices
             </a>
           </li>
           <?php if (function_exists('user_has_role') && user_has_role('owner', 'admin', 'manager', 'staff')): ?>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dev quick sheet — Git + changelog · Autowagen Master</title>
+<style>
+  :root { --r:#c8102e; --k:#0a0a0a; }
+  @page { size: A4 portrait; margin: 10mm; }
+  * { box-sizing:border-box; }
+  body {
+    margin: 0 auto; max-width: 190mm;
+    padding: 6mm 10mm 12mm;
+    font-family: system-ui, "Segoe UI", sans-serif;
+    font-size: 8.8pt;
+    line-height: 1.38;
+    color: var(--k);
+    background: #fff;
+  }
+  header {
+    border-bottom: 4px solid var(--r);
+    background: var(--k);
+    color: #fff;
+    padding: 7px 11px;
+    margin: -6mm -10mm 8px -10mm;
+    print-color-adjust: exact;
+  }
+  header h1 { margin: 0; font-size: 11pt; letter-spacing:.06em; }
+  header span { color: var(--r); font-weight: 700; }
+  header .tiny { margin: 4px 0 0; font-size: 7pt; opacity: .9; }
+  .hint { font-size: 7pt; background: #fff8e6; border: 1px solid #ddc653; padding: 5px 8px; margin-bottom: 8px; border-radius: 3px; }
+  .no-print { font-size: 7pt; }
+  @media screen { body { padding: 12px 16px 24px; } header { margin: -12px -16px 10px -16px; } }
+  h2 {
+    margin: 8px 0 4px;
+    font-size: 8.8pt;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--r);
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 2px;
+  }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  @media print {
+    body { padding: 0 4mm 6mm; max-width: 100%; }
+    .hint { print-color-adjust: exact; }
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 7.8pt; margin: 3px 0 6px; }
+  th, td { border: 1px solid #bbb; padding: 4px 6px; text-align: left; vertical-align: top; }
+  th { background: #efefef; }
+  code, .mono { font-family: ui-monospace, Consolas, monospace; font-size: 7.2pt; word-break: break-all; background: #f4f4f4; padding: 0 .2em; border-radius: 2px; }
+  ol, ul { margin: 3px 0; padding-left: 1.1em; }
+  li { margin: 2px 0; }
+  .foot {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid #ccc;
+    font-size: 7pt;
+    color: #555;
+  }
+  kbd { border: 1px solid #999; border-radius: 2px; padding: 0 3px; font-size: .95em; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span>AUTOWAGEN</span> MASTER — developer laminates</h1>
+  <div class="tiny">Git + GitHub workflow · triple changelog (&nbsp;CHANGELOG.md&nbsp;/&nbsp;CHANGELOG.html&nbsp;/&nbsp;CLAUDE&nbsp;§9&nbsp;) · TZ Africa/Johannesburg <strong>UTC+2</strong></div>
+</header>
+
+<div class="hint no-print"><strong>PDF / print:</strong> <kbd>Ctrl</kbd>+<kbd>P</kbd> → printer <strong>A4 Portrait</strong> → <strong>Background graphics ON</strong> → fit to margin if oversize.</div>
+
+<h2>A · Git snapshot → GitHub (every “save worth keeping”)</h2>
+<table>
+  <tr><th>Step</th><th>Type in PowerShell or Cursor Terminal</th></tr>
+  <tr><td>1 Folder</td><td><span class="mono">cd C:\laragon\www\autowagen-master</span></td></tr>
+  <tr><td>2 Stage</td><td><span class="mono">git add .</span></td></tr>
+  <tr><td>3 Commit</td><td><span class="mono">git commit -m &quot;What you changed (plain English)&quot;</span></td></tr>
+  <tr><td>4 Push</td><td><span class="mono">git push</span></td></tr>
+</table>
+
+<div class="cols">
+  <div>
+    <h2>B · Remote (once per machine/folder)</h2>
+    <p style="margin:2px 0"><span class="mono">git remote add origin https://github.com/Hassan1970/autowagen-master.git</span></p>
+    <p style="margin:4px 0;font-size:7.5pt">Never paste URL alone → error. Branch: <code>main</code>. Token for password if asked.</p>
+    <h2>C · Vim stuck</h2>
+    <ol style="margin-top:4px;font-size:7.9pt;">
+      <li><kbd>Esc</kbd> → type <code>:q!</code> → <kbd>Enter</kbd></li>
+      <li>Then <span class="mono">git commit -m &quot;…&quot;</span></li>
+    </ol>
+  </div>
+  <div>
+    <h2>D · Useful checks</h2>
+    <ul style="margin-top:4px;font-size:7.9pt;">
+      <li><span class="mono">git status</span> — red/green staging</li>
+      <li><span class="mono">git remote -v</span> — origin URL</li>
+      <li>Cursor stale <code>main*</code> → Reload Window (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>)</li>
+    </ul>
+    <p style="margin:4px 0;font-size:7.5pt"><strong>Save in editor</strong> = local disk only.<br><strong>No auto GitHub.</strong></p>
+  </div>
+</div>
+
+<h2>E · Triple changelog — after meaningful change (code / SQL / manual / config)</h2>
+<table>
+  <tr><th>#</th><th>Where</th><th>What to add (<strong>newest first</strong>)</th></tr>
+  <tr><td>1</td><td><strong><code>docs/CHANGELOG.md</code></strong></td><td>Block: <strong>Recorder</strong> name · <strong>YYYY-MM-DD HH:MM UTC+2</strong> · Summary · Files list</td></tr>
+  <tr><td>2</td><td><strong><code>docs/CHANGELOG.html</code></strong></td><td>Same facts under “Entries” (staff browser / printable)</td></tr>
+  <tr><td>3</td><td><strong><code>CLAUDE.md</code> §9 Session log</strong></td><td>One liner at top · keep §2 “Live state” when stage flips / SQL ran</td></tr>
+</table>
+
+<h2>F · Paths on this project</h2>
+<table>
+  <tr><td>Manual (full + shop)</td><td><span class="mono">docs/complete_system_manual.html</span></td></tr>
+  <tr><td>CHANGELOG browser</td><td><span class="mono">docs/CHANGELOG.html</span></td></tr>
+  <tr><td>This sheet</td><td><span class="mono">docs/developer_quick_sheet_print.html</span></td></tr>
+  <tr><td>Training index</td><td><span class="mono">docs/client_training_index.html</span></td></tr>
+</table>
+
+<div class="foot">
+  ZAR · SHGA rules in-app are record-keeping guidance not legal advice. Push code only when backups align with hosting policy.<br>
+  Printed: ________ Owner/staff initials: ________
+</div>
+
+</body>
+</html>

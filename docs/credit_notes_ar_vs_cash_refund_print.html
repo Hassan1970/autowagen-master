@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autowagen — AR reduction vs cash refund (print to PDF)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 11pt;
+      line-height: 1.55;
+      color: #222;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 28px 24px 48px;
+      background: #fff;
+    }
+    h1 {
+      font-size: 1.3rem;
+      margin: 0 0 8px;
+      color: #0a0a0a;
+      border-bottom: 3px solid #c8102e;
+      padding-bottom: 10px;
+    }
+    .sub { color: #555; font-size: 10pt; margin: 0 0 20px; }
+    h2 {
+      font-size: 1.06rem;
+      color: #c8102e;
+      margin: 26px 0 10px;
+      border-left: 4px solid #0a0a0a;
+      padding-left: 10px;
+    }
+    p, li { font-size: 10.5pt; margin: 0 0 10px; }
+    ol, ul { margin: 0 0 12px; padding-left: 1.35em; }
+    .highlight {
+      background: #f8f8f8;
+      border: 1px solid #ddd;
+      padding: 12px 14px;
+      margin: 14px 0;
+      border-radius: 4px;
+      font-size: 10pt;
+    }
+    .note {
+      font-size: 9.5pt;
+      color: #333;
+      border-left: 3px solid #c8102e;
+      padding: 10px 14px;
+      margin: 16px 0;
+      background: #fafafa;
+    }
+    .muted { color: #666; font-size: 9.5pt; }
+    kbd { background: #eee; padding: 1px 6px; border-radius: 3px; font-size: 0.9em; }
+    strong.brand { color: #c8102e; }
+    @media print {
+      @page { margin: 14mm; size: A4; }
+      body { padding: 0; max-width: 100%; }
+      h2 { page-break-after: avoid; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Autowagen Master — <strong class="brand">AR reduction</strong> vs <strong class="brand">cash refund</strong></h1>
+  <p class="sub">Locked balance rules + how <strong>AR reduction</strong> vs <strong>cash refund</strong> appear in reports. Save as PDF: <kbd>Ctrl</kbd>+<kbd>P</kbd> → <strong>Save as PDF</strong> (Chrome / Edge).</p>
+
+  <p class="no-print note"><strong>File:</strong> <code>docs/credit_notes_ar_vs_cash_refund_print.html</code> · Also listed in <strong>docs/client_training_index.html</strong>.</p>
+
+  <h2>1. Locked rule — net balance (invoice, AR, statement)</h2>
+  <p>When you <strong>finalise</strong> a credit note against a <strong>final</strong> invoice, the system still:</p>
+  <ul>
+    <li>Puts <strong>part stock back</strong> for lines that reference a physical part.</li>
+    <li>Assigns a <strong>CN‑YYYY‑NNNNN</strong> number and stores totals + <strong>adjustment type</strong>.</li>
+  </ul>
+  <p><strong>Net due / Remaining / Balance</strong> (used for payment limits, who appears as owing money, and overdue logic) is unchanged:</p>
+  <div class="highlight"><strong>Net due</strong> = <strong>Invoice total (incl. VAT)</strong> − <strong>all payments</strong> − <strong>all finalised credits</strong> (both AR reduction and cash refund)</div>
+  <p>So both credit types <strong>still reduce the same remaining amount</strong>. <strong>Cash refund</strong> credits also require <strong>refund date / method / ref</strong> fields for audit (money out).</p>
+
+  <h2>1b. Locked rule — reporting split (AR + statement)</h2>
+  <p><strong>Accounts receivable</strong> and the <strong>customer statement</strong> now show <strong>two extra columns</strong> per invoice (when Stage 7 tables exist):</p>
+  <ul>
+    <li><strong>AR cr.</strong> — sum of finalised credits tagged <strong>AR reduction</strong>.</li>
+    <li><strong>Refund cn.</strong> — sum of finalised credits tagged <strong>cash refund</strong>.</li>
+  </ul>
+  <p>The report <strong>Balance</strong> column stays <strong>net due</strong> as above. The split is for bookkeeping — you can see how much of returned value was classed as AR-style vs refund-style without changing the net number.</p>
+
+  <h2>2. Plain-language meaning of each option</h2>
+  <p><strong>AR reduction (accounts receivable reduction)</strong></p>
+  <ul>
+    <li>In words: <em>“The customer owes us less on this invoice—we have reduced the debt (credit).”</em></li>
+    <li>Typical use: return or price adjustment while the sale is still partly <strong>on account</strong>; the <strong>invoice balance</strong> should drop even if you don’t type a new “payment” line for that exact moment.</li>
+  </ul>
+  <p><strong>Cash refund</strong></p>
+  <ul>
+    <li>In words: <em>“We actually paid money back (cash, EFT, card, etc.), linked to this credit.”</em></li>
+    <li>You fill <strong>refund paid date</strong>, <strong>method</strong>, and optionally <strong>reference</strong>—so staff and your accountant can see <strong>cash moved</strong>, not only that the invoice balance changed.</li>
+  </ul>
+  <p class="note"><strong>Net vs split:</strong> The programme does <strong>not</strong> use “only AR reduction” to calculate net due — that would inflate balances when cash refunds exist. The <strong>split columns</strong> answer “how much credit was classified each way,” not a second balance formula.</p>
+
+  <h2>3. What we did <em>not</em> build (heavier accounting)</h2>
+  <p>We did <strong>not</strong> add a second “AR-only balance” that ignores cash-refund credits for <strong>collections</strong>, and we did <strong>not</strong> add a cash-out report. If your accountant needs full general-ledger treatment, export or book those in your external package. Optional later: dedicated <strong>refunds paid</strong> report from <code>cash_refund</code> credit notes.</p>
+
+  <h2>4. Numeric example</h2>
+  <ul>
+    <li>Invoice total: <strong>R 1 000</strong></li>
+    <li>Payments recorded: <strong>R 400</strong></li>
+    <li>Owed before credit: <strong>R 600</strong></li>
+  </ul>
+  <p>You finalise a credit note for <strong>R 150</strong> as <strong>AR reduction</strong>:</p>
+  <div class="highlight"><strong>Net due</strong> = 1 000 − 150 − 400 = <strong>R 450</strong></div>
+  <p>Statement / AR <strong>AR cr.</strong> shows <strong>R 150</strong>; <strong>Refund cn.</strong> shows <strong>R 0</strong>. If the same R 150 were <strong>cash refund</strong> instead, net due is still <strong>R 450</strong>, but <strong>Refund cn.</strong> shows R 150 and <strong>AR cr.</strong> R 0.</p>
+
+  <h2>5. What to do in the shop</h2>
+  <ol>
+    <li>Use <strong>AR reduction</strong> when the story is “we reduced what they owe” without emphasising cash movement.</li>
+    <li>Use <strong>cash refund</strong> when money went out — always fill date/method/ref where possible.</li>
+    <li>On <strong>AR</strong> and <strong>Statement</strong>, read <strong>AR cr.</strong> vs <strong>Refund cn.</strong> for classification; use <strong>Balance</strong> for what is still owed (net).</li>
+  </ol>
+
+  <h2>6. Further backlog</h2>
+  <p>See <strong><code>docs/BACKLOG_POST_STAGE7.md</code></strong> — supplier returns, SMTP, PayFast/Stripe shop payments, richer sales-summary credit analysis.</p>
+
+  <h2 id="alt-rule">7. Alternate accountant rule (<span class="brand">not</span> implemented — requires explicit product sign-off)</h2>
+  <p class="note"><strong>Current Autowagen:</strong> “Net due” <strong>includes</strong> cash-refund credit notes when subtracting credits (see §1). Everything below describes a <strong>different policy</strong> some accountants ask for — <strong>not</strong> what the software does today. Do <strong>not</strong> turn this on inside the app unless you formally choose it and ship matching code + UX.</p>
+
+  <h3>7a. What the alternate rule says</h3>
+  <p>Under this policy, exactly one headline number would drive “collections / receivable outstanding” everywhere (invoice banner, AR list, overdue, possibly payment caps):</p>
+  <div class="highlight"><strong>AR-adjusted balance</strong> = Invoice total − Payments − Σ(credits typed <strong>AR reduction only</strong>)</div>
+  <p>Credits tagged <strong>cash refund</strong> would still exist (lines, totals, CN number, refund date/method/ref for audit), but they would <strong>not</strong> subtract from that headline figure. Interpretation accountants sometimes want: cash refunds belong in the <strong>cash ledger / payout narrative</strong>, while <strong>AR reduction</strong> is the non-cash path that directly writes down customer debt visible in “aged receivables.”</p>
+
+  <h3>7b. Why that breaks simple “one Balance” maths</h3>
+  <p>For <strong>any</strong> cash refund CN that is economically real, removing it from net due means:</p>
+  <ul>
+    <li>The programme’s headline “still owed” can sit <strong>above</strong> the amount you would honestly ask the buyer to settle by EFT/card after the refund unless you introduce a <strong>second</strong> number or a negative customer balance.</li>
+  </ul>
+  <div class="highlight"><strong>Example A — partly on account:</strong><br>
+  Total R&nbsp;1&nbsp;000 · Paid R&nbsp;400 · Economy before credit note: owes R&nbsp;600.<br>
+  Buyer returns goods; you finalise <strong>R&nbsp;150</strong> cash refund CN (cash left the till). Truth: they should owe about <strong>R&nbsp;450</strong>.<br>
+  • <strong>Today (implemented):</strong> Net due = R&nbsp;450 ✓.<br>
+  • <strong>Alternate (headline excludes cash refunds):</strong> “AR-adjusted” = R&nbsp;600 − 0 refund line in that bucket = shows <strong>R&nbsp;600</strong> owing — unless you overlay “economic balance” elsewhere.</div>
+
+  <h3>7c. Overpayment — money arrives before refunds are documented</h3>
+  <p>If a customer accidentally pays too much (<strong>R&nbsp;300</strong> on a <strong>R&nbsp;100</strong> invoice), POS today has <strong>R&nbsp;−200</strong> style remaining or you record only R&nbsp;100 and park the surplus — practice varies. A cash-refund CN is one way to return the extra. Under “exclude cash refunds from net due everywhere,” returning that overpaid <strong>R&nbsp;200</strong> via a <strong>cash refund</strong> CN would <strong>not</strong> move the headline receivable figure you just agreed to redefine — so:</p>
+  <ul>
+    <li>You need a documented rule for <strong>unapplied credits</strong>, <strong>customer deposit balance</strong>, or <strong>negative AR</strong>.</li>
+    <li><strong>UX:</strong> when “Remaining” diverges from “economically refundable,” warnings, colour coding, links to petty cash.</li>
+  </ul>
+
+  <h3>7d. Fully paid invoices, then refund</h3>
+  <p>Invoice settled to <strong>R&nbsp;0</strong> owing; later you approve a goodwill or warranty <strong>R&nbsp;250</strong> cash refund CN.</p>
+  <ul>
+    <li><strong>Implemented rule:</strong> Net due shifts to roughly <strong>−R&nbsp;250</strong> (conceptually “we owe them” / credit balance) depending on rounding and guards — statements and AR filters must decide whether to treat negative as zero for “owed to us.”</li>
+    <li><strong>Alternate rule:</strong> If cash refunds never shrink headline net due and you never subtract them from collections total, headline can stay at <strong>R&nbsp;0</strong> paid-up while economically you still owe cash — <strong>unless</strong> the product exposes a parallel “supplier/customer refundable balance” ledger or negatives.</li>
+  </ul>
+  <p>That implies <strong>dedicated workflows</strong>: “final invoice + refund lifecycle,” not just one Balance column.</p>
+
+  <h3>7e. Product choices you cannot skip (before any build)</h3>
+  <ol>
+    <li><strong>Which figure is authoritative for “still owe Autowagen” reminders?</strong> AR-adjusted-only, economics-only (today’s rule), or two visible numbers?</li>
+    <li><strong>Payment modal:</strong> cap new payments against which balance? forbid payment if surplus exists?</li>
+    <li><strong>Statements / WhatsApp summaries:</strong> which number do you verbalise?</li>
+    <li><strong>Dunning:</strong> can we chase balance that includes ignored cash refunds? (risk of legally bad comms).</li>
+    <li><strong>Governance:</strong> who may pick AR reduction vs cash refund if it changes totals differently under alternate rule?</li>
+  </ol>
+
+  <p class="note"><strong>For Autowagen today:</strong> If you tell the accountant you want cash refunds excluded from net due globally, phrase it plainly as <strong>“we need the alternate accountant rule in §7 and we accept dual-balance UX + overpayment/refund workflows.”</strong> That triggers a scoped build — not a one-line SQL patch.</p>
+
+  <footer class="muted" style="margin-top:28px;padding-top:14px;border-top:1px solid #ccc;">
+    Autowagen Master — Training note · Not legal or tax advice · Align bookkeeping with your accountant.
+  </footer>
+</body>
+</html>

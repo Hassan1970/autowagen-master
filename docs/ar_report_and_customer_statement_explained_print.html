@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autowagen — AR report &amp; customer statement (explained → PDF)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.55;
+      color: #222;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 28px 22px 56px;
+      background: #fff;
+    }
+    h1 {
+      font-size: 1.25rem;
+      margin: 0 0 10px;
+      color: #0a0a0a;
+      border-bottom: 3px solid #c8102e;
+      padding-bottom: 10px;
+    }
+    .sub { color: #555; font-size: 10pt; margin: 0 0 18px; }
+    h2 {
+      font-size: 1.06rem;
+      color: #c8102e;
+      margin: 28px 0 10px;
+      border-left: 4px solid #0a0a0a;
+      padding-left: 10px;
+      page-break-after: avoid;
+    }
+    h3 { font-size: 0.98rem; color: #333; margin: 16px 0 8px; }
+    p, li { margin: 0 0 10px; }
+    ol, ul { padding-left: 1.25em; margin: 0 0 12px; }
+    .num { font-weight: 700; color: #c8102e; }
+    .box {
+      background: #f8f8f8;
+      border: 1px solid #ddd;
+      padding: 12px 14px;
+      margin: 12px 0;
+      border-radius: 4px;
+      font-size: 10pt;
+    }
+    .formula { font-family: ui-monospace, Consolas, monospace; background: #eee; padding: 2px 6px; border-radius: 3px; font-size: 0.92em; }
+    .note {
+      font-size: 9.5pt;
+      border-left: 3px solid #c8102e;
+      padding: 10px 14px;
+      margin: 16px 0;
+      background: #fafafa;
+    }
+    .muted { color: #666; font-size: 9.5pt; }
+    kbd { background: #eee; padding: 1px 6px; border-radius: 3px; }
+    .no-print { font-size: 9.5pt; color: #444; }
+    @media print {
+      @page { margin: 14mm; size: A4; }
+      body { padding: 0; max-width: 100%; font-size: 10pt; }
+      h2 { page-break-after: avoid; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Autowagen Master — <strong style="color:#c8102e;">Accounts receivable</strong> report &amp; <strong style="color:#c8102e;">customer statement</strong></h1>
+  <p class="sub">Plain-English walkthrough of each area on the two screens (matches <strong>Reports → Accounts receivable</strong> and the printable <strong>statement</strong>). Save as PDF: <kbd>Ctrl</kbd>+<kbd>P</kbd> → <strong>Save as PDF</strong>. File: <code>docs/ar_report_and_customer_statement_explained_print.html</code></p>
+
+  <p class="no-print note"><strong>Open in browser:</strong> from your project folder, double-click this file — or from the app use <strong>docs/client_training_index.html</strong> (link added there).</p>
+
+  <!-- ===================== SCREEN 1 ===================== -->
+  <h2>A. “Customer receivables” report (<code>customer_ar_report.php</code>)</h2>
+  <p>You open this from the black top menu: <strong>Reports → Accounts receivable (owed)</strong>. It answers: <em>which customers still owe us money on final sales invoices?</em> It does <strong>not</strong> list money you owe suppliers (that is <strong>Reports → Accounts payable</strong>).</p>
+
+  <h3><span class="num">A1</span> — Grey box: “Credit notes — locked rules”</h3>
+  <p>This is a short reminder of how <strong>credit notes</strong> affect the numbers (after <code>sql/07_credit_notes.sql</code> is applied):</p>
+  <ul>
+    <li>The <strong>Balance</strong> column is <strong>net due</strong>: what the customer still owes on that invoice after normal payments and after <em>all</em> finalized credits (both types below).</li>
+    <li><strong>Formula (per invoice):</strong> <span class="formula">Invoice total (incl. VAT) − Sum(payments) − Sum(finalized credit notes on that invoice)</span></li>
+    <li><strong>AR cr.</strong> and <strong>Refund</strong> (or <strong>Refund cn.</strong> on some screens) only <strong>split</strong> the credit-note total into two buckets so your books can tell a story:</li>
+  </ul>
+  <div class="box">
+    <strong>AR reduction</strong> credits add to the <strong>AR cr.</strong> column total.<br>
+    <strong>Cash refund</strong> credits add to the <strong>Refund</strong> column total.<br>
+    Both types still reduce <strong>Balance</strong> the same way — the split does not invent a second, different balance.
+  </div>
+  <p class="muted">If you see <strong>R&nbsp;0.00</strong> in AR cr. and Refund, that usually means no finalized credit notes exist for those invoices yet — not that the feature is broken.</p>
+
+  <h3><span class="num">A2</span> — Grey box: “Two different reports”</h3>
+  <p>This stops the common confusion between:</p>
+  <ul>
+    <li><strong>This page:</strong> money <strong>customers owe you</strong> (sales / POS).</li>
+    <li><strong>Accounts payable:</strong> money <strong>you owe suppliers</strong> (inventory purchases). Different menu, different data.</li>
+  </ul>
+
+  <h3><span class="num">A3</span> — Grey line: “Overdue” definition</h3>
+  <p><strong>Overdue</strong> here means: the invoice has a meaningful <strong>due date</strong>, that date is <em>before</em> the report’s <strong>As at</strong> date, and there is still a positive balance. Invoices <strong>without</strong> a due date still show in totals and balances, but they are not flagged as overdue on this logic.</p>
+
+  <h3><span class="num">A4</span> — Filter row: date, ticks, Apply, buttons</h3>
+  <ul>
+    <li><strong>As at</strong> — calendar date (“pretend today is …”). Due dates are compared to this when deciding overdue portions.</li>
+    <li><strong>Overdue only</strong> — narrows lists to balances that qualify as overdue as at that date.</li>
+    <li><strong>Account customers only</strong> — only customers flagged as account customers on their record (requires Stage 6a SQL). Useful when you mainly sell “on account” to a subset.</li>
+    <li><strong>Apply</strong> — reloads the report with your filters.</li>
+    <li><strong>Print / PDF</strong> — hides navigation for a cleaner print or saved PDF.</li>
+    <li><strong>Sales invoices</strong> — shortcut to the invoice list (<code>invoices_admin.php</code>), not AR math.</li>
+  </ul>
+
+  <h3><span class="num">A5</span> — Summary strip (black bar + red side card)</h3>
+  <ul>
+    <li><strong>Total owed (listed customers)</strong> — sum of positive <strong>net due</strong> balances for everyone who appeared in the <strong>By customer</strong> table under your filters.</li>
+    <li><strong>Of which overdue</strong> — sum of balance amounts that fall on overdue invoices only (still using the rules in A3).</li>
+  </ul>
+
+  <h3><span class="num">A6</span> — Section: “BY CUSTOMER”</h3>
+  <p>One row per customer who has outstanding balance (under your filters). Columns:</p>
+  <ul>
+    <li><strong>Customer</strong> — name on file.</li>
+    <li><strong>Account</strong> — shows an “Account” badge if that customer is an account customer.</li>
+    <li><strong>Phone</strong> — contact if stored.</li>
+    <li><strong>Balance</strong> — that customer’s total <strong>net due</strong> across all their open final invoices.</li>
+    <li><strong>AR cr.</strong> — total of finalized <strong>AR reduction</strong> credit-note amounts attached to <em>their</em> invoices (classification only).</li>
+    <li><strong>Refund</strong> — total of finalized <strong>cash refund</strong> credits on those invoices.</li>
+    <li><strong>Overdue</strong> — portion of their balance counted as overdue (see A3).</li>
+    <li><strong>Statement</strong> / <strong>Customer</strong> — open printable statement or customer edit.</li>
+  </ul>
+
+  <h3><span class="num">A7</span> — Section: “BY INVOICE (open balance)”</h3>
+  <p>One row per <strong>final</strong> invoice that still has money owed (positive net due). Columns:</p>
+  <ul>
+    <li><strong>Invoice</strong> — e.g. <strong>INV-2026-00002</strong>.</li>
+    <li><strong>Customer</strong> — buyer.</li>
+    <li><strong>Inv date</strong> — invoice date.</li>
+    <li><strong>Due date</strong> — for on-account; “—” or empty if none set.</li>
+    <li><strong>Status</strong> — badge like <strong>Overdue Nd</strong>, <strong>Open</strong>, <strong>No due date</strong> — quick read of timing.</li>
+    <li><strong>Balance</strong> — <strong>net due</strong> on this invoice alone.</li>
+    <li><strong>AR cr.</strong> — sum of finalized AR-reduction credits for this invoice; shows “—” or R&nbsp;0.00 when none.</li>
+    <li><strong>Refund cn.</strong> — sum of finalized cash-refund credits; “—” or R&nbsp;0.00 when none.</li>
+    <li><strong>Open</strong> — jump to invoice in POS (<code>invoice_edit.php</code>).</li>
+  </ul>
+
+  <!-- ===================== SCREEN 2 ===================== -->
+  <h2>B. Customer account statement (<code>customer_statement.php</code>)</h2>
+  <p>This is a printable “letter-style” overview for <strong>one customer</strong>. Typical ways to open it: next to their name on the <strong>Customers</strong> list, link from AR report <strong>Statement</strong>, or direct URL <code>?id=</code> with their customer ID.</p>
+
+  <h3><span class="num">B1</span> — Title block</h3>
+  <ul>
+    <li><strong>Statement date:</strong> the “as at” calendar date printed on the statement (Johannesburg). May differ slightly from invoice dates inside the grid.</li>
+    <li><strong>Currency ZAR</strong>, <strong>VAT as per invoices</strong> — amounts follow what was finalized on each invoice.</li>
+  </ul>
+
+  <h3><span class="num">B2</span> — “Bill to” card</h3>
+  <p>Name, optional billing address, phone, email, and optionally an “Account customer” badge — exactly what will print on PDF for the buyer.</p>
+
+  <h3><span class="num">B3</span> — “Amount outstanding” (dark box)</h3>
+  <p>Single headline number: sum of <strong>Balance</strong> on all listed invoice rows below that still have something due (normally excludes invoices fully paid/zero balance unless you chose to include settled ones).</p>
+
+  <h3><span class="num">B4</span> — Toolbar: date, checkbox, Apply, buttons</h3>
+  <ul>
+    <li><strong>Statement as at</strong> — adjusts which overdue styling might apply vs that date.</li>
+    <li><strong>Include paid-in-full</strong> — when ticked and applied, invoices with <strong>R&nbsp;0.00</strong> balance can appear too (history).</li>
+    <li><strong>Print / PDF</strong> — save a formal attachment.</li>
+    <li><strong>WhatsApp</strong> — opens WhatsApp Web/app with a <em>short text summary</em> (not full letterhead).</li>
+    <li><strong>Email</strong> — <code>mailto:</code>; opens Outlook/Thunderbird etc. with pasted summary text — still not automatic server email.</li>
+    <li><strong>Edit customer</strong> / <strong>AR report</strong> — shortcuts.</li>
+  </ul>
+
+  <h3><span class="num">B5</span> — Grey explanatory box (credit notes + sending)</h3>
+  <p>Repeats in customer language:</p>
+  <div class="box">
+    <strong>Balance</strong> = total − paid − <strong>all</strong> finalized credits.<br>
+    <strong>AR cr.</strong> and <strong>Refund cn.</strong> show how much credit was labelled each way.<br>
+    Full line-level detail stays on each <strong>credit note</strong> and <strong>invoice</strong>.
+  </div>
+  <p>Also warns that SMTP (automatic email from the server) is <strong>not</strong> wired yet — Email button is desktop mail.</p>
+
+  <h3><span class="num">B6</span> — Invoices table</h3>
+  <ul>
+    <li><strong>Invoice / Date / Due</strong> — identity and timing.</li>
+    <li><strong>Total</strong> — invoice total incl. VAT.</li>
+    <li><strong>Paid</strong> — payments recorded against that invoice.</li>
+    <li><strong>AR cr.</strong> — finalized AR-reduction credits for that invoice (R&nbsp;0.00 when none).</li>
+    <li><strong>Refund cn.</strong> — finalized cash-refund credits for that invoice (R&nbsp;0.00 when none).</li>
+    <li><strong>Balance</strong> — remaining customer obligation on that invoice = same net rule as the AR report row for that INV.</li>
+    <li><strong>Open</strong> — drill into invoice screen.</li>
+  </ul>
+  <p class="muted footer-like">Foot row <strong>Total outstanding</strong> should match or align with the dark summary box when filters match.</p>
+
+  <h3><span class="num">B7</span> — “Recent payments received” (if shown)</h3>
+  <p>List of payment lines tied to invoices for this customer (most recent first, capped). Good for callers asking “did you allocate my EFT?” — paired with invoices above.</p>
+
+  <div class="note">
+    <strong>Why both screens?</strong><br>
+    The <strong>AR report</strong> is operational: whom to chase, overdue focus, totals across everyone.<br>
+    The <strong>statement</strong> is relational: send to one customer showing their invoices + split credit columns without logging into back-office jargon.
+  </div>
+
+  <footer class="muted" style="margin-top:36px;padding-top:14px;border-top:1px solid #ccc;">
+    Autowagen Master · Training note · Not legal or accounting advice · Match treatment to your bookkeeper.<br>
+    Companion sheets: <code>reports_staff_guide_print.html</code>, <code>credit_notes_system_guide_print.html</code>, <code>credit_notes_ar_vs_cash_refund_print.html</code>.
+  </footer>
+
+</body>
+</html>

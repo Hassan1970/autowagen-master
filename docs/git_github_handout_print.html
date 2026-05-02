@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Autowagen Master — Full session handout 2026-05-01 (print to PDF)</title>
+<style>
+  :root { --aw-red: #c8102e; --aw-black: #0a0a0a; }
+  body { font-family: system-ui, Segoe UI, Roboto, sans-serif; line-height: 1.45; color: var(--aw-black); max-width: 48rem; margin: 0 auto; padding: 1.5rem; background: #fafafa; }
+  .banner { background: var(--aw-black); color: #fff; padding: 1rem 1.25rem; border-bottom: 4px solid var(--aw-red); margin: -1.5rem -1.5rem 1.5rem -1.5rem; }
+  .banner h1 { margin: 0; font-size: 1.15rem; letter-spacing: .08em; }
+  .banner .sub { font-size: .85rem; opacity: .88; margin-top: .35rem; }
+  .toc li { margin: .25rem 0; }
+  h2 { color: var(--aw-red); font-size: 1rem; text-transform: uppercase; letter-spacing: .06em; margin-top: 1.75rem; border-bottom: 1px solid #ddd; padding-bottom: .25rem; page-break-after: avoid; }
+  h3 { font-size: .95rem; margin: 1rem 0 .35rem; }
+  ol.compact > li { margin: .4rem 0; }
+  ol, ul { padding-left: 1.25rem; }
+  li { margin: .35rem 0; }
+  .howpdf { background: #fff3cd; border: 1px solid #ffc107; padding: .75rem 1rem; border-radius: 4px; margin-bottom: 1.25rem; }
+  .howpdf strong { color: var(--aw-red); }
+  code, .mono { font-family: ui-monospace, Consolas, monospace; font-size: .85em; background: #f0f0f0; padding: .1em .35em; border-radius: 3px; word-break: break-all; }
+  .box { background: #fff; border: 1px solid #ddd; padding: .75rem 1rem; border-radius: 4px; margin: .75rem 0; }
+  kbd { border: 1px solid #bbb; border-radius: 3px; padding: .1em .35em; font-size: .85em; background: #fafafa; }
+  .note { font-size: .9rem; color: #444; margin-top: .5rem; }
+  @media print {
+    @page { margin: 14mm; size: A4; }
+    body { background: #fff; max-width: 100%; padding: 0; font-size: 10pt; }
+    .banner { margin: 0 0 1rem 0; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .howpdf { print-color-adjust: exact; }
+    .no-print { display: none !important; }
+    h2 { page-break-before: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <h1><span style="color:var(--aw-red);">AUTOWAGEN</span> MASTER</h1>
+  <div class="sub">Everything we covered — session handout · 2026-05-01 · print or save as PDF</div>
+</div>
+
+<div class="howpdf no-print">
+  <strong>Save as PDF:</strong> <kbd>Ctrl</kbd>+<kbd>P</kbd> → <strong>Microsoft Print to PDF</strong> / <strong>Save as PDF</strong> → <strong>More settings</strong> → <strong>Background graphics</strong> <strong>On</strong>. If preview is blank, still try <strong>Print</strong>; or open this file in <strong>Edge/Chrome</strong> first (not Cursor’s mini preview).
+</div>
+
+<p><strong>Session date:</strong> 2026-05-01 &nbsp;|&nbsp; <strong>For:</strong> Hassan / Autowagen Master &nbsp;|&nbsp; <strong>File:</strong> <code>docs/git_github_handout_print.html</code></p>
+
+<h2>Contents (what this sheet covers)</h2>
+<ul class="toc">
+  <li>§1 — Project memory (<code>CLAUDE.md</code>) and §10 “what to do next”</li>
+  <li>§2 — Key local URLs (Laragon)</li>
+  <li>§3 — Hosting vs your PC (how “live server” connects — or not)</li>
+  <li>§4 — Web shop smoke test reminder + guest enquiries SQL</li>
+  <li>§5 — Git + GitHub: why, and does it sync automatically?</li>
+  <li>§6 — Your GitHub repo + first‑time commands you actually ran</li>
+  <li>§7 — Daily habit: <code>add</code> / <code>commit</code> / <code>push</code></li>
+  <li>§8 — Where to run those commands</li>
+  <li>§9 — Problems we solved today (PowerShell URL, Vim, staging, push)</li>
+  <li>§10 — After reboot / new Cursor chat / new future project</li>
+  <li>§11 — Printing training manuals (“no preview” tip)</li>
+  <li>§12 — Optional clean‑ups / security</li>
+</ul>
+
+<h2>§1 · Project memory — always open <code>CLAUDE.md</code> first</h2>
+<ol class="compact">
+  <li>The real “what’s built / what runs next” notes live in your project root file <strong><code>CLAUDE.md</code></strong>.</li>
+  <li>Before big work or a fresh chat with the AI: read from the top, especially <strong>section 10</strong> — “what to do right now”. It lists staged features (EPC, vehicles/parts/POS/web shop), SQL you may still need on a DB, smoke tests, training HTML paths.</li>
+  <li>Companion files: <code>ROADMAP.md</code>, <code>HOW_TO_START_NEW_CHAT.md</code>.</li>
+</ol>
+
+<h2>§2 · Laragon — URLs you actually use locally</h2>
+<ul>
+  <li><strong>App (after Laragon Start All):</strong> <code>http://localhost/autowagen-master/</code></li>
+  <li><strong>Login:</strong> <code>http://localhost/autowagen-master/auth/login.php</code></li>
+  <li><strong>Public shop (no login):</strong> <code>http://localhost/autowagen-master/shop/</code></li>
+  <li><strong>phpMyAdmin (database):</strong> <code>http://localhost/phpmyadmin</code> → database <strong><code>autowagen_master</code></strong></li>
+</ul>
+
+<h2>§3 · Hosting server — what we said about “connecting”</h2>
+<p><strong>GitHub is not your live website by itself.</strong> It only stores <em>code</em> when you push. Customers see <strong>a host</strong> (shared hosting/VPS).</p>
+
+<h3>Three separate places (don’t mix them up)</h3>
+<table style="width:100%;border-collapse:collapse;font-size:.9rem;margin:.5rem 0;">
+  <thead><tr><th style="border:1px solid #ccc;padding:.4rem;text-align:left;background:#eee;">Place</th><th style="border:1px solid #ccc;padding:.4rem;background:#eee;">What happens there</th></tr></thead>
+  <tbody>
+    <tr><td style="border:1px solid #ccc;padding:.4rem;">Your PC (<code>C:\laragon\www\…</code>)</td><td style="border:1px solid #ccc;padding:.4rem;">You edit files; Cursor save = instant on disk for <strong>localhost</strong>.</td></tr>
+    <tr><td style="border:1px solid #ccc;padding:.4rem;">GitHub</td><td style="border:1px solid #ccc;padding:.4rem;">Backup + history — only updates when <strong><code>git push</code></strong>.</td></tr>
+    <tr><td style="border:1px solid #ccc;padding:.4rem;">Live host</td><td style="border:1px solid #ccc;padding:.4rem;">Needs <strong>FTP/File Manager upload</strong> or <strong><code>git pull</code></strong> on server (if you have SSH). DB is <strong>separate</strong> phpMyAdmin on host.</td></tr>
+  </tbody>
+</table>
+
+<h3>Typical workflows</h3>
+<ul>
+  <li><strong>Only cPanel/File Manager/FTP:</strong> After you finish changes locally (and optionally push to GitHub for backup), upload changed PHP/files to hosting.</li>
+  <li><strong>SSH + Git on server:</strong> <code>git clone</code> once per server folder, later <code>git pull</code> after each <code>git push</code> from home.</li>
+  <li><strong>Cursor “Remote SSH”:</strong> only if your hosting package gives SSH and you deliberately open that remote folder — optional advanced path.</li>
+</ul>
+
+<h2>§4 · Built‑in checklist from §10 (short)</h2>
+<h3>Web shop smoke test (<code>06b</code> already ran on dev DB)</h3>
+<p>Staff: eligible part (<strong>New</strong>, source <strong>not</strong> Stripped), <strong>Available</strong>, qty ≥ 1, tick <strong>List on public website</strong>, save → open <code>/shop/</code> as guest → cart → checkout → staff <strong>Reports → Web shop orders</strong>.</p>
+
+<h3>Guest enquiries (<code>06e</code>)</h3>
+<p>If inbox/form errors on missing table: phpMyAdmin → run <code>sql/06e_shop_guest_enquiries.sql</code> once on that database.</p>
+
+<h3>Training manuals (already in <code>docs/</code>)</h3>
+<p>Examples: <code>invoice_screen_full_guide.html</code>, <code>complete_system_manual.html</code>, <code>client_training_index.html</code> — open in browser → print to PDF.</p>
+
+<h2>§5 · Git + GitHub — why bother?</h2>
+<ul>
+  <li><strong>Undo / history:</strong> every <code>commit</code> is a labelled snapshot.</li>
+  <li><strong>Off‑site backup</strong> of code when you <code>push</code>.</li>
+  <li><strong>New PC later:</strong> <code>git clone …</code> gets the folder back.</li>
+  <li><strong>Secrets &amp; uploads not in GitHub:</strong> project <code>.gitignore</code> skips <code>config/secrets.local.php</code>, <code>config/secrets.live.php</code>, and files under <code>uploads/</code> (keeps only <code>uploads/.htaccess</code> for safety rules).</li>
+</ul>
+<p><strong>Saving files in Cursor does <em>not</em> upload to GitHub.</strong> You run <code>git add → commit → push</code> when <em>you</em> want a backup online.</p>
+
+<h2>§6 · Your GitHub + what we set up today</h2>
+<div class="box">
+  <strong>Repository:</strong> <span class="mono">https://github.com/Hassan1970/autowagen-master</span><br>
+  <strong>Remote name:</strong> <code>origin</code> · <strong>Branch:</strong> <code>main</code><br>
+  <strong>First commit:</strong> <span class="mono">Initial import Autowagen Master</span><br>
+  <strong>Result:</strong> terminal showed many <strong>create mode</strong> lines (success); then <code>[new branch] main -&gt; main</code>; GitHub page listed folders (<code>ajax</code>, <code>assets</code>, <code>auth</code>, <code>sql</code>, etc.) — repo no longer empty.
+</div>
+
+<h3>Correct one‑liner for linking GitHub (do not paste URL alone)</h3>
+<div class="box"><code>git remote add origin https://github.com/Hassan1970/autowagen-master.git</code></div>
+<p class="note">Typing only the HTTPS URL made PowerShell show “not recognised as cmdlet”.</p>
+
+<h3>Login for <code>git push</code></h3>
+<p>GitHub often wants a <strong>Personal Access Token</strong> as the “password” for HTTPS (<code>github.com/settings/tokens</code>), not your usual website password.</p>
+
+<h3>Odd folder caught in Git</h3>
+<p><strong>TEST AUTOWAGEN WEBDESIGN</strong> (extra images/test site material) landed in <code>git add .</code> — not part of the normal app tree from <code>CLAUDE.md</code>. Safe to strip from Git later via <code>git rm --cached</code> + <code>.gitignore</code>; optional cleanup.</p>
+
+<h2>§7 · Every time you want GitHub to match your PC</h2>
+<p>After:</p>
+<div class="box">
+  <code>cd C:\laragon\www\autowagen-master</code><br><br>
+  <code>git add .</code><br>
+  <code>git commit -m "Describe this save in plain English"</code><br>
+  <code>git push</code>
+</div>
+<p>You don’t have to push after every single line of code — do it after a sensible chunk (end of evening, bugfix done, etc.).</p>
+
+<h2>§8 · Where those commands happen</h2>
+<ol class="compact">
+  <li><strong>Windows PowerShell,</strong> or Cursor <strong>Terminal → New Terminal</strong></li>
+  <li>Ensure prompt path includes <code>autowagen-master</code> (use <code>cd …</code> above).</li>
+  <li>Never type Git commands into phpMyAdmin, GitHub search, or inside a PHP file.</li>
+</ol>
+
+<h2>§9 · Problems we solved today — cheat sheet</h2>
+<ul>
+  <li><strong>Vim opened instead of committing:</strong> you ran bare <code>git commit</code>. Fix: <kbd>Esc</kbd> → type <code>:q!</code> → <kbd>Enter</kbd> → then <code>git commit -m "…"</code> so Vim stays closed.</li>
+  <li><strong>Vim line “14,1”:</strong> just cursor position — meaningless for which files Git commits.</li>
+  <li><strong>Green “new file” in <code>git status</code>:</strong> staging worked; missing step was only <strong>commit</strong> then <strong>push</strong>.</li>
+  <li><strong>Cursor <code>main*</code></strong> stuck: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> → <strong>Reload Window</strong> after a push.</li>
+  <li><strong>Microsoft Print dialog “doesn’t support print preview”</strong>: still try Print to PDF — or print from Chrome/Edge with the HTML file open.</li>
+</ul>
+
+<h2>§10 · Reboot · new AI chat · different project</h2>
+<ul>
+  <li><strong>PC restart:</strong> Git stays installed; <code>.git</code> stays in folder — don’t rerun <code>git init</code> inside this project unless you delete <code>.git</code>.</li>
+  <li><strong>New Cursor chat:</strong> does not unlink GitHub — it’s only a new conversation thread.</li>
+  <li><strong>New future project:</strong> new folder → separate <code>git init</code> (or clone) → separate GitHub repo if desired.</li>
+</ul>
+
+<h2>§11 · Making PDFs from your project HTML guides</h2>
+<ol class="compact">
+  <li>File Explorer → open the HTML (e.g. under <code>docs\…</code>).</li>
+  <li>Opens in browser → <kbd>Ctrl</kbd>+<kbd>P</kbd>.</li>
+  <li>Printer: PDF / Background graphics ON if banners look faded.</li>
+</ol>
+
+<h2>§12 · Optional recommendations</h2>
+<ul>
+  <li>GitHub <strong>Settings → Change visibility → Private</strong> for business source.</li>
+  <li>Keep database backups separately (phpMyAdmin export); Git does not replace MySQL dumps.</li>
+  <li>When you upload this expanded handout: <code>git add docs/git_github_handout_print.html</code>, commit, push.</li>
+</ul>
+
+<hr style="border:none;border-top:1px solid #ddd;margin:1.5rem 0;">
+<p style="font-size:.88rem;color:#555;">Printed / PDF generated from Autowagen Master internal documentation. For project state: read repo root <code>CLAUDE.md</code>.</p>
+
+</body>
+</html>

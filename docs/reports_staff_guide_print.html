@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Autowagen Master — Reports guide (Print to PDF)</title>
+<style>
+  :root { --aw-red: #c8102e; --aw-black: #0a0a0a; }
+  body { font-family: system-ui, "Segoe UI", sans-serif; line-height: 1.48; color: var(--aw-black); max-width: 52rem; margin: 0 auto; padding: 1.25rem 1.35rem 3rem; background: #fafafa; font-size: 10.5pt; }
+  .banner { background: var(--aw-black); color: #fff; padding: 1rem 1.25rem; border-bottom: 4px solid var(--aw-red); margin: -1.25rem -1.35rem 1.25rem; print-color-adjust: exact; }
+  .banner h1 { margin: 0; font-size: 1.15rem; letter-spacing: .06em; }
+  .banner .sub { font-size: .82rem; opacity: .92; margin-top: .35rem; }
+  .pdf-hint { background: #fff8e6; border: 1px solid #e6c200; padding: .65rem 1rem; border-radius: 4px; margin-bottom: 1.25rem; font-size: .9rem; }
+  h2 { color: var(--aw-red); font-size: 1rem; margin-top: 1.85rem; padding-bottom: .35rem; border-bottom: 2px solid #ddd; page-break-after: avoid; }
+  h3 { font-size: .95rem; margin: 1rem 0 .35rem; color: var(--aw-black); }
+  ol.steps { margin: .5rem 0 .75rem; padding-left: 1.35rem; }
+  ol.steps li { margin: .45rem 0; }
+  ul { padding-left: 1.2rem; }
+  li { margin: .3rem 0; }
+  code, .path { font-family: ui-monospace, Consolas, monospace; font-size: .86em; background: #eee; padding: .12em .38em; border-radius: 3px; }
+  .box { background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: .75rem 1rem; margin: .75rem 0; }
+  .mock {
+    border: 2px dashed #6c757d;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin: 12px 0;
+    background: linear-gradient(#f8f9fa,#fff);
+    page-break-inside: avoid;
+  }
+  .mock .tag {
+    font-size: 8pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--aw-red);
+    margin-bottom: 10px;
+  }
+  .mock-nav { font-size: 8.5pt; background: var(--aw-black); color: #eee; padding: 6px 10px; border-radius: 4px; margin-bottom: 10px; }
+  .mock-h1 { font-size: 11pt; font-weight: 700; margin: 8px 0 4px; }
+  .mock-muted { font-size: 8.5pt; color: #555; margin-bottom: 10px; }
+  .fake-table { width: 100%; border-collapse: collapse; font-size: 8pt; margin-top: 6px; }
+  .fake-table th, .fake-table td { border: 1px solid #bbb; padding: 5px 6px; text-align: left; }
+  .fake-table th { background: #e9ecef; font-weight: 600; }
+  .fake-table .num { text-align: right; font-family: ui-monospace, monospace; }
+  .fake-sum { margin-top: 8px; padding: 8px 10px; background: #fff5f5; border: 2px solid var(--aw-red); border-radius: 4px; font-size: 9pt; display: flex; justify-content: space-between; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; font-size: 8pt; }
+  .cards .c { border: 1px solid #ccc; border-radius: 4px; padding: 8px; background: #fff; }
+  .cards .amt { color: var(--aw-red); font-weight: 700; text-align: right; margin-top: 4px; }
+  .toc a { color: #0d6efd; }
+  footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ccc; font-size: 8.5pt; color: #555; }
+  @media print {
+    @page { margin: 12mm; size: A4; }
+    body { background: #fff; max-width: 100%; font-size: 10pt; padding: 0; }
+    .banner { margin: 0 0 12px; }
+    .pdf-hint { display: none; }
+    .mock { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <h1><span style="color:var(--aw-red);">AUTOWAGEN</span> MASTER</h1>
+  <div class="sub">Staff guide — money &amp; web order reports · how to open · what each is for · sample layouts (illustration only)</div>
+</div>
+
+<div class="pdf-hint">
+  <strong>Save as PDF for your client:</strong> Press <kbd style="background:#eee;border:1px solid #999;border-radius:3px;padding:1px 5px;">Ctrl</kbd>+<kbd style="background:#eee;border:1px solid #999;border-radius:3px;padding:1px 5px;">P</kbd> → choose <strong>Save as PDF</strong> or <strong>Microsoft Print to PDF</strong> → turn <strong>Background graphics</strong> <strong>On</strong>.
+</div>
+
+<p><strong>Who this is for:</strong> logged-in roles. <strong>Viewer</strong> sees <strong>Reports</strong> (AR, invoices, customer-statement shortcut) but not submenu items gated to owner/admin/manager/staff (accounts payable; web orders/messages).</p>
+
+<nav class="box" aria-label="Contents">
+  <strong>Contents</strong>
+  <ul class="toc" style="margin:.4rem 0 0;">
+    <li><a href="#r-ap">§1 Accounts payable — who we still owe suppliers</a></li>
+    <li><a href="#r-ar">§2 Accounts receivable — customers who owe us</a></li>
+    <li><a href="#r-stmt">§3 Customer account statement (one buyer)</a></li>
+    <li><a href="#r-web">§4 Web shop orders (guest online sales)</a></li>
+    <li><a href="#r-sum">§5 Summary table — navigate at a glance</a></li>
+  </ul>
+</nav>
+
+<!-- ===== AP ===== -->
+<h2 id="r-ap">§1 — Accounts payable (who we still owe)</h2>
+
+<h3>What it is for</h3>
+<p>You bought parts or wreck stock via <strong>Supplier purchases</strong> and entered a <strong>Bill (ZAR)</strong>. This report lists every purchase row where <strong>bill − payments &gt; 0</strong>. It answers: <strong>“Who must we pay, how much is left?”</strong> — includes <strong>registered suppliers</strong> and <strong>private sellers</strong> on purchases.</p>
+
+<h3>How to open it (logged in)</h3>
+<ol class="steps">
+  <li>Ensure Laragon shows <strong>Start All</strong> (Apache + MySQL green).</li>
+  <li>Browser → <strong>login:</strong> <span class="path">http://localhost/autowagen-master/auth/login.php</span></li>
+  <li>Black top menu → click <strong>Reports</strong> → click <strong>Accounts payable (owed)</strong>.</li>
+</ol>
+<p><strong>Shortcut URL:</strong> <span class="path">…/supplier_ap_report.php</span></p>
+
+<h3>What you can do on screen</h3>
+<ul>
+  <li><strong>As at (report date)</strong> — pick a date and <strong>Apply</strong> (for your records; balances are “current” open amounts).</li>
+  <li><strong>Total still owed</strong> — red summary card at top.</li>
+  <li>Table columns: <strong>Purchase #</strong>, <strong>Owed to</strong> (supplier name or private seller), <strong>Bill</strong>, <strong>Paid so far</strong>, <strong>Balance</strong>, <strong>Status</strong> (Unpaid / Part paid), <strong>Due</strong>, <strong>Open</strong> → goes to that purchase to add payments.</li>
+  <li><strong>Summary by who we owe</strong> — small cards grouped by party.</li>
+  <li>Link <strong>Supplier purchases</strong> → list of all purchase batches.</li>
+</ul>
+
+<h3>If the page warns about SQL</h3>
+<p>Run <span class="path">sql/04d_supplier_accounts_payable.sql</span> in phpMyAdmin on database <code>autowagen_master</code> (after 4c). Until then the report may show a yellow warning.</p>
+
+<h3>Example look (illustration — not your real data)</h3>
+<div class="mock">
+  <div class="tag">Illustration only — sample numbers</div>
+  <div class="mock-nav">☰ Reports ▾ &nbsp; ··· &nbsp; <strong>Accounts payable (owed)</strong></div>
+  <div class="mock-h1">Accounts payable — who we still owe</div>
+  <div class="mock-muted">ZAR only · As at 2026-05-15 &nbsp;|&nbsp; [Apply] &nbsp;|&nbsp; Supplier purchases</div>
+  <div class="fake-sum"><span><strong>Total still owed (all rows below):</strong></span><span><strong>R 12,450.00</strong></span></div>
+  <table class="fake-table">
+    <thead><tr><th>Purchase</th><th>Owed to</th><th class="num">Bill</th><th class="num">Paid</th><th class="num">Balance</th><th>Status</th><th>Due</th></tr></thead>
+    <tbody>
+      <tr><td>#2 · REF-ABC</td><td><span style="background:#eee;padding:1px 4px;border-radius:2px;">HASSAN NIZAMIE</span></td><td class="num">R 10,000.00</td><td class="num">R 2,000.00</td><td class="num"><strong>R 8,000.00</strong></td><td>Part paid</td><td>2026-05-30</td></tr>
+      <tr><td>#5 · —</td><td>🔹 Private: J. Sithole</td><td class="num">R 5,200.00</td><td class="num">R 750.00</td><td class="num"><strong>R 4,450.00</strong></td><td>Part paid</td><td>—</td></tr>
+    </tbody>
+  </table>
+  <div style="margin-top:12px;font-size:9pt;"><strong>Summary by who we owe</strong></div>
+  <div class="cards">
+    <div class="c"><div class="fw-bold">HASSAN NIZAMIE</div><div class="amt">R 8,000.00</div></div>
+    <div class="c"><div class="fw-bold">Private: J. Sithole</div><div class="amt">R 4,450.00</div></div>
+  </div>
+</div>
+
+<hr style="margin:2rem 0;border:none;border-top:1px solid #ddd;">
+
+<!-- ===== AR ===== -->
+<h2 id="r-ar">§2 — Accounts receivable (customers who owe us)</h2>
+
+<h3>What it is for</h3>
+<p>After <strong>POS</strong> you <strong>Finalize</strong> invoices. If the customer did not pay in full, a <strong>balance</strong> remains. This report answers: <strong>“Which customers owe us money, which invoices are overdue by due date?”</strong></p>
+<p><strong>This is NOT supplier PAYABLE.</strong> If you are looking at purchase batches (HASSAN NIZAMIE, Purchase #2), use §1 Accounts payable instead.</p>
+
+<h3>How to open it</h3>
+<ol class="steps">
+  <li>Black menu → <strong>Reports</strong> → <strong>Accounts receivable (owed)</strong>.</li>
+</ol>
+<p><strong>Shortcut URL:</strong> <span class="path">…/customer_ar_report.php</span></p>
+
+<h3>What you can do on screen</h3>
+<ul>
+  <li><strong>As at</strong> — date used to mark <strong>overdue</strong> (invoice <strong>due date</strong> strictly <em>before</em> this date, with unpaid balance).</li>
+  <li>Ticks: <strong>Overdue only</strong> narrows lists. If your database ran <strong>06a</strong>: <strong>Account customers only</strong> restricts to flagged account buyers.</li>
+  <li><strong>Apply</strong> refreshes filters.</li>
+  <li><strong>Print / PDF</strong> button — uses browser print (hide nav).</li>
+  <li><strong>By customer</strong> — one row per customer: balance, overdue portion, links <strong>Statement</strong> and <strong>Customer</strong>.</li>
+  <li><strong>By invoice</strong> — open balances per invoice with badges (<strong>Overdue Nd</strong>, <strong>Open</strong>, <strong>No due date</strong>).</li>
+</ul>
+
+<h3>If the page warns about SQL</h3>
+<ul>
+  <li><strong>Run <span class="path">sql/05_pos.sql</span></strong> for invoices/payments tables.</li>
+  <li><strong>Account customers only</strong> tick needs <span class="path">sql/06a_customer_account.sql</span> — otherwise AR still works without that filter.</li>
+</ul>
+
+<h3>Example look (illustration)</h3>
+<div class="mock">
+  <div class="tag">Illustration only — sample numbers</div>
+  <div class="mock-nav">☰ Reports ▾ → <strong>Accounts receivable (owed)</strong></div>
+  <div class="mock-h1"><span style="color:var(--aw-red);">AUTOWAGEN</span> — Accounts receivable</div>
+  <div class="mock-muted">As at <strong>2026-05-15</strong> (Johannesburg) · [As at ⌄] [✓ Overdue only] [Apply] [Print/PDF]</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0;">
+    <div style="background:#0a0a0a;color:#fff;padding:8px;border-radius:4px;font-size:9pt;display:flex;justify-content:space-between;"><span>Total owed</span><strong>R 7,892.34</strong></div>
+    <div style="border-left:4px solid var(--aw-red);padding:8px;background:#f8f8f8;font-size:9pt;display:flex;justify-content:space-between;"><span>Of which overdue</span><strong style="color:var(--aw-red);">R 3,100.00</strong></div>
+  </div>
+  <div style="font-size:9pt;color:var(--aw-red);font-weight:bold;margin:10px 0 4px;text-transform:uppercase;">By customer</div>
+  <table class="fake-table">
+    <thead><tr><th>Customer</th><th>Account</th><th>Phone</th><th class="num">Balance</th><th class="num">Overdue</th></tr></thead>
+    <tbody>
+      <tr><td><strong>ABC Panels CC</strong></td><td>Account</td><td>082 555 0199</td><td class="num"><strong>R 5,792.34</strong></td><td class="num"><strong>R 3,100.00</strong></td></tr>
+      <tr><td><strong>Walk-in buyer</strong></td><td>—</td><td>—</td><td class="num"><strong>R 2,100.00</strong></td><td class="num">—</td></tr>
+    </tbody>
+  </table>
+  <div style="font-size:9pt;color:var(--aw-red);font-weight:bold;margin:14px 0 4px;text-transform:uppercase;">By invoice (open balance)</div>
+  <table class="fake-table">
+    <thead><tr><th>Invoice</th><th>Customer</th><th>Inv date</th><th>Due date</th><th>Status</th><th class="num">Balance</th></tr></thead>
+    <tbody>
+      <tr style="background:#ffe5e9;"><td>INV-2026-00412</td><td>ABC Panels CC</td><td>2026-03-02</td><td>2026-04-01</td><td><span style="background:#dc3545;color:#fff;padding:1px 5px;border-radius:3px;font-size:8pt;">Overdue 44d</span></td><td class="num"><strong>R 3,100.00</strong></td></tr>
+      <tr><td>INV-2026-00455</td><td>Walk-in buyer</td><td>2026-05-10</td><td>—</td><td>No due date</td><td class="num"><strong>R 2,100.00</strong></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<hr style="margin:2rem 0;border:none;border-top:1px solid #ddd;">
+
+<!-- ===== Statement ===== -->
+<h2 id="r-stmt">§3 — Customer account statement</h2>
+
+<h3>What it is for</h3>
+<p>Gives <strong>one named customer</strong> a printable breakdown: outstanding <strong>final</strong> invoices (totals, paid, balance), optional <strong>recent payments</strong>, and shortcuts to <strong>WhatsApp</strong> / PC <strong>email</strong> (summary text — you attach the PDF yourself after <strong>Print / PDF</strong>).</p>
+
+<h3>How to open it</h3>
+<p><strong>Path A — Reports menu</strong></p>
+<ol class="steps">
+  <li>Menu <strong>Reports</strong> → <strong>Customer statements (Customers list)</strong>.</li>
+  <li>Find the person in the table → click <strong>Statement</strong> on that row.</li>
+</ol>
+<p><strong>Path B — Master data</strong></p>
+<ol class="steps">
+  <li>Menu <strong>Master data</strong> → <strong>Customers</strong>.</li>
+  <li>Find the person in the table → click the <strong>Statement</strong> link on that row.</li>
+</ol>
+<p><strong>Path C — from AR</strong></p>
+<ol class="steps">
+  <li>Open §2 Accounts receivable.</li>
+  <li>In <strong>By customer</strong>, click <strong>Statement</strong> beside that customer.</li>
+</ol>
+<p><strong>URL pattern:</strong> <span class="path">…/customer_statement.php?id=CUSTOMER_ID</span> (browser shows number after opening once).</p>
+
+<h3>What you can do on screen</h3>
+<ul>
+  <li><strong>Statement as at</strong> + <strong>Include paid-in-full invoices</strong> tick → <strong>Apply</strong>.</li>
+  <li><strong>Print / PDF</strong> → formal PDF for the client attachment.</li>
+  <li><strong>WhatsApp</strong> / <strong>Email</strong> — prefilled summary (not full branded PDF).</li>
+  <li><strong>Edit customer</strong> / link back to <strong>AR report</strong>.</li>
+</ul>
+
+<h3>Example look (illustration)</h3>
+<div class="mock">
+  <div class="tag">Illustration only — sample numbers</div>
+  <div class="mock-h1"><span style="color:var(--aw-red);">AUTOWAGEN</span> — Customer account statement</div>
+  <div class="mock-muted">Statement date: <strong>2026-05-15</strong> · Currency ZAR</div>
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;margin:12px 0;">
+    <div style="border:1px solid #ddd;padding:10px;border-radius:6px;">
+      <div style="font-size:8pt;font-weight:bold;color:var(--aw-red);">Bill to</div>
+      <div><strong>ABC Panels CC</strong></div>
+      <div style="font-size:8pt;color:#555;margin-top:4px;">082 555 0199 · accounts@example.test</div>
+    </div>
+    <div style="background:#0a0a0a;color:#fff;padding:12px;border-radius:6px;border-left:4px solid var(--aw-red);">
+      <div style="font-size:8pt;opacity:.8;">Amount outstanding</div>
+      <div style="font-size:18pt;font-weight:bold;">R 5,792.34</div>
+    </div>
+  </div>
+  <div style="font-size:9pt;color:var(--aw-red);font-weight:bold;margin:10px 0 6px;text-transform:uppercase;">Invoices</div>
+  <table class="fake-table">
+    <thead><tr><th>Invoice</th><th>Date</th><th>Due</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th></tr></thead>
+    <tbody>
+      <tr><td>INV-2026-00412</td><td>2026-03-02</td><td>2026-04-01 <span style="background:#dc3545;color:#fff;font-size:7pt;padding:0 4px;border-radius:2px;">44d overdue</span></td><td class="num">R 8,000.00</td><td class="num">R 4,900.00</td><td class="num"><strong>R 3,100.00</strong></td></tr>
+      <tr><td>INV-2026-00430</td><td>2026-05-01</td><td>—</td><td class="num">R 2,692.34</td><td class="num">R 0.00</td><td class="num"><strong>R 2,692.34</strong></td></tr>
+    </tbody>
+    <tfoot><tr><th colspan="5" style="text-align:right;">Total outstanding</th><th class="num" style="color:var(--aw-red);">R 5,792.34</th></tr></tfoot>
+  </table>
+  <div style="font-size:9pt;color:var(--aw-red);font-weight:bold;margin:14px 0 6px;text-transform:uppercase;">Recent payments received</div>
+  <table class="fake-table">
+    <thead><tr><th>Date</th><th>Invoice</th><th class="num">Amount</th><th>Method</th><th>Reference</th></tr></thead>
+    <tbody><tr><td>2026-04-05</td><td>INV-2026-00412</td><td class="num">R 2,500.00</td><td>EFT</td><td>INV412</td></tr></tbody>
+  </table>
+</div>
+
+<hr style="margin:2rem 0;border:none;border-top:1px solid #ddd;">
+
+<!-- ===== Web orders ===== -->
+<h2 id="r-web">§4 — Web shop orders</h2>
+
+<h3>What it is for</h3>
+<p>Lists <strong>guest</strong> orders from the public <strong>/shop/</strong> checkout. Stock was reduced when the order was placed. Use it to <strong>call the buyer</strong>, coordinate payment/collection, and <strong>cancel</strong> an order if needed (restores stock).</p>
+<p>This is <strong>not</strong> a full “sales analytics” report (no monthly charts) — it is an <strong>operational order list</strong>.</p>
+
+<h3>How to open it</h3>
+<ol class="steps">
+  <li>Menu <strong>Reports</strong> → <strong>Web shop orders</strong>.</li>
+</ol>
+<p><strong>Shortcut URL:</strong> <span class="path">…/shop_orders_admin.php</span></p>
+
+<h3>What you can do on screen</h3>
+<ul>
+  <li>List of <strong>WEB-YYYY-NNNNN</strong> orders with status (e.g. confirmed / cancelled).</li>
+  <li><strong>Open</strong> a row → buyer name, phone, lines (SKU, qty, snapshot prices), totals.</li>
+  <li><strong>Cancel order &amp; restore stock</strong> — only when business rules allow; confirms in browser.</li>
+  <li>Link to open the <strong>public shop</strong> in a new tab.</li>
+</ul>
+
+<h3>If the page warns about SQL</h3>
+<p>Run <span class="path">sql/06b_web_shop.sql</span> in phpMyAdmin.</p>
+
+<h3>Example look (illustration)</h3>
+<div class="mock">
+  <div class="tag">Illustration only — sample data</div>
+  <div class="mock-nav">☰ Reports ▾ → <strong>Web shop orders</strong></div>
+  <div class="mock-h1">Web shop orders</div>
+  <div class="mock-muted">Guest checkout from public shop · [Open shop]</div>
+  <table class="fake-table">
+    <thead><tr><th>Order</th><th>Buyer</th><th>Phone</th><th>Total</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      <tr><td>WEB-2026-00102</td><td>Sarah M.</td><td>0827654321</td><td>R 849.98</td><td><span style="background:#198754;color:#fff;padding:1px 6px;border-radius:3px;font-size:8pt;">confirmed</span></td><td><span style="border:1px solid #333;padding:1px 6px;border-radius:3px;font-size:8pt;">Open</span></td></tr>
+      <tr><td>WEB-2026-00088</td><td>James K.</td><td>0611002233</td><td>R 2,150.00</td><td><span style="background:#6c757d;color:#fff;padding:1px 6px;border-radius:3px;font-size:8pt;">cancelled</span></td><td><span style="border:1px solid #ccc;padding:1px 6px;border-radius:3px;font-size:8pt;">Open</span></td></tr>
+    </tbody>
+  </table>
+  <div style="margin-top:12px;font-size:8pt;padding:10px;border:1px solid #dee2e6;border-radius:6px;background:#fff;">
+    <strong>Detail view (when you click Open):</strong> lines table · Part SKU · Qty · Line total · Buyer address/notes · red <strong>Cancel order &amp; restore stock</strong> button.</div>
+</div>
+
+<h2 id="r-sum">§5 — Navigate at a glance</h2>
+<table class="fake-table" style="font-size:9pt;">
+  <thead><tr><th>Report</th><th>Money direction</th><th>Menu</th><th>File</th></tr></thead>
+  <tbody>
+    <tr><td>Accounts payable</td><td>We owe them</td><td><strong>Reports</strong> → Accounts payable (owed) <em>(staff+)</em></td><td><code>supplier_ap_report.php</code></td></tr>
+    <tr><td>Accounts receivable</td><td>They owe us</td><td><strong>Reports</strong> → Accounts receivable (owed)</td><td><code>customer_ar_report.php</code></td></tr>
+    <tr><td>Sales invoices (list)</td><td>—</td><td><strong>Reports</strong> or <strong>POS</strong> → Sales invoices</td><td><code>invoices_admin.php</code></td></tr>
+    <tr><td>Sales summary (period)</td><td>Turnover vs payments</td><td><strong>Reports</strong> → Sales summary (period)</td><td><code>sales_summary_report.php</code></td></tr>
+    <tr><td>Customer statement</td><td>They owe us (detail)</td><td><strong>Reports</strong> → Customer statements, <strong>Master data</strong> → Customers → Statement, or from AR row</td><td><code>customer_statement.php?id=…</code></td></tr>
+    <tr><td>Web shop orders</td><td>Guest orders (website)</td><td><strong>Reports</strong> → Web shop orders <em>(staff+)</em></td><td><code>shop_orders_admin.php</code></td></tr>
+    <tr><td>Web shop messages</td><td>Guest enquiries</td><td><strong>Reports</strong> → Web shop messages <em>(staff+)</em></td><td><code>shop_enquiries_admin.php</code></td></tr>
+  </tbody>
+</table>
+
+<div class="box" style="margin-top:1.25rem;">
+  <strong>Not in MVP</strong> (do not promise clients from this sheet): automated <strong>returns / refunds / credit notes</strong>; monthly sales dashboard; stock valuation report; SMTP email blasted from server. Extra reports = future build.
+</div>
+
+<footer>
+  Autowagen Master · <code>docs/reports_staff_guide_print.html</code> · ZAR · Figures above are fabricated for training · Real screens depend on your data.
+</footer>
+
+</body>
+</html>

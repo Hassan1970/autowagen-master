@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Autowagen Master — Sales summary report (client handout · Print to PDF)</title>
+<style>
+  :root { --aw-red: #c8102e; --aw-black: #0a0a0a; }
+  body { font-family: system-ui, "Segoe UI", sans-serif; line-height: 1.48; color: var(--aw-black); max-width: 52rem; margin: 0 auto; padding: 1.25rem 1.35rem 3rem; background: #fafafa; font-size: 10.5pt; }
+  .banner { background: var(--aw-black); color: #fff; padding: 1rem 1.25rem; border-bottom: 4px solid var(--aw-red); margin: -1.25rem -1.35rem 1.25rem; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .banner h1 { margin: 0; font-size: 1.12rem; letter-spacing: .06em; }
+  .banner .sub { font-size: .82rem; opacity: .92; margin-top: .38rem; max-width: 46rem; }
+  .pdf-hint { background: #fff8e6; border: 1px solid #e6c200; padding: .65rem 1rem; border-radius: 4px; margin-bottom: 1.25rem; font-size: .9rem; }
+  h2 { color: var(--aw-red); font-size: 1rem; margin-top: 1.75rem; padding-bottom: .35rem; border-bottom: 2px solid #ddd; page-break-after: avoid; }
+  h3 { font-size: .95rem; margin: 1rem 0 .4rem; }
+  ol.steps { margin: .5rem 0 .85rem; padding-left: 1.35rem; }
+  ol.steps li { margin: .5rem 0; }
+  ul { padding-left: 1.2rem; }
+  li { margin: .35rem 0; }
+  code, .path { font-family: ui-monospace, Consolas, monospace; font-size: .84em; background: #eee; padding: .12em .38em; border-radius: 3px; }
+  .callout { background: #fff; border-left: 4px solid var(--aw-red); padding: .75rem 1rem; margin: 1rem 0; font-size: .95rem; }
+  .box { background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: .75rem 1rem; margin: .85rem 0; }
+  .mock {
+    border: 2px dashed #6c757d;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin: 14px 0;
+    background: linear-gradient(#f8f9fa,#fff);
+    page-break-inside: avoid;
+  }
+  .mock .tag {
+    font-size: 8pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--aw-red);
+    margin-bottom: 10px;
+  }
+  .mock-nav { font-size: 8.5pt; background: var(--aw-black); color: #eee; padding: 6px 10px; border-radius: 4px; margin-bottom: 10px; }
+  .mock-h1 { font-size: 11pt; font-weight: 700; margin: 8px 0 4px; }
+  .mock-muted { font-size: 8.5pt; color: #555; margin-bottom: 10px; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; font-size: 8pt; }
+  .cards .c { border: 1px solid #ccc; border-radius: 4px; padding: 8px; background: #fff; }
+  .cards .c strong { display: block; margin-bottom: 4px; }
+  .cards .amt { color: var(--aw-red); font-weight: 700; text-align: right; margin-top: 4px; font-size: 10pt; }
+  .fake-table { width: 100%; border-collapse: collapse; font-size: 8pt; margin-top: 8px; }
+  .fake-table th, .fake-table td { border: 1px solid #bbb; padding: 5px 6px; text-align: left; }
+  .fake-table th { background: #e9ecef; font-weight: 600; }
+  .fake-table .num { text-align: right; font-family: ui-monospace, monospace; }
+  footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ccc; font-size: 8.5pt; color: #555; }
+  @media print {
+    @page { margin: 12mm; size: A4; }
+    body { background: #fff; max-width: 100%; font-size: 10pt; padding: 0; }
+    .banner { margin: 0 0 12px; }
+    .pdf-hint { display: none; }
+    .mock { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <h1><span style="color:var(--aw-red);">AUTOWAGEN</span> MASTER</h1>
+  <div class="sub">Client handout — <strong>Sales summary (period)</strong> report · what it shows · how to run it · sample screen (illustration only). Suitable for accountants, silent partners, or staff training.</div>
+</div>
+
+<div class="pdf-hint">
+  <strong>To make your PDF:</strong> Press <kbd style="background:#eee;border:1px solid #999;border-radius:3px;padding:1px 5px;">Ctrl</kbd>+<kbd style="background:#eee;border:1px solid #999;border-radius:3px;padding:1px 5px;">P</kbd> → choose <strong>Save as PDF</strong> or <strong>Microsoft Print to PDF</strong> → turn <strong>Background graphics</strong> <strong>On</strong> so the heading bar stays black/red.
+</div>
+
+<h2>1 · What this report is for</h2>
+<p>The <strong>Sales summary</strong> helps you answer, for any date range:</p>
+<ul>
+  <li><strong>How much did we sell over the counter / POS?</strong> (totals from <strong>finalised invoices</strong> dated in your range).</li>
+  <li><strong>How much cash / EFT / card did we actually record as received</strong> in that same calendar period?(sum of payment lines by their <strong>paid date</strong> — sometimes different from the sale date).</li>
+  <li><strong>Who were our busiest customers?</strong> (ranked list for final sales in that range).</li>
+  <li><strong>Staff vs labour lines:</strong> how many invoice lines linked to physical <strong>parts</strong> vs free-text <strong>manual</strong> lines (labour/fees).</li>
+</ul>
+<div class="callout">
+  <strong>Important limits.</strong> This report uses <strong>workshop POS invoices</strong> only. Guest orders from your <strong>public website</strong> (<strong>WEB‑…</strong> orders) are managed under <strong>Reports → Web shop orders</strong>, not on this screen. Customer <strong>returns / proper credit notes</strong> as formal documents are <strong>not</strong> in the app yet — use your normal bookkeeping process until that module exists.
+</div>
+
+<h2>2 · The two headline numbers clients ask about</h2>
+<table class="fake-table" style="font-size:9pt;margin-top:.5rem;">
+  <thead><tr><th>Idea</th><th>What the report counts</th><th>Use when …</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Sales turnover</strong></td>
+      <td>Each <strong>final</strong> invoice total (incl. VAT) whose <strong>invoice date</strong> falls inside <strong>From → To</strong>.</td>
+      <td>You want turnover for a month/quarter aligned to <em>invoice date</em> (traditional “what we invoiced”).</td>
+    </tr>
+    <tr>
+      <td><strong>Payments in</strong></td>
+      <td>Payment rows logged on invoices, summed by each row’s <strong>paid date</strong> inside the range.</td>
+      <td>You want money that hit the til / bank during the month, even if the sale was invoiced earlier or later.</td>
+    </tr>
+  </tbody>
+</table>
+<p class="mock-muted" style="margin-top:.5rem;">These two totals are <strong>meant</strong> to differ when customers pay later, pay deposits, or straddle weekends — that is normal.</p>
+
+<h2>3 · How to run this report (staff — numbered clicks)</h2>
+<p>Replace <span class="path">YOUR-SITE</span> with your real address (examples: <code>http://localhost/autowagen-master</code> on a workshop PC or your live shop URL).</p>
+<ol class="steps">
+  <li>Start Apache + database (your host handles this if you only use live hosting).</li>
+  <li>Open the browser → go to login: <strong><span class="path">YOUR-SITE/auth/login.php</span></strong></li>
+  <li>Sign in with a staff username that has permission to see <strong>Reports</strong>.</li>
+  <li>On the <strong>black top menu</strong>, click <strong>Reports</strong>.</li>
+  <li>Click <strong>Sales summary (period)</strong>.</li>
+  <li>Set <strong>From</strong> (start date) and <strong>To</strong> (end date) → click <strong>Apply</strong>.</li>
+  <li>Review the coloured summary cards (final sales · drafts · payments) and scroll through <strong>Top customers</strong> and the invoice list.</li>
+  <li>To send a snapshot to someone: click <strong>Print / PDF</strong> → in the printer list pick <strong>Save as PDF</strong> → save the file → email or WhatsApp send the PDF.</li>
+</ol>
+
+<h2>4 · What the screen looks like (sample — illustration only)</h2>
+<p>Below is a <strong>simplified sketch</strong> with example numbers — your real totals will vary. It is meant for training and briefing — not audit evidence without opening the live system.</p>
+
+<div class="mock">
+  <div class="tag">Illustration only — fabricated numbers · not live data</div>
+  <div class="mock-nav">☰ <strong>Reports</strong> ▾ → Sales summary (period)</div>
+  <div class="mock-h1"><span style="color:var(--aw-red);">AUTOWAGEN</span> — Sales summary</div>
+  <div class="mock-muted">Invoice date from <strong>2026-05-01</strong> to <strong>2026-05-31</strong> (Johannesburg) · POS invoices only</div>
+  <div class="cards">
+    <div class="c" style="border-left:3px solid #198754;">
+      <strong>Final sales (invoice dates)</strong>
+      <span>24 invoices</span>
+      <div class="amt">R 187,450.00</div>
+    </div>
+    <div class="c">
+      <strong>Draft (same range)</strong>
+      <span>3 invoices</span>
+      <div class="amt" style="color:#666;">R 4,120.00</div>
+    </div>
+    <div class="c" style="border-left:3px solid #0d6efd;">
+      <strong>Payments (paid dates)</strong>
+      <span>Bank + cash + card</span>
+      <div class="amt" style="color:#0d6efd;">R 163,200.00</div>
+    </div>
+  </div>
+  <div style="font-size:9pt;font-weight:700;color:var(--aw-red);margin:12px 0 4px;text-transform:uppercase;">Top customers (final · incl. VAT)</div>
+  <table class="fake-table">
+    <thead><tr><th>Customer</th><th class="num">Invoices</th><th class="num">Turnover</th></tr></thead>
+    <tbody>
+      <tr><td>ABC Panels CC</td><td class="num">6</td><td class="num"><strong>R 42,300.00</strong></td></tr>
+      <tr><td>Walk-in — cash</td><td class="num">18</td><td class="num"><strong>R 31,890.50</strong></td></tr>
+      <tr><td>Motors &amp; More</td><td class="num">2</td><td class="num"><strong>R 18,040.00</strong></td></tr>
+    </tbody>
+  </table>
+  <div style="font-size:8pt;margin-top:10px;padding:8px;border:1px dashed #999;border-radius:4px;background:#fff;">
+    Further down the real page: <strong>void</strong> counts, <strong>part vs manual</strong> line counts, and a table of up to <strong>200 invoices</strong> with <strong>Open</strong> links back to each invoice.
+  </div>
+</div>
+
+<h2>5 · Short Q&amp;A for clients</h2>
+<div class="box">
+  <p><strong>Q: Is this VAT return ready?</strong><br>A: It is a management summary off the POS data. Your tax practitioner may still want your full invoice file and receipts — this speeds up conversation, not replacing SARS filings.</p>
+  <p><strong>Q: Why are “sales” and “payments” different this month?</strong><br>A: Many shops invoice on day 28 and receive EFT on day 2 of the next month. Use the explanation in section 2 above.</p>
+  <p><strong>Q: Where is the website turnover?</strong><br>A: Use <strong>Reports → Web shop orders</strong> and your own bank recon for deposits from online buyers.</p>
+</div>
+
+<footer>
+  File: <code>docs/sales_summary_report_client_print.html</code> · Autowagen Master · Open in Chrome/Edge → Print → Save as PDF · Live page: <code>sales_summary_report.php</code> (after login).
+</footer>
+
+</body>
+</html>

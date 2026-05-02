@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autowagen Master — Credit notes &amp; balances (print to PDF)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 11pt;
+      line-height: 1.55;
+      color: #222;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 28px 24px 48px;
+      background: #fff;
+    }
+    h1 {
+      font-size: 1.35rem;
+      margin: 0 0 8px;
+      color: #0a0a0a;
+      border-bottom: 3px solid #c8102e;
+      padding-bottom: 10px;
+    }
+    .sub { color: #555; font-size: 10pt; margin: 0 0 24px; }
+    h2 {
+      font-size: 1.08rem;
+      color: #c8102e;
+      margin: 28px 0 10px;
+      border-left: 4px solid #0a0a0a;
+      padding-left: 10px;
+    }
+    h3 { font-size: 1rem; margin: 18px 0 8px; color: #0a0a0a; }
+    p, li { font-size: 10.5pt; margin: 0 0 10px; }
+    ul, ol { margin: 0 0 12px; padding-left: 1.35em; }
+    .formula {
+      font-family: ui-monospace, Consolas, monospace;
+      background: #f4f4f4;
+      border: 1px solid #ddd;
+      padding: 10px 14px;
+      margin: 12px 0;
+      font-size: 10pt;
+      border-radius: 4px;
+    }
+    .note {
+      font-size: 9.5pt;
+      color: #444;
+      border-left: 3px solid #c8102e;
+      padding: 10px 14px;
+      margin: 16px 0;
+      background: #fafafa;
+    }
+    .muted { color: #666; font-size: 9.5pt; }
+    kbd { background: #eee; padding: 1px 6px; border-radius: 3px; font-size: 0.9em; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10pt;
+      margin: 12px 0;
+    }
+    th, td { border: 1px solid #ccc; padding: 8px 10px; text-align: left; }
+    th { background: #0a0a0a; color: #fff; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    @media print {
+      @page { margin: 14mm; size: A4; }
+      body { padding: 0; max-width: 100%; }
+      h2 { page-break-after: avoid; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Autowagen Master — Credit notes &amp; customer balances</h1>
+  <p class="sub">How returns and credits work, how the <strong>invoice</strong>, <strong>Accounts receivable</strong> report, and <strong>customer statement</strong> stay aligned. Save as PDF: <kbd>Ctrl</kbd>+<kbd>P</kbd> → <strong>Save as PDF</strong> (Chrome / Edge).</p>
+
+  <div class="no-print note"><strong>File location:</strong> open this page from your project at <code>docs/credit_notes_system_guide_print.html</code> in a browser (double-click or drag into Chrome).</div>
+
+  <h2>1. What a credit note is (in this system)</h2>
+  <p>A <strong>credit note</strong> is a formal reduction linked to an <strong>original final sales invoice</strong> (number like <strong>INV-YYYY-NNNNN</strong>). After you finalize the credit note, the system assigns a number like <strong>CN-YYYY-NNNNN</strong>.</p>
+  <p>You never “invent” a standalone credit in the POS screen — you start from a <strong>final</strong> invoice and create a credit note that points at that invoice. That keeps the audit trail clear for you and for your customer.</p>
+
+  <h2>2. Three rules you asked for (product design)</h2>
+  <ol>
+    <li><strong>Link to the original invoice.</strong> Every credit note row in the database stores <code>invoice_id</code> and lines reference <code>sales_invoice_lines</code>. The UI shows the linked <strong>INV-…</strong> and has a button to open that invoice.</li>
+    <li><strong>Stock is restored for part lines when the credit note is finalized.</strong> For each credit line that has a <code>part_id</code>, the system increases <code>qty_on_hand</code> by the <strong>returned quantity</strong> (not forced to 1). If the part was <strong>sold</strong> and stock becomes positive again, status can move back to <strong>available</strong>.</li>
+    <li><strong>AR reduction vs cash refund.</strong> On the credit note you choose one <strong>adjustment type</strong>:
+      <ul>
+        <li><strong>AR reduction</strong> — means “reduce what the buyer still owes on this invoice relationship” from an accounts-receivable point of view; you fill credit date and notes.</li>
+        <li><strong>Cash refund</strong> — means money was returned to the buyer; you must record <strong>refund paid date</strong>, <strong>method</strong> (cash / EFT / card / other), and optionally a reference. That metadata is stored on the credit note for your paper trail.</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h2>3. How “remaining balance” is calculated (one formula)</h2>
+  <p>After finalized credit notes exist, every screen uses the same idea:</p>
+  <div class="formula"><strong>Amount still due on the invoice</strong> = Invoice total (incl. VAT) − <em>Sum of finalized credit notes</em> for that invoice − <em>Sum of active payments</em> on that invoice</div>
+  <ul>
+    <li><strong>Invoice screen (POS)</strong> — under <strong>Payments</strong>, you see credits (if any), paid total, and <strong>Remaining</strong>. New payments cannot exceed that remaining amount.</li>
+    <li><strong>Accounts receivable report</strong> — customer and invoice rows use the same net idea so “who owes us” matches what you see on each invoice.</li>
+    <li><strong>Customer statement</strong> — each invoice shows <strong>Total</strong>, <strong>Paid</strong>, <strong>Credits</strong>, and <strong>Balance</strong>; the balance column is the same net as above.</li>
+  </ul>
+  <p class="note"><strong>Why this stays consistent:</strong> all three places read from the same underlying facts: final invoice totals, finalized credit totals from <code>sales_credit_notes</code>, and payment lines from <code>sales_invoice_payments</code>. There is no separate “Excel side calculation” inside the app for AR.</p>
+
+  <h2>4. Short numeric example</h2>
+  <table>
+    <thead>
+      <tr><th>Step</th><th class="num">Amount (ZAR)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Invoice INV-… finalized — total incl. VAT</td><td class="num">1 000.00</td></tr>
+      <tr><td>Customer pays (one payment recorded)</td><td class="num">−400.00</td></tr>
+      <tr><td>Credit note CN-… finalized — credit total incl. VAT</td><td class="num">−150.00</td></tr>
+      <tr><th>Remaining shown on invoice / AR / statement</th><th class="num">450.00</th></tr>
+    </tbody>
+  </table>
+  <p class="muted">Figures are illustrative. VAT is whatever was stored on the original lines; credits allocate amounts in proportion to returned quantities.</p>
+
+  <h2>5. Draft vs finalized credit notes</h2>
+  <ul>
+    <li><strong>Draft</strong> — you can change return quantities, dates, and adjustment type; nothing hits stock yet; totals on reports usually count only <strong>final</strong> credits.</li>
+    <li><strong>Finalize</strong> — assigns <strong>CN-…</strong>, restores stock for part lines, and locks the note. Caps apply: you cannot finalize a credit total that pushes all credits above the invoice face value.</li>
+  </ul>
+
+  <h2>6. Staff: where to click</h2>
+  <ol>
+    <li>Run SQL file <strong><code>sql/07_credit_notes.sql</strong></code> once in phpMyAdmin if your database does not yet have credit tables.</li>
+    <li>Open a <strong>final</strong> invoice → <strong>New credit note</strong> (or <strong>Reports → Credit notes</strong> → create from invoice).</li>
+    <li>Set return quantities, adjustment type, save draft, then finalize when correct.</li>
+    <li>Check the same invoice’s <strong>Payments</strong> header: credits and remaining should update.</li>
+    <li>Open <strong>Reports → Accounts receivable</strong> and the customer’s <strong>Statement</strong> — balances should match the invoice logic above.</li>
+  </ol>
+
+  <h2>7. Optional future rule (not the default today)</h2>
+  <p>You may later decide that <strong>only “AR reduction” credits</strong> should reduce receivables metrics, while <strong>cash refund</strong> credits are tracked for compliance but treated differently in “who owes us” maths (for example when the buyer already paid in full and you refund cash).</p>
+  <p class="note">Today’s build intentionally applies <strong>all finalized credits</strong> to the remaining balance everywhere, so invoice / AR / statement stay simple and aligned. Changing that is a deliberate product decision and would need code + training updates.</p>
+
+  <h2>8. Showing your shop to buyers (advertising) — viewer vs public website</h2>
+  <h3>A. Prefer the public shop (best for advertising)</h3>
+  <p>For <strong>customers browsing parts</strong> you should send them to the public pages (no login):</p>
+  <ul>
+    <li><strong>Parts shop:</strong> <code>/shop/</code> on your server (example: <code>http://localhost/autowagen-master/shop/</code> on your PC, or your live domain in production).</li>
+    <li><strong>Stripping / wreck listings:</strong> <code>/shop/stripping/</code></li>
+  </ul>
+  <p>Those URLs are meant for browsers; you don’t expose your full back-office POS or master data.</p>
+
+  <h3>B. “Viewer” login (inside the office only)</h3>
+  <p>The database allows a role <strong>viewer</strong>. Viewer users sign in through the normal <strong>login</strong> page but many buttons are hidden or read-only (lists, dashboards) — intended for demos or trusted observers, <strong>not</strong> for random internet traffic.</p>
+  <p><strong>To create a viewer user</strong> (owner does this once):</p>
+  <ol>
+    <li>Open <strong>Laragon</strong> → <strong>Menu</strong> → <strong>Terminal</strong> (or any terminal where <code>php</code> works).</li>
+    <li>Run a one-off command to generate a password hash (replace the password inside the quotes with a strong temporary password):<br><code style="display:block;background:#f4f4f4;padding:8px;margin:8px 0;font-size:9.5pt;">php -r "echo password_hash('YourStrongPasswordHere', PASSWORD_DEFAULT), PHP_EOL;"</code></li>
+    <li>Copy the long hash line.</li>
+    <li>Open <strong>phpMyAdmin</strong> → database <strong>autowagen_master</strong> → table <strong>users</strong> → <strong>Insert</strong>.</li>
+    <li>Fill <strong>username</strong>, <strong>full_name</strong>, paste into <strong>password_hash</strong>, set <strong>role</strong> = <strong>viewer</strong>, <strong>is_active</strong> = 1, save.</li>
+    <li>Go to your site <strong>auth/login.php</strong> and sign in with that username and password.</li>
+  </ol>
+  <p class="note"><strong>Safety:</strong> do not publish viewer credentials online. For marketing, use <strong>/shop/</strong>. Use viewer only behind your own supervision or VPN if you truly need someone to see the back office without editing.</p>
+
+  <h2>9. Note for developers (PHP syntax check)</h2>
+  <p>Some PCs do not have the <code>php</code> program on the system <strong>PATH</strong>. That only affects running commands like <code>php -l file.php</code> from a generic terminal. Laragon still ships PHP — use Laragon’s terminal or the full path to <code>php.exe</code> under <code>C:\laragon\bin\php\…</code>. It does <strong>not</strong> change how the website runs in Apache.</p>
+
+  <footer class="muted" style="margin-top:32px;padding-top:16px;border-top:1px solid #ccc;">
+    Autowagen Master — Credit notes guide — ZAR — Not legal advice. SHGA-related wording in the main app reflects record-keeping expectations; set your refund policy with your accountant.
+  </footer>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<!-- saved from url=(0083)file:///C:/laragon/www/autowagen-master/docs/session_report_reports_menu_print.html -->
+<html lang="en-ZA"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session report — Reports menu (Print to PDF)</title>
+<style>
+  :root { --r:#c8102e; --k:#0a0a0a; }
+  body { font-family: system-ui,"Segoe UI",sans-serif; line-height:1.5; color:var(--k); max-width:48rem; margin:0 auto; padding:1.25rem 1.35rem 2.5rem; background:#fafafa; font-size:11pt; }
+  .banner { background:var(--k); color:#fff; padding:1rem 1.2rem; border-bottom:4px solid var(--r); margin:-1.25rem -1.35rem 1.35rem; print-color-adjust:exact; }
+  .banner h1 { margin:0; font-size:1.08rem; letter-spacing:.06em; }
+  .banner .meta { opacity:.92; font-size:.8rem; margin-top:.35rem; }
+  .hint { background:#fff8e6; border:1px solid #e6c200; padding:.65rem 1rem; border-radius:4px; margin:1rem 0; font-size:.9rem; }
+  h2 { color:var(--r); font-size:1rem; margin:1.5rem 0 .5rem; border-bottom:2px solid #ddd; padding-bottom:.3rem; page-break-after:avoid; }
+  h3 { font-size:.93rem; margin:1rem 0 .35rem; }
+  ol.steps { padding-left:1.35rem; }
+  ol.steps li { margin:.4rem 0; }
+  code, .mono { font-family:ui-monospace,Consolas,monospace; font-size:.85em; background:#eee; padding:.1em .35em; border-radius:3px; }
+  table { width:100%; border-collapse:collapse; font-size:10pt; margin:.6rem 0; }
+  th, td { border:1px solid #bbb; padding:8px 10px; text-align:left; vertical-align:top; }
+  th { background:#eef0f2; }
+  footer { margin-top:2rem; padding-top:1rem; border-top:1px solid #ccc; font-size:9pt; color:#444; }
+  @media print { body { background:#fff; max-width:100%; } .hint { display:none; } .banner { margin:0 0 1rem; } }
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <h1><span style="color:var(--r);">AUTOWAGEN</span> MASTER — session report</h1>
+  <div class="meta">Topic: <strong>Reports</strong> top navigation · Database impact · Viewer login · Next step (single path)</div>
+</div>
+
+<div class="hint"><strong>Save as PDF:</strong> Press <kbd>Ctrl</kbd>+<kbd>P</kbd> → destination <strong>Save as PDF</strong> / <strong>Microsoft Print to PDF</strong> → turn <strong>Background graphics</strong> <strong>On</strong>.</div>
+
+<h2>1 — Summary (what changed)</h2>
+<p>A new <strong>Reports</strong> dropdown was added to the black staff top bar in <span class="mono">includes/header.php</span>. It groups list/report-style screens in one place. Items that were duplicated under <strong>Inventory</strong> or <strong>POS</strong> were removed from those menus so there is a single obvious path for report-style pages.</p>
+
+<h2>2 — Database / SQL on live server</h2>
+<p><strong>No new tables and no ALTER statements</strong> were shipped for this change. Live behaviour is updated by deploying the updated <strong>PHP</strong> (and optional HTML docs) only. Your MySQL schema is unchanged <em>by this Reports-menu work</em>.</p>
+<p>If you use <strong>guest web shop messages</strong> (<span class="mono">shop_enquiries_admin.php</span>), that feature still needs <span class="mono">sql/06e_shop_guest_enquiries.sql</span> run once per database — that is separate from the Reports menu and was not part of this nav change.</p>
+
+<h2>3 — Reports submenu (current build)</h2>
+<table>
+  <thead><tr><th>Submenu item</th><th>Target</th><th>Who sees it</th></tr></thead>
+  <tbody>
+    <tr><td>Accounts payable (owed)</td><td><span class="mono">supplier_ap_report.php</span></td><td>owner, admin, manager, staff</td></tr>
+    <tr><td>Accounts receivable (owed)</td><td><span class="mono">customer_ar_report.php</span></td><td>all logged-in roles</td></tr>
+    <tr><td>Sales invoices</td><td><span class="mono">invoices_admin.php</span></td><td>all logged-in roles</td></tr>
+    <tr><td>Customer statements (Customers list)</td><td><span class="mono">customers_admin.php</span></td><td>all logged-in roles (open <strong>Statement</strong> on a row)</td></tr>
+    <tr><td>Web shop orders</td><td><span class="mono">shop_orders_admin.php</span></td><td>owner, admin, manager, staff</td></tr>
+    <tr><td>Web shop messages (guest enquiries)</td><td><span class="mono">shop_enquiries_admin.php</span></td><td>owner, admin, manager, staff</td></tr>
+  </tbody>
+</table>
+<p><strong>Inventory</strong> now focuses on parts, public shop links, add part, and supplier purchases. <strong>POS</strong> keeps <strong>Sales invoices</strong> and <strong>New sale</strong> (staff+).</p>
+
+<h2>4 — Where this is documented in the repo</h2>
+<ul>
+  <li><span class="mono">docs/CHANGELOG.md</span> and <span class="mono">docs/CHANGELOG.html</span> — dated entry <em>Reports menu in top nav</em></li>
+  <li><span class="mono">CLAUDE.md</span> — section 2 (Stage 6 nav note), section 9 (session log), section 10 (UI table)</li>
+  <li><span class="mono">docs/complete_system_manual.html</span> — section 2 menu map and cross-references</li>
+  <li><span class="mono">docs/reports_staff_guide_print.html</span> — click paths for staff PDF training</li>
+  <li><span class="mono">ROADMAP.md</span> — AP path wording</li>
+</ul>
+
+<h2>5 — How to log in as <strong>viewer</strong></h2>
+<p>Roles live in the <span class="mono">users</span> table (<span class="mono">role</span> enum includes <span class="mono">viewer</span>). There is no separate “viewer login page” — same <span class="mono">auth/login.php</span> as everyone else; the role comes from the row for that username.</p>
+<h3>Option A — New user (phpMyAdmin)</h3>
+<ol class="steps">
+  <li>Open phpMyAdmin → database <span class="mono">autowagen_master</span> (or your live DB name) → table <span class="mono">users</span> → <strong>Insert</strong>.</li>
+  <li>Set <strong>username</strong> (unique), <strong>full_name</strong>, leave <strong>email</strong> null or unique, set <strong>role</strong> = <code>viewer</code>, <strong>is_active</strong> = <code>1</code>.</li>
+  <li>For <strong>password_hash</strong> you must store a <strong>PHP <code>password_hash</code></strong> value (not plain text). On a PC with PHP: run<br>
+    <code class="mono" style="display:block;margin:.5rem 0;padding:.5rem;">php -r "echo password_hash('YourPasswordHere', PASSWORD_DEFAULT);"</code>
+    Copy the full hash string into the <strong>password_hash</strong> column, then save the row.</li>
+  <li>Log out of Autowagen if needed → open login URL → sign in with that username/password. Your name badge should show <strong>viewer</strong>.</li>
+</ol>
+<h3>Option B — Temporarily downgrade an existing user (testing only)</h3>
+<ol class="steps">
+  <li>phpMyAdmin → <span class="mono">users</span> → <strong>Edit</strong> the row → set <strong>role</strong> to <code>viewer</code> → Go.</li>
+  <li>Log in as that user. (Remember to set the role back when finished testing.)</li>
+</ol>
+
+<h2>6 — Features <em>not</em> built (clarification)</h2>
+<p><strong>Customer returns / credit notes</strong>, <strong>supplier returns</strong>, automated <strong>sales analytics PDF</strong> from the app, and similar items remain <strong>out of MVP</strong> unless you schedule a dedicated build. The Reports menu only reorganizes existing pages; it does not add returns or a new sales report module.</p>
+
+<h2>7 — Single recommended next step (one path)</h2>
+<ol class="steps">
+  <li><strong>Deploy + verify:</strong> On the live site, upload or pull the current code, open the app, confirm <strong>Reports</strong> appears and each submenu link loads; confirm you did <strong>not</strong> need to run any SQL for this nav change alone.</li>
+</ol>
+
+<footer>
+  File: <span class="mono">docs/session_report_reports_menu_print.html</span> · Autowagen Master · ZAR / SA context as per main project docs.
+</footer>
+
+
+</body></html>

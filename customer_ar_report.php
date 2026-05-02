@@ -5,6 +5,7 @@
  */
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/includes/auth_check.php';
+require_once __DIR__ . '/includes/credit_note_helpers.php';
 
 $arReady = (int) $pdo->query(
     "SELECT COUNT(*) FROM information_schema.`TABLES`
@@ -41,6 +42,24 @@ $totalOwed      = 0.0;
 $totalOverdue   = 0.0;
 $invoiceRows    = [];
 
+$cnReady = cn_tables_ready($pdo);
+$cnJoin       = '';
+$netBalExpr   = 'i.total_inc_vat - COALESCE(pay.paid_sum, 0)';
+$custCredCols = '';
+if ($cnReady) {
+    $cnJoin =
+        "\n         LEFT JOIN (\n"
+        . "          SELECT invoice_id,\n"
+        . "            COALESCE(SUM(CASE WHEN adjustment_type = 'ar_reduction' THEN total_inc_vat ELSE 0 END), 0) AS cn_ar_sum,\n"
+        . "            COALESCE(SUM(CASE WHEN adjustment_type = 'cash_refund' THEN total_inc_vat ELSE 0 END), 0) AS cn_refund_sum\n"
+        . "          FROM sales_credit_notes WHERE status = 'final' AND is_active = 1\n"
+        . "          GROUP BY invoice_id\n"
+        . "        ) cn ON cn.invoice_id = i.id\n";
+    $netBalExpr .= ' - COALESCE(cn.cn_ar_sum, 0) - COALESCE(cn.cn_refund_sum, 0)';
+    $custCredCols = ",\n      SUM(COALESCE(cn.cn_ar_sum, 0)) AS credits_ar_reduction,\n"
+        . "      SUM(COALESCE(cn.cn_refund_sum, 0)) AS credits_cash_refund";
+}
+
 if ($arReady) {
     $acctSelect = $accountCols ? ', c.account_customer' : '';
     $acctWhere  = $acctOnly ? ' AND c.account_customer = 1' : '';
@@ -57,11 +76,11 @@ if ($arReady) {
       c.phone,
       c.email
       {$acctSelect},
-      SUM(i.total_inc_vat - COALESCE(pay.paid_sum, 0)) AS balance_owed,
+      SUM($netBalExpr) AS balance_owed{$custCredCols},
       SUM(
         CASE
           WHEN i.due_date IS NOT NULL AND i.due_date >= '1900-01-01' AND i.due_date < :asof
-          THEN (i.total_inc_vat - COALESCE(pay.paid_sum, 0))
+          THEN ($netBalExpr)
           ELSE 0
         END
       ) AS overdue_balance
@@ -73,7 +92,7 @@ if ($arReady) {
       FROM sales_invoice_payments
       WHERE is_active = 1
       GROUP BY invoice_id
-    ) pay ON pay.invoice_id = i.id
+    ) pay ON pay.invoice_id = i.id{$cnJoin}
     WHERE c.is_active = 1
     {$acctWhere}
     GROUP BY c.id, c.name, c.phone, c.email{$groupExtra}
@@ -97,7 +116,7 @@ if ($arReady) {
     $invWhere = [
         'i.status = \'final\'',
         'i.is_active = 1',
-        '(i.total_inc_vat - COALESCE(pay.paid_sum, 0)) > 0.005',
+        '(' . $netBalExpr . ') > 0.005',
     ];
     if ($acctOnly) {
         $invWhere[] = 'c.account_customer = 1';
@@ -112,6 +131,15 @@ if ($arReady) {
     if ($overdueOnly) {
         $invParams[':asof'] = $asOf;
     }
+    if ($cnReady) {
+        $invCredSelect = ",
+      COALESCE(cn.cn_ar_sum, 0) AS credit_ar_reduction,
+      COALESCE(cn.cn_refund_sum, 0) AS credit_cash_refund";
+    } else {
+        $invCredSelect = ',
+      0 AS credit_ar_reduction,
+      0 AS credit_cash_refund';
+    }
     $sqlInv     = "
     SELECT
       i.id,
@@ -121,7 +149,8 @@ if ($arReady) {
       i.customer_id,
       c.name AS customer_name
       {$acctSelInv},
-      (i.total_inc_vat - COALESCE(pay.paid_sum, 0)) AS balance
+      ($netBalExpr) AS balance
+      {$invCredSelect}
     FROM sales_invoices i
     INNER JOIN customers c ON c.id = i.customer_id AND c.is_active = 1
     LEFT JOIN (
@@ -129,7 +158,7 @@ if ($arReady) {
       FROM sales_invoice_payments
       WHERE is_active = 1
       GROUP BY invoice_id
-    ) pay ON pay.invoice_id = i.id
+    ) pay ON pay.invoice_id = i.id{$cnJoin}
     WHERE {$invWhereSql}
     ORDER BY
       CASE
@@ -186,6 +215,16 @@ include __DIR__ . '/includes/header.php';
       <?php if ($acctOnly): ?> &middot; <strong>Account customers only</strong><?php endif; ?>
     </div>
   </div>
+
+  <?php if ($cnReady): ?>
+    <div class="alert alert-light border no-print small mb-3 mb-md-2">
+      <strong>Credit notes — locked rules:</strong>
+      The <strong>Balance</strong> column is <strong>net due</strong>:
+      invoice total − payments − <em>all</em> finalized credits (AR reduction and cash-refund credits both reduce net due).
+      <strong>AR cr.</strong> / <strong>Refund</strong> split shows how each invoice&rsquo;s credits are classified (for bookkeeping).
+      Cash-refund details stay on each credit note.
+    </div>
+  <?php endif; ?>
 
   <div class="alert alert-light border no-print small mb-3">
     <strong>Two different reports:</strong>
@@ -284,7 +323,11 @@ include __DIR__ . '/includes/header.php';
               <th>Customer</th>
               <?php if ($accountCols): ?><th>Account</th><?php endif; ?>
               <th>Phone</th>
-              <th class="text-end">Balance</th>
+              <th class="text-end"><abbr title="Net due (all credits subtract)">Balance</abbr></th>
+              <?php if ($cnReady): ?>
+                <th class="text-end text-muted"><abbr title="Finalized credits — AR reduction">AR cr.</abbr></th>
+                <th class="text-end text-muted"><abbr title="Finalized credits — cash refund">Refund</abbr></th>
+              <?php endif; ?>
               <th class="text-end">Overdue</th>
               <th class="no-print"></th>
             </tr>
@@ -307,6 +350,10 @@ include __DIR__ . '/includes/header.php';
               <?php endif; ?>
               <td class="text-muted"><?= (trim((string) ($r['phone'] ?? '')) !== '') ? e((string) $r['phone']) : '—' ?></td>
               <td class="text-end fw-bold text-danger">R <?= number_format((float) $r['balance_owed'], 2) ?></td>
+              <?php if ($cnReady): ?>
+                <td class="text-end text-muted small">R <?= number_format((float) ($r['credits_ar_reduction'] ?? 0), 2) ?></td>
+                <td class="text-end text-muted small">R <?= number_format((float) ($r['credits_cash_refund'] ?? 0), 2) ?></td>
+              <?php endif; ?>
               <td class="text-end <?= $ov > 0.005 ? 'fw-bold text-danger' : 'text-muted' ?>">
                 <?= $ov > 0.005 ? 'R ' . number_format($ov, 2) : '—' ?>
               </td>
@@ -335,13 +382,19 @@ include __DIR__ . '/includes/header.php';
               <th>Inv date</th>
               <th>Due date</th>
               <th>Status</th>
-              <th class="text-end">Balance</th>
+              <th class="text-end"><abbr title="Net due">Balance</abbr></th>
+              <?php if ($cnReady): ?>
+                <th class="text-end text-muted"><abbr title="Credits — AR reduction">AR cr.</abbr></th>
+                <th class="text-end text-muted"><abbr title="Credits — cash refund">Refund cn.</abbr></th>
+              <?php endif; ?>
               <th class="no-print"></th>
             </tr>
           </thead>
           <tbody>
             <?php foreach ($invoiceRows as $ir):
-              $bal = (float) $ir['balance'];
+              $bal    = (float) $ir['balance'];
+              $car    = isset($ir['credit_ar_reduction']) ? (float) $ir['credit_ar_reduction'] : 0.0;
+              $cref   = isset($ir['credit_cash_refund']) ? (float) $ir['credit_cash_refund'] : 0.0;
               $stBadge = '';
               if ($ir['_is_overdue']) {
                   $stBadge = '<span class="badge bg-danger">Overdue ' . (int) $ir['_days_overdue'] . 'd</span>';
@@ -360,6 +413,10 @@ include __DIR__ . '/includes/header.php';
               </td>
               <td><?= $stBadge ?></td>
               <td class="text-end fw-bold text-danger">R <?= number_format($bal, 2) ?></td>
+              <?php if ($cnReady): ?>
+                <td class="text-end text-muted small"><?= $car > 0.005 ? 'R ' . number_format($car, 2) : '—' ?></td>
+                <td class="text-end text-muted small"><?= $cref > 0.005 ? 'R ' . number_format($cref, 2) : '—' ?></td>
+              <?php endif; ?>
               <td class="no-print">
                 <a class="btn btn-sm btn-outline-dark"
                    href="<?= e(APP_URL) ?>/invoice_edit.php?id=<?= (int) $ir['id'] ?>">Open</a>

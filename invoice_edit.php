@@ -5,6 +5,7 @@
  */
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/includes/auth_check.php';
+require_once __DIR__ . '/includes/credit_note_helpers.php';
 
 $pageTitle = 'Invoice';
 
@@ -432,13 +433,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $canEdit) {
                     $pdo->rollBack();
                     throw new RuntimeException('Invoice is not final.');
                 }
+                $credOnInv = cn_tables_ready($pdo) ? cn_finalized_total_for_invoice($pdo, $id) : 0.0;
                 $pst = $pdo->prepare(
                     'SELECT COALESCE(SUM(amount),0) FROM sales_invoice_payments
                      WHERE invoice_id = ? AND is_active = 1'
                 );
                 $pst->execute([$id]);
                 $already = (float) $pst->fetchColumn();
-                $rem     = (float) $trow['total_inc_vat'] - $already;
+                $rem     = (float) $trow['total_inc_vat'] - $credOnInv - $already;
                 if ($amt > round($rem, 2) + 0.005) {
                     $pdo->rollBack();
                     throw new RuntimeException(
@@ -533,7 +535,10 @@ $paidSum = 0.0;
 foreach ($payRows as $pr) {
     $paidSum += (float) $pr['amount'];
 }
-$balanceNum = (float) $inv['total_inc_vat'] - $paidSum;
+$credFinalSum = cn_tables_ready($pdo) ? cn_finalized_total_for_invoice($pdo, $id) : 0.0;
+$credArSum    = cn_tables_ready($pdo) ? cn_finalized_ar_reduction_total_for_invoice($pdo, $id) : 0.0;
+$credRefundSum = cn_tables_ready($pdo) ? cn_finalized_cash_refund_total_for_invoice($pdo, $id) : 0.0;
+$balanceNum   = (float) $inv['total_inc_vat'] - $credFinalSum - $paidSum;
 
 if (customers_account_columns_ready($pdo)) {
     $customers = $pdo->query(
@@ -1091,6 +1096,22 @@ $letterheadAddress   = [
       <div class="card-header bg-light d-flex justify-content-between flex-wrap">
         <strong><i class="bi bi-cash-stack"></i> Payments (ZAR)</strong>
         <span class="small">
+          <?php if ($credFinalSum > 0.005): ?>
+            Credits (final):
+            <?php if ($credArSum > 0.005 && $credRefundSum > 0.005): ?>
+              AR <strong class="text-danger">R <?= number_format($credArSum, 2) ?></strong>
+              · Refund <strong class="text-danger">R <?= number_format($credRefundSum, 2) ?></strong>
+              · Total <strong class="text-danger">R <?= number_format($credFinalSum, 2) ?></strong>
+            <?php else: ?>
+              <strong class="text-danger">R <?= number_format($credFinalSum, 2) ?></strong>
+              <?php if ($credArSum > 0.005): ?>
+                <span class="text-muted">(AR reduction)</span>
+              <?php elseif ($credRefundSum > 0.005): ?>
+                <span class="text-muted">(cash refund)</span>
+              <?php endif; ?>
+            <?php endif; ?>
+             ·
+          <?php endif; ?>
           Remaining: <strong class="text-danger">R <?= number_format(max(0, $balanceNum), 2) ?></strong>
           · Paid: R <?= number_format($paidSum, 2) ?>
         </span>
@@ -1159,6 +1180,11 @@ $letterheadAddress   = [
 
     <div class="d-flex flex-wrap gap-2 mb-3 no-print">
       <button type="button" class="btn btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+      <?php if ($canEdit && cn_tables_ready($pdo)): ?>
+        <a class="btn btn-outline-danger" href="<?= e(APP_URL) ?>/credit_note_edit.php?new=1&amp;invoice_id=<?= (int) $id ?>">
+          <i class="bi bi-arrow-counterclockwise"></i> New credit note
+        </a>
+      <?php endif; ?>
       <?php if ($canEdit): ?>
       <form method="post" class="d-inline" onsubmit="return confirm('Void this invoice? Stock is NOT returned automatically.');">
         <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">

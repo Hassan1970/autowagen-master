@@ -30,7 +30,7 @@ include __DIR__ . '/includes/header.php';
       </p>
     </div>
     <span class="badge bg-success fs-6 py-2 px-3">
-      <i class="bi bi-check-circle"></i> Stages 1–5 live · Stage 6 next
+      <i class="bi bi-check-circle"></i> Stages 1–7 live
     </span>
   </div>
 
@@ -83,11 +83,17 @@ include __DIR__ . '/includes/header.php';
 
   <div class="card border-0 shadow-sm">
     <div class="card-body">
-      <h2 class="h5">What's next</h2>
+      <h2 class="h5">What&rsquo;s next</h2>
       <p class="text-muted mb-3">
-        Roadmap status (see <code>CLAUDE.md</code> for detail). Stages 1–5 are built;
-        use <strong>EPC</strong>, <strong>Master data</strong>, <strong>Inventory</strong>, and <strong>POS</strong> in the top menu.
-        Stage 6 adds reports, polish, and optional shop.
+        Roadmap status (see <code>CLAUDE.md</code> for detail).
+        Top menu includes <strong>Reports</strong> (graph icon): accounts payable/receivable, sales invoices,
+        sales summary, credit notes, customer statements shortcut, web shop orders and messages — plus
+        <strong>EPC</strong>, <strong>Master data</strong>, <strong>Inventory</strong>, and <strong>POS</strong>.
+        Still to choose: SMTP email, supplier returns tooling, optional online payments — see <code>docs/BACKLOG_POST_STAGE7.md</code>.
+      </p>
+      <p class="small text-muted mb-2">
+        <strong>Stages 1–7</strong> are marked <span class="badge bg-success text-white align-middle">done</span>.
+        Future ideas are listed <em>below</em> — that row is <strong>not</strong> Stage&nbsp;7.
       </p>
       <ul class="list-group list-group-flush">
         <li class="list-group-item d-flex justify-content-between">
@@ -111,8 +117,16 @@ include __DIR__ . '/includes/header.php';
           <span class="badge bg-success">done</span>
         </li>
         <li class="list-group-item d-flex justify-content-between">
-          <span><strong>Stage 6 — Reports &amp; shop</strong></span>
-          <span class="badge bg-warning text-dark">next</span>
+          <span><strong>Stage 6 — Reports, AR, shop, stripping, enquiries</strong></span>
+          <span class="badge bg-success">done</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+          <span><strong>Stage 7 — Credit notes</strong> (returns linked to invoices)</span>
+          <span class="badge bg-success">done</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between border-top border-2">
+          <span><strong>Future backlog</strong> (optional next builds — supplier returns, SMTP reminders, PayFast, etc.; see <code>docs/BACKLOG_POST_STAGE7.md</code>)</span>
+          <span class="badge bg-secondary align-self-start">planned</span>
         </li>
       </ul>
     </div>

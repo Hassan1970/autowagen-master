@@ -29,8 +29,6 @@ project. Old project stays untouched as read-only reference. Built in
 ## 2. Live state — UPDATE AFTER EVERY ACTION
 
 > Format: `Stage N — Title:  STATUS  (last verified YYYY-MM-DD HH:MM TZ)`
->
-> **Last overnight handoff:** **2026-05-01 UTC+2 (end of day)** — hassan paused; next session read **`§10` → “Pause”** block, then **`HOW_TO_START_NEW_CHAT.md`** Step 2–3. Likely picks: upload **`includes/header.php`** + **`main_dashboard.php`** to live if Reports missing · optional **`§10` → A** web shop smoke-test · **`docs/BACKLOG_POST_STAGE7.md`** · **viewer** user in phpMyAdmin.
 
 - **Stage 1 — Foundation (auth, layout, config):** ✅ DONE & TESTED
   *(verified 2026-04-26, see Stage 1 deliverables below)*
@@ -233,7 +231,7 @@ project. Old project stays untouched as read-only reference. Built in
 - **Stage 6 — Reports / shop / polish:** 🟡 **IN PROGRESS (2026-04-28 UTC+2)** — **6a / AR / statements** shipped (code on disk):
   - **Nav (2026-05-01 UTC+2):** top bar **Reports** dropdown — AP (staff+), AR (all logged-in), **Sales invoices** (all), Customers shortcut for statements, **Web shop orders** / **messages** (staff+) · removed duplicate links from **Inventory** / **POS** (`includes/header.php`); **`docs/complete_system_manual.html`**, **`docs/reports_staff_guide_print.html`**, supplier/Git printouts, **`CLAUDE.md` §10**, **`ROADMAP.md`** paths updated.
   - ✅ **`sql/06a_customer_account.sql`** applied on hassan’s `autowagen_master` *(verified 2026-04-29 UTC+2 — `customers.account_customer` / `credit_limit_zar`; AR + customer modal).*
-  - **`customer_ar_report.php`** — **Reports → Accounts receivable (owed)** (visible to all logged-in roles). Balances = final invoices − payments − **finalized credits** (**net due** includes both **AR reduction** and **cash refund** types when **`07`** applied). Extra columns **AR cr.** / **Refund** show the **`adjustment_type`** split · **Overdue** vs **As at** · **Print / PDF** · note: **not** supplier AP (that is **Reports → Accounts payable (owed)** · staff roles).
+  - **`customer_ar_report.php`** — **Reports → Accounts receivable (owed)** (visible to all logged-in roles). Balances = final invoices − payments − **finalized credit notes** (when **`sql/07_credit_notes.sql`** applied); **Overdue** vs **As at**; **Overdue only** filter; **Print / PDF**; note: **not** supplier AP (that is **Reports → Accounts payable (owed)** · staff roles).
   - **`sales_summary_report.php`** — **Reports → Sales summary (period)** *(2026-05-01)*: read-only POS turnover by invoice date range vs payments by paid date · top customers · print/PDF · **no new SQL** (does not yet break out credit-note lines separately).
   - **MySQL 8 / strict:** AR SQL avoids invalid date literal `'0000-00-00'` (use `1900-01-01` + `IS NOT NULL` in SQL; PHP `ar_due_is_meaningful()` on statement/AR pages).
   - **`customer_statement.php`** — printable **customer account statement**; **WhatsApp** (`wa.me` text summary; attach PDF from Print); **Email** (`mailto:` opens PC mail client). Links: **Statement** on AR report + next to name on **Customers** list.
@@ -268,13 +266,12 @@ project. Old project stays untouched as read-only reference. Built in
     `vehicles` + `vehicle_photos` — **no new SQL**.
   - **Remaining Stage 6:** more reports, SMTP email from server (not built), PayFast/Stripe later, further polish.
 
-- **Stage 7 — Credit notes (linked returns):** ✅ **DONE & TESTED** *(hassan Test B PASS 2026-05-02 UTC+2)* — **`sql/07_credit_notes.sql`** on **`autowagen_master`** · **Reports → Credit notes** / **New credit note** · draft→finalize verified.
+- **Stage 7 — Credit notes (linked returns):** 🟡 **CODE SHIPPED** *(2026-05-01 UTC+2)* — ⛔ run **`sql/07_credit_notes.sql`** on each DB before **Reports → Credit notes** / **`credit_note_edit.php`** / balance logic that joins credits.
   - **Tables:** `sales_credit_notes`, `sales_credit_note_lines` — always tied to a **final** `sales_invoices` row; **`CN-YYYY-NNNNN`** on finalize.
-  - **Files:** **`includes/credit_note_helpers.php`**, **`credit_notes_admin.php`**, **`credit_note_edit.php`**; **`invoice_edit.php`** — remaining = total − **all finalized** credits − payments (split summary when mixed types); **`customer_statement.php`** — **AR cr.** / **Refund cn.** columns + net **Balance**; **`includes/header.php`** — Reports → Credit notes.
+  - **Files:** **`includes/credit_note_helpers.php`**, **`credit_notes_admin.php`**, **`credit_note_edit.php`**; **`invoice_edit.php`** — remaining = total − **finalized** credits − payments, **New credit note** button; **`customer_statement.php`** — **Credits** column; **`includes/header.php`** — Reports → Credit notes.
   - **Rules:** restore **stock** for returned **part** lines on finalize; **AR reduction** vs **cash refund** (refund date/method for cash path); capped so credits do not exceed invoice face value net of earlier finals.
-  - **Accounting display (with `07`):** **Net due** subtracts **all** finalized credits. **AR** + **statement** also show how much credit was **AR reduction** vs **cash refund** (same net). Handout: **`docs/credit_notes_ar_vs_cash_refund_print.html`**. Post–Stage 7 backlog: **`docs/BACKLOG_POST_STAGE7.md`**.
-  - **Print handout:** **`docs/credit_notes_system_guide_print.html`** · **`docs/credit_notes_ar_vs_cash_refund_print.html`** (locked net + split columns) · both indexed in **`docs/client_training_index.html`**.
-  - **Next for hassan:** on a **new PC/DB**, run **`07`** after **`05`**; otherwise optional deeper tests (void CN, multi-CN cap) as needed.
+  - **Print handout:** **`docs/credit_notes_system_guide_print.html`** (indexed in **`docs/client_training_index.html`**).
+  - **Next for hassan:** run **`07`** SQL → smoke-test one draft CN → finalize; log **PASS** in §9 when happy.
 
 **Owner account:** username `hassan`, role `owner` in `users` table.
 
@@ -301,14 +298,8 @@ autowagen-master/
 │  ├─ CHANGELOG.md                           ← dated changes Markdown (pair with CHANGELOG.html; newest first)
 │  ├─ CHANGELOG.html                         ← HTML mirror · Print → PDF
 │  ├─ developer_quick_sheet_print.html       ← laminate: Git + triple-changelog reminders (Print → PDF)
-│  ├─ add_users_staff_guide_print.html       ← add staff users / roles / phpMyAdmin / password hash (Print → PDF)
-│  ├─ database_update_backup_guide_print.html ← full DB replace vs incremental SQL / keep data (Print → PDF)
-│  ├─ session_pause_handoff_print.html          ← before PC shutdown: Git · §9 · optional md_backup · Export DB (Print → PDF)
 │  ├─ reports_staff_guide_print.html         ← AP / AR / statement / web orders — steps + illustration samples (PDF)
-│  ├─ ar_report_and_customer_statement_explained_print.html ← AR report + statement: every section explained (PDF)
-│  ├─ credit_notes_system_guide_print.html    ← Stage 7 · credits · invoice/AR/statement · viewer vs shop → Print PDF
-│  ├─ credit_notes_ar_vs_cash_refund_print.html ← AR vs cash (locked net + split columns) → Print PDF
-│  └─ BACKLOG_POST_STAGE7.md        ← supplier returns · SMTP · shop payments (mini-roadmap)
+│  └─ credit_notes_system_guide_print.html    ← Stage 7 · credits · invoice/AR/statement · viewer vs shop → Print PDF
 ├─ .gitignore
 ├─ index.php                    ← auth-aware redirect
 ├─ main_dashboard.php
@@ -324,7 +315,7 @@ autowagen-master/
 ├─ customer_quick_add.php        ← Stage 6 — minimal new customer from POS → back to draft invoice
 ├─ customer_ar_report.php        ← Stage 6 — AR: who owes us (balances by customer; **includes credits** after **`07`**)
 ├─ sales_summary_report.php      ← Stage 6 — POS sales summary by date range (read-only)
-├─ customer_statement.php        ← Stage 6 (+7) — statement; **AR cr.** / **Refund cn.** + net **Balance** when **`07`** applied
+├─ customer_statement.php        ← Stage 6 (+7) — statement; **Credits** column when **`07`** applied
 ├─ credit_notes_admin.php      ← Stage 7 — list / start credit note from invoice
 ├─ credit_note_edit.php          ← Stage 7 — draft → finalize (stock restore, CN- number)
 ├─ invoice_edit.php             ← Stage 5–6 — POS invoice: draft / finalize / payments;
@@ -455,8 +446,7 @@ Stage 5 (after `sql/05_pos.sql` is run): `sales_invoices` (draft / final / void;
 on-account); `sales_invoice_lines` (optional `part_id`, qty, VAT snapshot);
 `sales_invoice_payments` (cash / eft / card / other; soft-remove via `is_active`).
 **Net balance** for an invoice (used on invoice screen, AR, statement when credit tables exist):
-`total_inc_vat` − sum(**final** `sales_credit_notes` for that invoice — **both** adjustment types) − sum(active payments).
-**Reporting split** (does not change net): **`customer_ar_report.php`** / **`customer_statement.php`** sum **AR reduction** vs **cash refund** credits separately for display (`adjustment_type` on `sales_credit_notes`).
+`total_inc_vat` − sum(**final** `sales_credit_notes` for that invoice) − sum(active payments).
 (Before **`07_credit_notes.sql`**, treat credit sum as zero.)
 
 Stage 6a (after `sql/06a_customer_account.sql` is run): on `customers` —
@@ -553,34 +543,12 @@ If the file approaches ~200 lines, **prune** the Session log
 - **Staff manual + web shop (PDF):** open **`docs/complete_system_manual.html`** → **Ctrl+P** → **Save as PDF** (screenshots optional).
 - **Money reports for clients:** **`docs/reports_staff_guide_print.html`** (AP · AR · customer statement · web shop orders · sample layouts).
 - **Change log (browse / PDF):** **`docs/CHANGELOG.html`** or **`docs/CHANGELOG.md`** (Markdown is easiest for Git “go back” diffs).
-- **Add staff users (roles, phpMyAdmin, password hash):** **`docs/add_users_staff_guide_print.html`** → open in **Chrome/Edge** → **Ctrl+P** → Save as PDF (**Pages: All**, clear text selection first — Cursor-only print may clip pages).
-- **Database updates (full replace vs keep data):** **`docs/database_update_backup_guide_print.html`** — same PDF workflow as above.
-- **Pause before PC shutdown:** **`docs/session_pause_handoff_print.html`** — Git · §9 · optional snapshot · DB export.
 
 ---
 
 ## 9. Session log — append-only, newest at top
 
 > Each entry: `YYYY-MM-DD HH:MM TZ — short description (who, what, result)`.
-
-- **2026-05-02 (time unknown) UTC+2** — **Shutdown handoff pack:** **`docs/session_pause_handoff_print.html`** · **`HOW_TO_START_NEW_CHAT.md`** “Before you shut down” · **`CLAUDE.md`** §10 handoff block · **`docs/client_training_index.html`** · **`docs/md_backups/README.md`** numbered steps · **`ROADMAP.md`** · **`docs/TRAINING_SCREENSHOTS.md`**.
-
-- **2026-05-02 (time unknown) UTC+2** — **Markdown sync:** **`CLAUDE.md`** §8 + §10 quick-docs table · **`HOW_TO_START_NEW_CHAT.md`** · **`ROADMAP.md`** · **`docs/TRAINING_SCREENSHOTS.md`** · **`docs/md_backups/README.md`** — pointers to **`add_users_staff_guide_print.html`** & **`database_update_backup_guide_print.html`** + browser PDF tip.
-
-- **2026-05-02 (time unknown) UTC+2** — **Training PDF:** **`docs/database_update_backup_guide_print.html`** — full DB replace vs incremental **`sql/*.sql`** (keep customers/data); **`docs/client_training_index.html`** card · **`CLAUDE.md`** §3.
-
-- **2026-05-01 (end of day) UTC+2** — **Session pause — hassan:** stopping for today. **Tomorrow:** open **`CLAUDE.md` §10** + paste from **`HOW_TO_START_NEW_CHAT.md`** Step 2. **Likely next actions (pick one):** (1) **Live deploy** — upload **`includes/header.php`** + **`main_dashboard.php`** if **Reports** missing on **`ahnwebdesigners.co.za`**. (2) Optional **web shop** smoke-test **`CLAUDE.md` §10 → A**. (3) **Backlog** — **`docs/BACKLOG_POST_STAGE7.md`** (supplier returns, SMTP, PayFast; **alternate** net-due rule = §7 **`docs/credit_notes_ar_vs_cash_refund_print.html`** — explicit go only). (4) **View-only user:** phpMyAdmin **`users.role`** = **`viewer`** (same login page). No code left half-finished this session.
-
-- **2026-05-01 (time unknown) UTC+2** — **Training PDF:** **`docs/ar_report_and_customer_statement_explained_print.html`** — AR screen + customer statement explained (A1–A7 · B1–B7) · **`docs/client_training_index.html`** card · **`CLAUDE.md`** §3 + §10 table row.
-
-- **2026-05-01 (time unknown) UTC+2** — **Credit notes — AR/cash reporting split:** helpers `cn_finalized_ar_reduction_total_for_invoice` / `cn_finalized_cash_refund_total_for_invoice`; **Net due** unchanged; **AR report** + **statement** columns **AR cr.** / **Refund**; **`invoice_edit.php`** credits split · **`credit_note_edit.php`** confirm text · **`docs/BACKLOG_POST_STAGE7.md`** · **`docs/credit_notes_ar_vs_cash_refund_print.html`** (incl. §7 alternate rule) · **`ROADMAP`** · **`sales_summary_report.php`** footnote · **`CHANGELOG`**.
-
-- **2026-05-01 (time unknown) UTC+2** — **`main_dashboard.php`:** **Stages 1–7 live** badge · **What’s next** + note that **Stages 1–7** are **done** and the bottom row is **not** Stage 7 · **Future backlog** row uses badge **planned** (supplier returns / SMTP / PayFast). **Live site:** old hosting may lack **Reports** until **`includes/header.php`** is uploaded.
-
-
-- **2026-05-02 (time unknown) UTC+2** — **Test B PASS — Credit notes (§10 suggested next session B):** hassan — **`sql/07_credit_notes.sql`** applied on **`autowagen_master`** (tables visible in phpMyAdmin); **Reports → Credit notes** / **New credit note** from a **final** invoice; **draft → finalize** smoke-test **PASS** (stock restore + **CN-…** + balances on invoice / AR / statement as coded).
-
-- **2026-05-02 (time unknown) UTC+2** — **Read `CLAUDE.md` & continue:** §10 **synced** — **Stage 7** credit notes reflected in SQL steps **8–9** (`06e`, `07`), UI table row, **Suggested next session B** (credit smoke-test), **Resume handoff** + **backlog** wording (customer CN shipped; supplier returns still manual). Prior break snapshot remains **`docs/md_backups/2026-05-01/`**.
 
 - **2026-05-01 (time unknown) UTC+2** — **Taking a break:** **Markdown snapshot** copied to **`docs/md_backups/2026-05-01/`** (`CLAUDE.md`, `ROADMAP.md`, `HOW_TO_START_NEW_CHAT.md`, **`docs/TRAINING_SCREENSHOTS.md`**, **`docs/CHANGELOG.md`**). **`docs/md_backups/README.md`** → latest **2026-05-01**. **Memory updated:** **`CLAUDE.md`** §2 **Stage 7 — Credit notes** (code shipped; ⛔ **`07_credit_notes.sql`**); §3/§4 paths + **`credit_notes_system_guide_print.html`**; AR/statement wording. **`ROADMAP.md`** / **`HOW_TO`** touch-ups. **Resume:** run **`sql/07_credit_notes.sql`** if needed → smoke-test credit note → **`CLAUDE.md` §10**.
 
@@ -1098,18 +1066,12 @@ If the file approaches ~200 lines, **prune** the Session log
 
 ## 10. What to do RIGHT NOW (next concrete step)
 
-### Handoff — PC shutdown / end of day (always)
-
-Before switching off: **`HOW_TO_START_NEW_CHAT.md`** → **“Before you shut down the PC”** — Git **`commit`** + **`push`**, append **§9 Session log** (one line + what’s next), optional **`docs/md_backups/YYYY-MM-DD/`** copy and phpMyAdmin **Export**. **Print:** **`docs/session_pause_handoff_print.html`**. Next session: read **§10** then **`HOW_TO_START_NEW_CHAT.md`** Step **2** paste into a **new chat**.
-
-### Pause — 2026-05-01 end of day (hassan)
-
-**Stopped for today.** Next session: read **§10** from the top, then **`HOW_TO_START_NEW_CHAT.md`** Step 2 prompt. **Quick picks:** deploy **`includes/header.php`** to live if **Reports** missing · optional **§10 → A** web shop test · **`docs/BACKLOG_POST_STAGE7.md`** for post–Stage 7 work · **viewer** role in phpMyAdmin for read-only logins.
-
 ### Where we are
 
-- **Resume handoff (2026-04-28 UTC+2, amended 2026-05-01)** — If you **stopped mid-chat** or **jumped topics**, read this once:
-  **Early session note:** **customer credit notes** are now **Stage 7 — code shipped** (see §2); run **`sql/07_credit_notes.sql`** before using them. **Supplier returns** remain **not built**; MVP = manual AP / part edits.
+- **Resume handoff (2026-04-28 UTC+2)** — If you **stopped mid-chat** or **jumped topics**, read this once:
+  **Product decisions from that session:** **Customer returns / credit notes** and **supplier returns**
+  — **not built**; **MVP = manual** (adjust part qty/status; void invoice does **not** auto-return stock);
+  full workflows **deferred** (likely Stage 6 or later — listed under **Suggested next session** → backlog).
   **Docs/PDF:** `404` on `manual_screenshots/*.png` means the file was not saved yet — follow
   **`docs/TRAINING_SCREENSHOTS.md`**. **Customer modal** still shows "No file chosen" after save — normal;
   **On file** + **View current scan** mean the upload worked. **SHGA finalize:** same customer on the
@@ -1139,13 +1101,11 @@ In phpMyAdmin on **`autowagen_master`**, run each file’s contents once
 5. `sql/05_pos.sql` — `sales_invoices`, `sales_invoice_lines`, `sales_invoice_payments`  
 6. `sql/06a_customer_account.sql` — `customers.account_customer`, `credit_limit_zar` (Stage 6a AR / on-account)
 7. `sql/06b_web_shop.sql` — `parts.list_online`, `shop_orders`, `shop_order_lines` (public web shop)
-8. `sql/06e_shop_guest_enquiries.sql` — `shop_guest_enquiries` (**after `06b`** · guest enquiries + **Reports → Web shop messages**)
-9. `sql/07_credit_notes.sql` — `sales_credit_notes`, `sales_credit_note_lines` (**after `05`** · **Reports → Credit notes**)
 
 If **`parts_admin`** or purchase screens show **unknown table/column** errors,
 the matching **04\*** script above was not run. If **POS** pages show **missing
 table**, run **`05_pos.sql`**. If **`Account customer`** UI / columns are missing,
-run **`06a_customer_account.sql`**. If **`list_online` / shop** errors, run **`06b_web_shop.sql`**. If **guest enquiry** or **Web shop messages** errors, run **`06e`**. If **credit note** pages error on missing tables, run **`07`** (after **`05`**).
+run **`06a_customer_account.sql`**. If **`list_online` / shop** errors, run **`06b_web_shop.sql`**.
 
 **Old URLs** `tpp_intakes_*.php` / `tpp_intake_*.php` **301-redirect** to
 **`supplier_purchases_*.php`**.
@@ -1170,14 +1130,13 @@ run **`06a_customer_account.sql`**. If **`list_online` / shop** errors, run **`0
 | **Parts from invoice (browse & return)** | Draft invoice → **Select item…** → coloured **Stripped** / **Third Party** / **OEM** / **Replacement** links → **`parts_admin.php`** with blue **Back to invoice**; per-row **Add to invoice** (qty + POST) for **Available** parts with stock. |
 | **Printable POS manual** | **`docs/invoice_screen_full_guide.html`** (+ optional PNGs per **`docs/TRAINING_SCREENSHOTS.md`**) |
 | **Printable full-system manual** | **`docs/complete_system_manual.html`** — staff + POS + web shop + AR/backups — figures **`full-01`…`full-36`** (optional PNGs); entry **`docs/client_training_index.html`** |
-| **Credit notes (returns)** | **Reports → Credit notes** (`credit_notes_admin.php`) · **New credit note** · **`docs/credit_notes_system_guide_print.html`** + **`docs/credit_notes_ar_vs_cash_refund_print.html`** → Print PDF |
 | **Sales summary — client PDF briefing** | **`docs/sales_summary_report_client_print.html`** — what the report measures, how to run it, sample mock screen · **Print → PDF** for clients/partners |
 | **Changelog + timestamp discipline** | **`docs/CHANGELOG.md`** (Markdown); **`docs/CHANGELOG.html`** (Print/PDF mirror); laminate **`docs/developer_quick_sheet_print.html`** |
 
 ### Pinned reminders — reopen anytime (hassan)
 
 - **Guest enquiries / Web shop messages:** If **`sql/06e_shop_guest_enquiries.sql`** was **never** run on **that** database, the guest enquiry form and **`Reports → Web shop messages`** may **error** until phpMyAdmin runs **`06e`** once (`06b` ≠ `06e`).
-- **Not built in MVP:** **Supplier** returns / AP credit automation (**manual** workaround). **SMTP** outbound email & auto reminders; **no magic deploy** — **GitHub** backs up **code** only; **live hosting** still needs **FTP/upload** or server **`git pull`** (+ host MySQL + server secrets).
+- **Not built in MVP:** Automated customer/supplier **returns / credit notes** (manual workaround); **SMTP** outbound email & auto reminders; **no magic deploy** — **GitHub** backs up **code** only; **live hosting** still needs **FTP/upload** or server **`git pull`** (+ host MySQL + server secrets).
 
 ### Quick — what path to open next (`docs/` on disk)
 
@@ -1189,21 +1148,10 @@ run **`06a_customer_account.sql`**. If **`list_online` / shop** errors, run **`0
 | Supplier purchases | **`docs/manual_supplier_purchase_screen.html`** or **`supplier_purchase_screen_full_guide.html`** |
 | New PC install | **`docs/client_install_print.html`** |
 | Git workflow + triple changelog (Markdown/HTML/CLAUDE §9) | **`docs/developer_quick_sheet_print.html`** (+ **`CHANGELOG.md`**) |
-| **AR report & statement — section-by-section PDF** | **`docs/ar_report_and_customer_statement_explained_print.html`** — Alerts, filters, every column · statement toolbar & table |
-| **Add staff users (viewer/staff · phpMyAdmin · hashes)** | **`docs/add_users_staff_guide_print.html`** |
-| **SQL / DB: full replace vs incremental (keep customer data)** | **`docs/database_update_backup_guide_print.html`** |
-| **Pause / shutdown — resume next session** | **`docs/session_pause_handoff_print.html`** · **`HOW_TO_START_NEW_CHAT.md`** (before shutdown block) |
+| **Reports guide PDF (AP · AR · statement · web orders)** | **`docs/reports_staff_guide_print.html`** (sample “screens” illustrated) |
 | AI/project diary & “what next” | Repo root **`CLAUDE.md`** · especially **§10** |
 
 ### Suggested next session (pick one)
-
-**B — Credit notes smoke-test (Stage 7 · run `07` first)**
-
-1. Open **`http://localhost/phpmyadmin`** → click database **`autowagen_master`** → **SQL** tab.  
-2. Open project file **`sql/07_credit_notes.sql`** in Notepad/Cursor, copy all, paste into phpMyAdmin, click **Go**. Expect green success (no “table doesn’t exist” errors on refresh).  
-3. In the app: **Reports → Credit notes** (or open any **final** invoice → **New credit note**).  
-4. Pick return quantities, **Save draft**, then **Finalize** on a test line; confirm **CN-…** number, **stock** on the part increased, and **invoice** **Remaining** / **AR** / **Statement** show the credit.  
-5. Log **PASS** in **`CLAUDE.md` §9** when satisfied.
 
 **A — Web shop smoke-test (`06b` already ran on hassan’s DB)**
 
@@ -1261,7 +1209,7 @@ run **`06a_customer_account.sql`**. If **`list_online` / shop** errors, run **`0
 
 1. **Run `sql/05_pos.sql`** *(only on a **new** database that has no `sales_invoices` table)*, then smoke-test **POS → New sale** (draft, customer, **Available** part line, **Finalize**, payment if on account).
 2. **AR + reminders** — still **not coded**; fill **Stage 5 BUILD BRIEF** below when ready.
-3. **Backlog (not scheduled):** **Supplier returns** (credits / AP adjustments) — handle manually; **customer** credit notes beyond current **Stage 7** scope (e.g. split AR vs cash-refund maths only for AR reports — product decision pending).
+3. **Backlog (not scheduled):** **Returns** — **customer** returns (credit notes / stock back) and **supplier** returns (credits / AP adjustments) — **hassan: handle later** (likely Stage 6 or dedicated POS/AP follow-up); MVP = manual part edit + purchase bill/payments + void rules as documented in chat.
 
 ### Stage 5 BUILD BRIEF (draft — not locked)
 

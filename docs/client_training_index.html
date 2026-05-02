@@ -68,6 +68,30 @@
   <h1>Autowagen Master — training guides</h1>
   <p class="tagline">Plain-language steps for <strong>shop staff</strong> using the system day to day. Open each link in <strong>Chrome</strong> or <strong>Edge</strong>. To save a handout: <kbd>Ctrl</kbd>+<kbd>P</kbd> → <strong>Save as PDF</strong>.</p>
 
+  <div class="card" style="border:2px solid #0a0a0a;background:#fff;">
+    <h2>Pause / shutdown — pick up where you stopped → PDF</h2>
+    <p><strong>Before switching off the PC:</strong> save files, <code>git push</code>, one line at top of <code>CLAUDE.md</code> §9 + what’s next, optional copy of key <code>.md</code> files into <code>docs/md_backups/YYYY-MM-DD/</code>, optional phpMyAdmin DB Export. When you return: read <code>CLAUDE.md</code> §10 → new chat paste from <code>HOW_TO_START_NEW_CHAT.md</code>.</p>
+    <a href="session_pause_handoff_print.html">Open: Shutdown handoff checklist → Print / PDF</a>
+  </div>
+
+  <div class="card" style="background:#fafafa;">
+    <h2>Developer laminate — Git + changelog (one page)</h2>
+    <p>Ultra-compact:<strong> triple write</strong> (<code>CHANGELOG.md</code> + <code>CHANGELOG.html</code> + <code>CLAUDE.md</code> §9), daily <code>git push</code> steps, Vim escape. Print landscape optional in browser if text feels tight.</p>
+    <a href="developer_quick_sheet_print.html">Open: Developer quick sheet → PDF</a>
+  </div>
+
+  <div class="card">
+    <h2>Add staff users — viewer / manager / POS</h2>
+    <p><strong>Owner / IT:</strong> There is no “Users” screen in the app yet — new logins go into MySQL table <code>users</code>. Detailed PDF-style notes: roles table, Laragon <code>password_hash</code> command, phpMyAdmin Insert steps, lockout reset SQL, testing.</p>
+    <a href="add_users_staff_guide_print.html">Open: Add users — full guide → Print / PDF</a>
+  </div>
+
+  <div class="card">
+    <h2>Database updates — full replace vs keep customer data → PDF</h2>
+    <p><strong>Owner / IT:</strong> Two paths — (1) replace entire database (empty DB + import / risks), (2) incremental <code>sql/*.sql</code> migrations so <strong>customers &amp; business rows stay</strong> while new tables/columns arrive. Backups, DEFINER/import pitfalls, standard script order.</p>
+    <a href="database_update_backup_guide_print.html">Open: SQL / database update guide → Print / PDF</a>
+  </div>
+
   <div class="card">
     <h2>Install on a new PC (IT / owner)</h2>
     <p>Laragon, database, <code>secrets.local.php</code>, SQL order, copying data from another machine. Save as PDF the same way (<kbd>Ctrl</kbd>+<kbd>P</kbd>).</p>
@@ -76,8 +100,16 @@
 
   <div class="card" style="border:2px solid #c8102e;background:#fff;">
     <h2>Complete system manual (start → finish)</h2>
-    <p><strong>Main handout for clients:</strong> login, dashboard, EPC, vehicles, customers, suppliers, parts, supplier purchases, accounts payable, POS — step by step. Includes <strong>30 figure slots</strong> for screenshots (<code>full-01</code> … <code>full-30</code>). Add your PNGs under <code>docs/manual_screenshots/</code> and uncomment each <code>&lt;img&gt;</code> in that file.</p>
+    <p><strong>Main handout for clients:</strong> login, dashboard, EPC, vehicles, customers, suppliers, parts, supplier purchases, accounts payable, POS, <strong>public web shop + stripping catalogue + enquiries + AR + backups</strong> — step by step. Includes <strong>31 core figure slots</strong> (<code>full-01</code> … <code>full-30</code> + role) plus optional shop/AR screenshots <strong>full-31</strong>…<strong>full-36</strong>. Add your PNGs under <code>docs/manual_screenshots/</code> and uncomment each matching <code>&lt;img&gt;</code>.</p>
     <a href="complete_system_manual.html">Open: Complete system manual →</a>
+  </div>
+
+  <div class="card">
+    <h2>Project change log — what we shipped &amp; when</h2>
+    <p>Every meaningful update should add a dated entry (<strong>Recorder</strong> + <strong>time UTC+2</strong>) to <code>CHANGELOG.md</code> and the HTML mirror → easy history and printable PDF.</p>
+    <a href="CHANGELOG.html">Open: CHANGELOG (HTML → Print PDF) →</a>
+    &nbsp;·&nbsp;
+    <span style="font-size:10pt;"><code>CHANGELOG.md</code> — best for Git “go back” in Cursor</span>
   </div>
 
   <div class="card">
@@ -90,6 +122,36 @@
     <h2>Public website (shop) — where data comes from</h2>
     <p>For staff: which screens to use (<strong>Inventory → Edit part</strong>, EPC link, <strong>List on public website</strong>), Engines menu lanes (naming rules), stripping stock, SKU vs customer view, local vs live database.</p>
     <a href="shop_staff_data_guide.html">Open: Shop — staff data guide →</a>
+  </div>
+
+  <div class="card">
+    <h2>Money reports — illustrated staff guide</h2>
+    <p><strong>Accounts payable vs receivable</strong>, statements, web shop orders: where to click, what each column means, fake “screenshot-style” layouts for training clients. Same print → PDF as other guides.</p>
+    <a href="reports_staff_guide_print.html">Open: Reports guide (Money + web orders → PDF)</a>
+  </div>
+
+  <div class="card">
+    <h2>AR report + customer statement — every section explained → PDF</h2>
+    <p><strong>Screenshot-style walkthrough</strong> for <strong>Reports → Accounts receivable</strong> (alerts, filters, by customer vs by invoice, Balance vs AR&nbsp;cr. vs Refund) and for the printable <strong>customer statement</strong> (toolbar, totals, WhatsApp/email limits, invoice grid columns).</p>
+    <a href="ar_report_and_customer_statement_explained_print.html">Open: AR report &amp; statement — detailed notes → PDF</a>
+  </div>
+
+  <div class="card">
+    <h2>Credit notes — how balances stay consistent → PDF</h2>
+    <p>Linked to original <strong>INV-…</strong>, stock restore on finalize, <strong>AR reduction</strong> vs <strong>cash refund</strong>, and why <strong>invoice / AR report / customer statement</strong> use the same maths. Includes <strong>viewer role</strong> vs <strong>public shop</strong> for advertising.</p>
+    <a href="credit_notes_system_guide_print.html">Open: Credit notes system guide → Print / PDF</a>
+  </div>
+
+  <div class="card">
+    <h2>Credit notes — AR reduction vs cash refund → PDF</h2>
+    <p>Detailed note: what each dropdown means <strong>today</strong> (balances are the same; cash adds refund fields), numeric example, and <strong>optional future</strong> accounting split — for staff + accountant conversations.</p>
+    <a href="credit_notes_ar_vs_cash_refund_print.html">Open: AR vs cash refund explained → Print / PDF</a>
+  </div>
+
+  <div class="card">
+    <h2>Sales summary report — client handout → PDF</h2>
+    <p>For <strong>accountants, partners, or clients</strong>: what the <strong>Sales summary (period)</strong> report measures, difference between invoice-date turnover and payment-date cash-in, <strong>numbered steps</strong> to run it, and an <strong>illustrated sample screen</strong> (not live data).</p>
+    <a href="sales_summary_report_client_print.html">Open: Sales summary — client PDF handout →</a>
   </div>
 
   <div class="card">

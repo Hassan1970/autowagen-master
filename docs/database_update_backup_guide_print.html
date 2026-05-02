@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Database updates — full replace vs keep data · Autowagen Master</title>
+<style>
+  :root { --r:#c8102e; --k:#0a0a0a; }
+  @page { size: A4 portrait; margin: 11mm; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0 auto; max-width: 185mm;
+    padding: 8mm 12mm 14mm;
+    font-family: system-ui, "Segoe UI", sans-serif;
+    font-size: 9.3pt;
+    line-height: 1.4;
+    color: var(--k);
+    background: #fff;
+  }
+  header {
+    border-bottom: 4px solid var(--r);
+    background: var(--k);
+    color: #fff;
+    padding: 10px 14px;
+    margin: -8mm -12mm 12px -12mm;
+    print-color-adjust: exact;
+  }
+  header h1 { margin: 0; font-size: 11.5pt; letter-spacing:.05em; }
+  header span { color: var(--r); font-weight: 700; }
+  header .tiny { margin: 5px 0 0; font-size: 7.4pt; opacity: .92; }
+  .hint {
+    font-size: 8pt; background: #fff8e6; border: 1px solid #ddc653;
+    padding: 8px 10px; margin-bottom: 11px; border-radius: 4px;
+  }
+  @media screen { body { padding: 16px 20px 40px; max-width: 760px; } header { margin: -16px -20px 14px -20px; } }
+  @media print {
+    body { padding: 0 2mm 6mm; max-width: 100%; }
+    .no-print { display: none !important; }
+    .hint { print-color-adjust: exact; }
+    h2 { page-break-after: avoid; }
+    .break-before { page-break-before: always; }
+  }
+  h2 {
+    margin: 13px 0 6px;
+    font-size: 10pt;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--r);
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 3px;
+  }
+  h3 { margin: 10px 0 4px; font-size: 9.4pt; color: var(--k); }
+  table { width: 100%; border-collapse: collapse; font-size: 8.4pt; margin: 6px 0 10px; }
+  th, td { border: 1px solid #bbb; padding: 5px 7px; text-align: left; vertical-align: top; }
+  th { background: #efefef; }
+  code, .mono {
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 7.8pt;
+    word-break: break-all;
+    background: #f4f4f4;
+    padding: 1px 4px;
+    border-radius: 2px;
+  }
+  ol.steps { margin: 6px 0; padding-left: 1.35em; }
+  ol.steps > li { margin: 6px 0; }
+  ul { margin: 4px 0; padding-left: 1.2em; }
+  li { margin: 3px 0; }
+  .box {
+    border: 1px solid #ccc;
+    border-left: 4px solid var(--r);
+    padding: 8px 11px;
+    margin: 8px 0;
+    background: #fafafa;
+    font-size: 8.8pt;
+  }
+  .foot {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid #ccc;
+    font-size: 7.5pt;
+    color: #555;
+  }
+  kbd { border: 1px solid #999; border-radius: 3px; padding: 0 4px; font-size: .9em; background: #eee; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span>AUTOWAGEN</span> MASTER — SQL / database updates</h1>
+  <div class="tiny">Two paths: (1) replace whole database · (2) upgrade schema while keeping customer &amp; business data · UTC+2</div>
+</header>
+
+<div class="hint no-print">
+  <strong>Save as PDF (full document — all pages)</strong>
+  <ol style="margin:6px 0 0;padding-left:1.2em;">
+    <li><strong>Open this file in Chrome or Edge directly</strong> — double‑click <code>database_update_backup_guide_print.html</code> in File Explorer, or drag it into a browser tab. Avoid printing from Cursor’s built‑in preview only; it often saves <strong>one section</strong> or behaves like “selection”.</li>
+    <li><strong>Clear any highlighted text</strong> — click empty white space or press <kbd>Esc</kbd>. If text stays selected, <kbd>Ctrl</kbd>+<kbd>P</kbd> may print <strong>selection only</strong>.</li>
+    <li><kbd>Ctrl</kbd>+<kbd>P</kbd> → Destination <strong>Save as PDF</strong> / <strong>Microsoft Print to PDF</strong> → <strong>Pages: All</strong> → expand <strong>More settings</strong> and ensure there is <strong>no</strong> “Print selection only” option checked → <strong>Background graphics ON</strong> → Save.</li>
+  </ol>
+</div>
+
+<h2>Before you touch any production data</h2>
+<ol class="steps">
+  <li><strong>Export a backup</strong> in phpMyAdmin: click the database → <strong>Export</strong> → <strong>Quick</strong> → format <strong>SQL</strong> → <strong>Go</strong>. The file downloads to your PC — that is your safety copy.</li>
+  <li>Know which database your site uses: <strong><code>config/secrets.local.php</code></strong> (Laragon) or <strong><code>config/secrets.live.php</code></strong> (hosting) → key <code>db.name</code>.</li>
+  <li>Remember: <strong>file uploads</strong> (vehicle scans, customer ID copies, part photos) live in the <strong><code>uploads/</code></strong> folder on the server — they are <strong>not</strong> inside a normal <code>.sql</code> export. Full “replace DB” does not replace those files unless you copy them separately.</li>
+</ol>
+
+<div class="box">
+  <strong>Pick one path below.</strong> Do <em>not</em> mix them in one go (e.g. do not run a full import on top of a half-populated database without a plan).
+</div>
+
+<h2 class="break-before">Path 1 · Replace the entire database (full reset)</h2>
+<p><strong>Use when:</strong> you intentionally want this MySQL database to become an exact copy of another environment (e.g. your Laragon export), or you are wiping a test server and starting clean. <strong>Everything in that database is replaced</strong> — all customers, invoices, parts rows, users, etc., unless you restore from a backup later.</p>
+
+<h3>1A · What “replace” means</h3>
+<ul>
+  <li>After success, <strong>every table</strong> in that database matches what is in your import file (or what the script set created).</li>
+  <li>Anything that existed <strong>only</strong> on the old live database and was <strong>not</strong> in the import is <strong>gone</strong> (unless you kept a backup <code>.sql</code>).</li>
+</ul>
+
+<h3>1B · Steps (phpMyAdmin, typical hosting)</h3>
+<ol class="steps">
+  <li><strong>Backup:</strong> Export the current database to <code>.sql</code> (see above). Store it safely.</li>
+  <li><strong>Target must be empty:</strong>
+    <ul>
+      <li><strong>Option A — new database:</strong> cPanel → <strong>MySQL® Databases</strong> → create a new database → add your MySQL user with <strong>All Privileges</strong>. In phpMyAdmin, select that <strong>new empty</strong> database.</li>
+      <li><strong>Option B — same name:</strong> select the database → select <strong>all tables</strong> → <strong>Drop</strong> (or drop one by one if the host requires). Refresh until there are <strong>no tables</strong>.</li>
+    </ul>
+  </li>
+  <li><strong>Import:</strong> With the empty database selected → tab <strong>Import</strong> → choose your <code>.sql</code> file → <strong>Go</strong>.</li>
+  <li>If the import stops with <strong>#1050 Table already exists</strong>, you are <strong>not</strong> empty — go back and drop tables or use a new empty database.</li>
+  <li>If the import stops with <strong>#1227</strong> / <strong>DEFINER</strong> / <strong>root@localhost</strong> on views, the dump was exported from Laragon as <code>root</code>. Strip <code>DEFINER=`root`@`localhost`</code> from the file (or use a cleaned copy); remove phpMyAdmin “stand-in” <code>CREATE TABLE epc_full_view</code> if your project doc gives a fixed import file.</li>
+  <li><strong>Point the app:</strong> if you created a <strong>new</strong> database name, edit <strong>only</strong> <code>db.name</code> in <code>secrets.live.php</code> on the server — do not commit that file to Git.</li>
+  <li><strong>Uploads:</strong> copy <code>uploads/</code> from the machine that has the scans (e.g. PC → live FTP) if you need those files to work.</li>
+  <li><strong>Test:</strong> open the site → login (<code>users</code> table came from import) → open Customers and one invoice.</li>
+</ol>
+
+<h3>1C · Replace using project <code>sql/</code> scripts only (no giant dump)</h3>
+<p>On a <strong>brand-new empty database</strong>, you can instead run Autowagen’s numbered scripts from the repo in order (local path example: <code>sql/</code>), e.g. <code>01_auth.sql</code>, <code>02_epc.sql</code>, … through <code>07_credit_notes.sql</code>, skipping any you already merged by hand. After that you must add a <strong>user</strong> in <code>users</code> (see <strong>add_users_staff_guide_print.html</strong>) and seed data yourself. This path is common for <strong>clean installs</strong>, not for “copy my full dev data” unless you also import data dumps for specific tables.</p>
+
+<h2 class="break-before">Path 2 · Update schema while keeping existing data</h2>
+<p><strong>Use when:</strong> live (or staging) already has <strong>real customers, vehicles, invoices, parts</strong>, and you shipped <strong>new PHP</strong> that expects <strong>new columns</strong> or <strong>new tables</strong>. You want to <strong>not</strong> delete business rows.</p>
+
+<h3>2A · Core idea</h3>
+<ul>
+  <li>Do <strong>not</strong> import a <strong>full</strong> database export from another machine over that database — the file usually starts with <code>CREATE TABLE customers</code>, which fails with <strong>table already exists</strong>, or it would overwrite data if you forced it.</li>
+  <li>Instead, run <strong>incremental migration scripts</strong> from the Autowagen project’s <strong><code>sql/</code></strong> folder: they are written to be <strong>additive</strong> — <code>CREATE TABLE IF NOT EXISTS</code>, and column changes use guarded <code>ALTER</code> patterns where possible.</li>
+  <li>Each script should be run <strong>at most once per database</strong> (or be idempotent). If MySQL reports “duplicate column” or “already exists”, note it and skip repeating that block — the structure may already match.</li>
+</ul>
+
+<h3>2B · Standard run order (new server or “catch-up” checklist)</h3>
+<p>Run in phpMyAdmin → select <strong>your</strong> database → <strong>SQL</strong> tab → paste one file at a time → <strong>Go</strong>. <strong>Skip</strong> scripts that were already applied on that database.</p>
+<table>
+  <tr><th>Order</th><th>File (examples)</th><th>Typical adds</th></tr>
+  <tr><td>1</td><td><code>01_auth.sql</code></td><td><code>users</code>, login attempts</td></tr>
+  <tr><td>2</td><td><code>02_epc.sql</code></td><td>EPC catalogue tables + view</td></tr>
+  <tr><td>3</td><td><code>03_master_data.sql</code></td><td>Vehicles, customers, suppliers, links</td></tr>
+  <tr><td>4</td><td><code>03b_vehicle_extras.sql</code> … <code>03d_customer_compliance.sql</code></td><td>Extra vehicle / customer columns</td></tr>
+  <tr><td>5</td><td><code>04_inventory.sql</code> + <code>04b</code> … <code>04d</code></td><td>Parts, TPP, purchases, AP payments</td></tr>
+  <tr><td>6</td><td><code>05_pos.sql</code></td><td>Invoices, lines, payments</td></tr>
+  <tr><td>7</td><td><code>06a_customer_account.sql</code></td><td>Account customer flags, credit limit</td></tr>
+  <tr><td>8</td><td><code>06b_web_shop.sql</code></td><td>Shop orders, <code>list_online</code></td></tr>
+  <tr><td>9</td><td><code>06e_shop_guest_enquiries.sql</code></td><td>Guest enquiry table (<em>after</em> <code>06b</code>)</td></tr>
+  <tr><td>10</td><td><code>07_credit_notes.sql</code></td><td>Credit notes (<em>after</em> <code>05</code>)</td></tr>
+</table>
+<p class="box">Optional EPC expansion scripts (<code>02b</code> … <code>02h</code>) follow the separate order in <code>sql/README_EPC_EXPANSION.txt</code>. They add catalogue depth, not customer rows.</p>
+
+<h3>2C · How this keeps customer data</h3>
+<ul>
+  <li>Scripts like <strong><code>06a_customer_account.sql</code></strong> typically <strong>ADD COLUMN</strong> to <strong><code>customers</code></strong> — existing customer names and IDs stay; new fields get defaults or NULL.</li>
+  <li>New tables (<strong><code>sales_credit_notes</code></strong>, <strong><code>shop_orders</code></strong>, etc.) sit <strong>beside</strong> old data — they do not erase <code>customers</code> or <code>sales_invoices</code> unless you run a destructive command (do not).</li>
+  <li><strong>Never</strong> run <code>DROP DATABASE</code>, <code>TRUNCATE customers</code>, or a full replace import on a database you mean to preserve.</li>
+</ul>
+
+<h3>2D · Knowing what you already ran</h3>
+<ol class="steps">
+  <li>Keep a simple text note: “Live DB — ran through 06b on 2026-05-01” — update it when you apply a new file.</li>
+  <li>In phpMyAdmin → <strong>Structure</strong>: check if a table exists (e.g. <code>sales_credit_notes</code> → if yes, <code>07</code> is likely done).</li>
+  <li>For a new column: click table <strong>Structure</strong> and see if the column name appears (e.g. <code>account_customer</code> on <code>customers</code> → <code>06a</code> applied).</li>
+</ol>
+
+<h3>2E · If PHP shows “unknown column” or “table doesn’t exist”</h3>
+<ul>
+  <li>Match the error to the feature (credit notes → <code>07</code>; shop messages → <code>06e</code>; AR account flags → <code>06a</code>).</li>
+  <li>Run the <strong>missing</strong> script for that database. If dependency errors appear (missing parent table), run the <strong>earlier</strong> script in the order above first.</li>
+</ul>
+
+<h2>Quick comparison</h2>
+<table>
+  <tr><th></th><th>Path 1 Full replace</th><th>Path 2 Incremental</th></tr>
+  <tr><td>Keeps existing rows</td><td>No — unless backup restored selectively</td><td>Yes — adds/changes structure only</td></tr>
+  <tr><td>Main tool</td><td>Empty DB + Import dump <em>or</em> full script chain + seed</td><td>Paste missing <code>sql/*.sql</code> files only</td></tr>
+  <tr><td>Risk</td><td>Losing live-only data</td><td>Low if scripts are additive; read errors before retry</td></tr>
+</table>
+
+<h2>Copying “only some data” between servers (advanced)</h2>
+<p>If you must merge environments without full wipe: export <strong>specific tables</strong> from phpMyAdmin (<strong>Custom</strong> export, tick chosen tables), then import carefully into the target — watch <strong>foreign keys</strong> and <strong>ID clashes</strong>. This is expert territory; default recommendation for Autowagen is Path 2 migrations plus normal backups.</p>
+
+<div class="foot">
+  Autowagen Master · Database maintenance notes · Canonical SQL live under project <code>sql/</code> · Long-form stage context: repo root <code>CLAUDE.md</code> §4 tables &amp; §10 SQL order · Related: <code>add_users_staff_guide_print.html</code>
+</div>
+
+</body>
+</html>

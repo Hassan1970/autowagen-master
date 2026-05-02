@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pause / shutdown — come back here · Autowagen Master</title>
+<style>
+  :root { --r:#c8102e; --k:#0a0a0a; }
+  @page { size: A4 portrait; margin: 14mm; }
+  body { margin:0 auto; max-width: 175mm; padding:10mm 12mm; font-family:system-ui,sans-serif; font-size:10pt; line-height:1.45; color:var(--k); }
+  header { background:var(--k); color:#fff; padding:10px 14px; margin:-10mm -12mm 12px -12mm; border-bottom:4px solid var(--r); print-color-adjust:exact; }
+  header h1 { margin:0; font-size:12pt; letter-spacing:.06em; }
+  header span { color:var(--r); font-weight:700; }
+  header .sub { margin:5px 0 0; font-size:7.8pt; opacity:.92; }
+  .hint { font-size:8pt; background:#fff8e6; border:1px solid #ddc653; padding:8px 10px; margin-bottom:12px; border-radius:4px; }
+  @media print { .no-print{display:none!important;} body{padding:4mm;} }
+  ol.main { padding-left:1.25em; }
+  ol.main > li { margin:10px 0; }
+  .mono { font-family:Consolas,monospace; font-size:8.8pt; background:#f4f4f4; padding:2px 5px; border-radius:2px; }
+  h2 { font-size:10pt; color:var(--r); margin:14px 0 6px; border-bottom:1px solid #ccc; padding-bottom:2px; text-transform:uppercase; letter-spacing:.05em; }
+  ul { margin:4px 0; padding-left:1.15em; }
+  .foot { margin-top:14px; padding-top:8px; border-top:1px solid #ccc; font-size:7.8pt; color:#555; }
+  kbd { border:1px solid #999; padding:0 4px; border-radius:3px; font-size:.9em; background:#eee; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span>AUTOWAGEN</span> MASTER — pause / shutdown checklist</h1>
+  <div class="sub">Do this before switching off so the next session picks up cleanly · TZ UTC+2</div>
+</header>
+
+<div class="hint no-print"><strong>PDF:</strong> Double-click this file → Chrome/Edge → clear selection → <kbd>Ctrl</kbd>+<kbd>P</kbd> → Save as PDF · <strong>Pages: All</strong>.</div>
+
+<h2>Before you shut down the PC</h2>
+<ol class="main">
+  <li><strong>Save files in Cursor</strong> — <kbd>Ctrl</kbd>+<kbd>S</kbd> on open tabs (or Cursor saves automatically when enabled).</li>
+  <li><strong>Git backup (best)</strong> — PowerShell in project folder:
+    <span class="mono">cd C:\laragon\www\autowagen-master</span> → <span class="mono">git add .</span> → <span class="mono">git commit -m "Where I stopped (plain English)"</span> → <span class="mono">git push</span>.
+    Then code is on GitHub even if the PC dies.</li>
+  <li><strong>Project diary</strong> — Append <strong>one line</strong> to repo root <span class="mono">CLAUDE.md</span> → section <strong>9 Session log</strong> (top): what you finished, what’s next, date/time UTC+2 if you know it.</li>
+  <li><strong>If you shipped a fix/feature today</strong> — Same dated note at top of <span class="mono">docs/CHANGELOG.md</span> + mirror <span class="mono">docs/CHANGELOG.html</span> (project rule).</li>
+  <li><strong>Optional — Markdown snapshot</strong> — Copy these into <span class="mono">docs/md_backups/YYYY-MM-DD/</span> (create dated folder): <span class="mono">CLAUDE.md</span>, <span class="mono">ROADMAP.md</span>, <span class="mono">HOW_TO_START_NEW_CHAT.md</span>, <span class="mono">docs/TRAINING_SCREENSHOTS.md</span>, <span class="mono">docs/CHANGELOG.md</span>. See <span class="mono">docs/md_backups/README.md</span>.</li>
+  <li><strong>Optional — Database snapshot</strong> — phpMyAdmin → your DB → <strong>Export</strong> → Quick → SQL → save <span class="mono">.sql</span> (Site ZIP backup does <strong>not</strong> include MySQL).</li>
+</ol>
+
+<h2>When you come back</h2>
+<ol class="main">
+  <li>Open <strong>Cursor</strong> → project <span class="mono">autowagen-master</span>.</li>
+  <li>Read <span class="mono">CLAUDE.md</span> from the top → especially <strong>section 10</strong>.</li>
+  <li>Start a <strong>new chat</strong> and paste the grey prompt from <span class="mono">HOW_TO_START_NEW_CHAT.md</span> Step 2 (or say: “Read CLAUDE §10 — continue where we stopped”).</li>
+</ol>
+
+<h2>If work was only on the live server</h2>
+<ul>
+  <li>Code + DB on hosting are separate — note in §9 what you uploaded or ran in phpMyAdmin so the next chat does not assume only local Laragon.</li>
+</ul>
+
+<div class="foot">
+  Pair with <code>HOW_TO_START_NEW_CHAT.md</code> · Full manuals: <code>docs/client_training_index.html</code>
+</div>
+
+</body>
+</html>

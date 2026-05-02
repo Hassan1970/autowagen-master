@@ -9,9 +9,7 @@
 | File | Purpose |
 |------|--------|
 | **`docs/complete_system_manual.html`** | **Full product walkthrough** — login → dashboard → EPC → vehicles → customers → suppliers → parts → supplier purchases → AP → POS. **~30 screenshot placeholders** (`full-01-….png` …). **Appendix table** lists every filename. **Give this to clients** as one PDF after you add pictures. |
-| `docs/client_training_index.html` | One-page index linking to the complete manual + POS + supplier sheets + owner/IT print guides (`add_users…`, `database_update_backup_guide…`). |
-| **`docs/add_users_staff_guide_print.html`** | **Owner / IT:** staff logins (`users` · roles · bcrypt · phpMyAdmin). PDF: Chrome/Edge, **Pages: All**, clear selection first. |
-| `docs/session_pause_handoff_print.html` | **Owner:** before PC shutdown — Git push, §9 line, optional `md_backups` + DB export · resume via §10 + HOW_TO Step 2. |
+| `docs/client_training_index.html` | One-page index linking to the complete manual + POS + supplier sheets. |
 | `docs/invoice_screen_full_guide.html` | **Extra-deep** invoice-only guide (zones A–F, S, P, …) with **`invoice-0x`…** figure filenames. |
 | `docs/manual_supplier_purchase_screen.html` | Supplier purchase **quick A–G** sheet. |
 | `docs/supplier_purchase_screen_full_guide.html` | Supplier purchase **full** What/Why/When/How. |
@@ -27,7 +25,7 @@ Both live under **`docs/manual_screenshots/`**.
 
 All paths: **`docs/manual_screenshots/`**. Names are defined in **`complete_system_manual.html`** appendix and under each **Figure** in that file. Minimum recommended: **full-01** through **full-29** (full-00 and full-30 optional). Shop/AR/backup captures: optional **full-31** … **full-36** after those chapters ship in the manual.
 
-Open any file with **File Explorer → double-click** (or drag into Chrome/Edge). Use **Ctrl+P → Save as PDF** for a shareable manual (**Pages: All**; click blank space first so nothing is selected — otherwise some browsers print **selection only**). Prefer Chrome/Edge over Cursor’s built-in print-to-PDF for long guides.
+Open any file with **File Explorer → double-click** (or drag into Chrome/Edge). Use **Ctrl+P → Save as PDF** for a shareable manual.
 
 ## How to add real screenshots (Windows, Laragon)
 

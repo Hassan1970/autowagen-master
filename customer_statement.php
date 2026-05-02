@@ -4,6 +4,7 @@
  */
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/includes/auth_check.php';
+require_once __DIR__ . '/includes/credit_note_helpers.php';
 
 function cs_pos_ready(PDO $pdo): bool {
     return (int) $pdo->query(
@@ -85,6 +86,27 @@ if (!$cust) {
 }
 $cust = array_change_key_case($cust, CASE_LOWER);
 
+$cnReady = cn_tables_ready($pdo);
+$cnJoin      = '';
+$credArSel   = '0';
+$credRefSel  = '0';
+$credTotSel  = '0';
+$netExpr = 'i.total_inc_vat - COALESCE(pay.paid_sum, 0)';
+if ($cnReady) {
+    $cnJoin =
+        "\nLEFT JOIN (\n"
+        . "  SELECT invoice_id,\n"
+        . "    COALESCE(SUM(CASE WHEN adjustment_type = 'ar_reduction' THEN total_inc_vat ELSE 0 END), 0) AS cn_ar_sum,\n"
+        . "    COALESCE(SUM(CASE WHEN adjustment_type = 'cash_refund' THEN total_inc_vat ELSE 0 END), 0) AS cn_ref_sum\n"
+        . "  FROM sales_credit_notes WHERE status = 'final' AND is_active = 1\n"
+        . "  GROUP BY invoice_id\n"
+        . ") cn ON cn.invoice_id = i.id\n";
+    $credArSel  = 'COALESCE(cn.cn_ar_sum, 0)';
+    $credRefSel = 'COALESCE(cn.cn_ref_sum, 0)';
+    $credTotSel = 'COALESCE(cn.cn_ar_sum, 0) + COALESCE(cn.cn_ref_sum, 0)';
+    $netExpr   .= ' - COALESCE(cn.cn_ar_sum, 0) - COALESCE(cn.cn_ref_sum, 0)';
+}
+
 $sqlInv = "
 SELECT
   i.id,
@@ -93,14 +115,17 @@ SELECT
   i.due_date,
   i.total_inc_vat,
   COALESCE(pay.paid_sum, 0) AS paid_sum,
-  (i.total_inc_vat - COALESCE(pay.paid_sum, 0)) AS balance
+  {$credArSel} AS credit_ar_reduction,
+  {$credRefSel} AS credit_cash_refund,
+  {$credTotSel} AS credit_sum,
+  ({$netExpr}) AS balance
 FROM sales_invoices i
 LEFT JOIN (
   SELECT invoice_id, SUM(amount) AS paid_sum
   FROM sales_invoice_payments
   WHERE is_active = 1
   GROUP BY invoice_id
-) pay ON pay.invoice_id = i.id
+) pay ON pay.invoice_id = i.id{$cnJoin}
 WHERE i.customer_id = ?
   AND i.status = 'final'
   AND i.is_active = 1
@@ -166,11 +191,13 @@ if (!$invLines) {
     foreach ($invLines as $il) {
         $no = $il['invoice_no'] ?: ('#' . $il['id']);
         $linesTxt[] = sprintf(
-            '%s | %s | Total R %s | Paid R %s | Balance R %s',
+            '%s | %s | Total R %s | Paid R %s | AR cr R %s | Refund cn R %s | Bal R %s',
             $no,
             $il['invoice_date'],
             number_format((float) $il['total_inc_vat'], 2),
             number_format((float) $il['paid_sum'], 2),
+            number_format((float) ($il['credit_ar_reduction'] ?? 0), 2),
+            number_format((float) ($il['credit_cash_refund'] ?? 0), 2),
             number_format((float) $il['balance'], 2)
         );
     }
@@ -281,9 +308,15 @@ require_once __DIR__ . '/includes/header.php';
   </div>
 
   <div class="alert alert-light border no-print small">
-    <strong>How to send:</strong> Use <strong>Print / PDF</strong> to save a formal copy, then attach it in WhatsApp or email.
-    The <strong>WhatsApp</strong> and <strong>Email</strong> buttons paste a <em>short text summary</em> only (not full letterhead).
-    Real automated email from the server is not enabled yet — this uses your PC&rsquo;s mail app for <strong>Email</strong>.
+    <?php if ($cnReady): ?>
+      <strong>Credit notes:</strong> <strong>Balance</strong> = total − paid − all credits (AR reduction and cash refunds both reduce balance).
+      <strong>AR cr.</strong> / <strong>Refund cn.</strong> show the split for your books; full detail on each finalized credit note.
+    <?php else: ?>
+      Run <code>sql/07_credit_notes.sql</code> to enable credit-note columns on this statement.
+    <?php endif; ?>
+    Use <strong>Print / PDF</strong> for a formal copy for WhatsApp or email attachments.
+    The <strong>WhatsApp</strong> and <strong>Email</strong> buttons paste a <em>short text summary</em> only — not full letterhead.
+    Server-side SMTP is not enabled yet; <strong>Email</strong> opens your PC&rsquo;s mail client.
   </div>
 
   <h2 class="h6 text-uppercase mb-2" style="color:#c8102e;">Invoices</h2>
@@ -299,6 +332,8 @@ require_once __DIR__ . '/includes/header.php';
             <th>Due</th>
             <th class="text-end">Total</th>
             <th class="text-end">Paid</th>
+            <th class="text-end text-muted"><abbr title="Finalized credits — AR reduction">AR cr.</abbr></th>
+            <th class="text-end text-muted"><abbr title="Finalized credits — cash refund">Refund cn.</abbr></th>
             <th class="text-end">Balance</th>
             <th class="no-print"></th>
           </tr>
@@ -318,6 +353,8 @@ require_once __DIR__ . '/includes/header.php';
             </td>
             <td class="text-end">R <?= number_format((float) $il['total_inc_vat'], 2) ?></td>
             <td class="text-end">R <?= number_format((float) $il['paid_sum'], 2) ?></td>
+            <td class="text-end text-muted small">R <?= number_format((float) ($il['credit_ar_reduction'] ?? 0), 2) ?></td>
+            <td class="text-end text-muted small">R <?= number_format((float) ($il['credit_cash_refund'] ?? 0), 2) ?></td>
             <td class="text-end fw-bold <?= $bal > 0.005 ? 'text-danger' : 'text-success' ?>">R <?= number_format($bal, 2) ?></td>
             <td class="no-print">
               <a class="btn btn-sm btn-outline-dark py-0" href="<?= e(APP_URL) ?>/invoice_edit.php?id=<?= (int) $il['id'] ?>">Open</a>
@@ -327,7 +364,7 @@ require_once __DIR__ . '/includes/header.php';
         </tbody>
         <tfoot class="table-light">
           <tr>
-            <th colspan="5" class="text-end">Total outstanding</th>
+            <th colspan="7" class="text-end">Total outstanding</th>
             <th class="text-end text-danger">R <?= number_format($totalOutstanding, 2) ?></th>
             <th class="no-print"></th>
           </tr>

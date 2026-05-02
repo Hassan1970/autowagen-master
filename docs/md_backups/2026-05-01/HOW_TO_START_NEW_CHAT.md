@@ -6,23 +6,6 @@
 
 ---
 
-## Before you shut down the PC (pick up later)
-
-Do **these** so work survives reboot / power-off:
-
-1. **Save files** — `Ctrl+S` in Cursor on anything open (if auto-save is off).
-2. **Git (strongly recommended)** — In PowerShell: `cd C:\laragon\www\autowagen-master` → `git add .` → `git commit -m "Where I stopped …"` → `git push`. Then your code is on **GitHub**, not only this PC.
-3. **`CLAUDE.md` §9** — Add **one line at the top** of the Session log: date (UTC+2 if you know it), what you did, **what’s next** (one sentence).
-4. **`CHANGELOG`** — If you changed behaviour/docs meaningfully today: prepend **`docs/CHANGELOG.md`** + **`docs/CHANGELOG.html`** (same dated block).
-5. **Optional snapshot** — Copy **`CLAUDE.md`**, **`ROADMAP.md`**, **`HOW_TO_START_NEW_CHAT.md`**, **`docs/TRAINING_SCREENSHOTS.md`**, **`docs/CHANGELOG.md`** into **`docs/md_backups/YYYY-MM-DD/`** (new folder with today’s date). Steps: **`docs/md_backups/README.md`**.
-6. **Optional DB** — phpMyAdmin → **Export** your database → save `.sql` (ZIP backup in the app does **not** export MySQL).
-
-**Printable one-pager:** **`docs/session_pause_handoff_print.html`** → Chrome/Edge → Print → PDF.
-
-When you **return**: open **`CLAUDE.md`** §10 first → use **STEP 2** below for the new-chat paste.
-
----
-
 ## STEP 1 — Open a new chat
 
 Press these 3 keys on your keyboard at the same time:
@@ -67,15 +50,6 @@ we are, and continue from section 10 (**Resume handoff** if you diverted mid-ses
 Use this **instead of** (or **after**) the grey box in Step 2 if you stopped mid-task:
 
 ```
-Read CLAUDE.md section 10 first — especially "Pause — 2026-05-01 end of day"
-and Suggested next session. I paused overnight: continue from deploy / shop
-test / backlog / viewer setup as I choose. Numbered steps only; I am new to
-coding.
-```
-
-**Older pause template (web shop):**
-
-```
 Read CLAUDE.md section 10 first — especially "Pause (2026-04-29)" and
 Suggested next session item A (web shop smoke-test). I ran 06b SQL
 but did not finish testing the public shop. Walk me through item A
@@ -84,8 +58,6 @@ CLAUDE.md sections 2 and 9 after we finish.
 ```
 
 **Backup (optional, not required to “continue”):** Log in → **Dashboard** → **Site backup (ZIP)** (or your name menu) → download. That backs up **program files**, not the database — for the DB use **phpMyAdmin → Export** on `autowagen_master` if you want a full safety copy.
-
-**Owner / IT printable notes (browser → PDF):** **`docs/client_training_index.html`** lists them — especially **`docs/add_users_staff_guide_print.html`** (new logins via `users` table) and **`docs/database_update_backup_guide_print.html`** (replace whole DB vs run missing `sql/*.sql` without wiping customers). Open each **`.html`** in **Chrome or Edge** (double-click in File Explorer), **click blank space so nothing is highlighted**, **Ctrl+P** → **Save as PDF** → **Pages: All** → **Background graphics ON**. Printing only from Cursor’s preview sometimes saves **one section**.
 
 ---
 
@@ -139,4 +111,3 @@ That single line resets it.
   - Open **`docs/complete_system_manual.html`** for the **full** product PDF (all modules). **`docs/client_training_index.html`** lists every guide.
   - **Screenshots:** Cursor/AI **cannot** take pictures of your PC. Follow **`docs/TRAINING_SCREENSHOTS.md`**: use **Win + Shift + S**, save PNGs under **`docs/manual_screenshots/`**, uncomment the `<img>` lines in the HTML guide.
   - Supplier purchase sheets: **`docs/manual_supplier_purchase_screen.html`**, **`docs/supplier_purchase_screen_full_guide.html`**.
-  - **Users & database (no in-app user screen yet):** **`docs/add_users_staff_guide_print.html`**, **`docs/database_update_backup_guide_print.html`** (see **`docs/client_training_index.html`**).

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Add staff users — phpMyAdmin &amp; passwords · Autowagen Master</title>
+<style>
+  :root { --r:#c8102e; --k:#0a0a0a; }
+  @page { size: A4 portrait; margin: 12mm; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0 auto; max-width: 185mm;
+    padding: 8mm 12mm 14mm;
+    font-family: system-ui, "Segoe UI", sans-serif;
+    font-size: 9.5pt;
+    line-height: 1.42;
+    color: var(--k);
+    background: #fff;
+  }
+  header {
+    border-bottom: 4px solid var(--r);
+    background: var(--k);
+    color: #fff;
+    padding: 10px 14px;
+    margin: -8mm -12mm 12px -12mm;
+    print-color-adjust: exact;
+  }
+  header h1 { margin: 0; font-size: 12pt; letter-spacing:.05em; }
+  header span { color: var(--r); font-weight: 700; }
+  header .tiny { margin: 5px 0 0; font-size: 7.5pt; opacity: .92; }
+  .hint {
+    font-size: 8pt; background: #fff8e6; border: 1px solid #ddc653;
+    padding: 8px 10px; margin-bottom: 12px; border-radius: 4px;
+  }
+  .no-print { }
+  @media screen { body { padding: 16px 20px 40px; max-width: 720px; } header { margin: -16px -20px 14px -20px; } }
+  @media print {
+    body { padding: 0 2mm 6mm; max-width: 100%; }
+    .no-print { display: none !important; }
+    .hint { print-color-adjust: exact; }
+  }
+  h2 {
+    margin: 14px 0 6px;
+    font-size: 10pt;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--r);
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 3px;
+    page-break-after: avoid;
+  }
+  h3 { margin: 10px 0 4px; font-size: 9.5pt; color: var(--k); }
+  table { width: 100%; border-collapse: collapse; font-size: 8.6pt; margin: 6px 0 10px; }
+  th, td { border: 1px solid #bbb; padding: 5px 7px; text-align: left; vertical-align: top; }
+  th { background: #efefef; }
+  code, .mono {
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 8pt;
+    word-break: break-all;
+    background: #f4f4f4;
+    padding: 1px 4px;
+    border-radius: 2px;
+  }
+  ol.steps { margin: 6px 0; padding-left: 1.35em; }
+  ol.steps > li { margin: 6px 0; }
+  ul { margin: 4px 0; padding-left: 1.2em; }
+  li { margin: 3px 0; }
+  .box {
+    border: 1px solid #ccc;
+    border-left: 4px solid var(--r);
+    padding: 8px 11px;
+    margin: 8px 0;
+    background: #fafafa;
+    font-size: 8.8pt;
+  }
+  .foot {
+    margin-top: 14px;
+    padding-top: 8px;
+    border-top: 1px solid #ccc;
+    font-size: 7.6pt;
+    color: #555;
+  }
+  kbd {
+    border: 1px solid #999;
+    border-radius: 3px;
+    padding: 0 4px;
+    font-size: .92em;
+    background: #f5f5f5;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span>AUTOWAGEN</span> MASTER — add new users (staff)</h1>
+  <div class="tiny">Print handout · Roles · Password hashing · phpMyAdmin · Lockouts · TZ Africa/Johannesburg UTC+2</div>
+</header>
+
+<div class="hint no-print">
+  <strong>Save as PDF (full document)</strong>
+  <ol style="margin:6px 0 0;padding-left:1.2em;">
+    <li>Open <strong>Chrome or Edge</strong> from Windows (double‑click this HTML file). Avoid relying only on Cursor’s print‑to‑PDF — it may output one section.</li>
+    <li>Click blank space or <kbd>Esc</kbd> so <strong>nothing is highlighted</strong>; otherwise print may be “selection only”.</li>
+    <li><kbd>Ctrl</kbd>+<kbd>P</kbd> → <strong>Save as PDF</strong> → <strong>Pages: All</strong> → no “selection only” → <strong>Background graphics ON</strong>.</li>
+  </ol>
+</div>
+
+<h2>1 · What this guide covers</h2>
+<p>
+  Autowagen Master does <strong>not</strong> have a “User management” screen in the web app yet.
+  New logins are added by inserting (or editing) a row in the MySQL table <strong><code>users</code></strong>, usually via <strong>phpMyAdmin</strong> on hosting or on Laragon.
+  Passwords are stored as a one-way <strong>bcrypt hash</strong> in <strong><code>password_hash</code></strong> — never paste plain-text passwords into that column.
+</p>
+
+<h2>2 · User roles (pick one per person)</h2>
+<table>
+  <tr><th>Role</th><th>Typical use</th><th>Rough access</th></tr>
+  <tr><td><strong>owner</strong></td><td>Business owner</td><td>Full access including backups and EPC manage.</td></tr>
+  <tr><td><strong>admin</strong></td><td>Senior IT / deputy</td><td>Almost full; backups + EPC manage.</td></tr>
+  <tr><td><strong>manager</strong></td><td>Floor manager</td><td>Edit master data, vehicles, purchases; no backups menu.</td></tr>
+  <tr><td><strong>staff</strong></td><td>Counter / sales</td><td>POS, parts, invoices, credit notes (as coded), shop orders.</td></tr>
+  <tr><td><strong>viewer</strong></td><td>Read-only / accountant preview</td><td>Browse lists and many reports; <strong>no</strong> New sale, <strong>no</strong> credit notes/AP/shop admin links in menu.</td></tr>
+</table>
+<p class="box">
+  After login, the top-right menu shows a small badge with the role (e.g. <strong>viewer</strong>). Navigation hides buttons this role is not meant to use.
+</p>
+
+<h2>3 · Which database?</h2>
+<ol class="steps">
+  <li><strong>Local PC (Laragon):</strong> phpMyAdmin → database you use for dev (often <code>autowagen_master</code>). Secrets live in <code>config/secrets.local.php</code>.</li>
+  <li><strong>Live website:</strong> phpMyAdmin from your hosting control panel → database named in <strong><code>config/secrets.live.php</code></strong> → key <code>db.name</code>. Must match where you insert the user.</li>
+</ol>
+<p><strong>Important:</strong> The table <strong><code>user_login_attempts</code></strong> only logs attempts — it does <strong>not</strong> hold passwords or roles. Always use table <strong><code>users</code></strong>.</p>
+
+<h2>4 · Generate a password hash (Laragon terminal)</h2>
+<p>You need one line starting with <code>$2y$10$</code> … for column <strong>password_hash</strong>.</p>
+<ol class="steps">
+  <li>Open <strong>Laragon</strong> → right-click tray icon → <strong>Terminal</strong> (or use <strong>Cmder</strong>).</li>
+  <li>Type this as <strong>one line</strong>. Replace <code>YourPasswordHere</code> with the real password the person will type at login (keep the single quotes around it):
+    <div class="box mono" style="margin-top:8px;">
+php -r "echo password_hash('YourPasswordHere', PASSWORD_DEFAULT), PHP_EOL;"
+    </div>
+  </li>
+  <li>Press <strong>Enter</strong>. Copy the <strong>entire</strong> output line (no spaces cut off at the start).</li>
+</ol>
+<p class="box">
+  <strong>Common mistake:</strong> The second argument must be the word <strong><code>PASSWORD_DEFAULT</code></strong>, not the password again. Wrong: <code>password_hash('x', x)</code>.
+</p>
+<p>If Windows says <code>php</code> is not recognized, run PHP by full path, for example adjust version folder under <code>C:\laragon\bin\php\</code>.</p>
+
+<h2>5 · Add a new user — phpMyAdmin (numbered clicks)</h2>
+<ol class="steps">
+  <li>Log into <strong>phpMyAdmin</strong> (local or hosting).</li>
+  <li>In the left sidebar, click your <strong>Autowagen database</strong> (same name as <code>secrets.*.php</code> → <code>db.name</code>).</li>
+  <li>Click the table <strong><code>users</code></strong>.</li>
+  <li>Open the tab <strong>Insert</strong>.</li>
+  <li>Fill in:
+    <table style="margin-top:8px;">
+      <tr><th>Column</th><th>What to enter</th></tr>
+      <tr><td><code>username</code></td><td>Login name — unique, no spaces recommended (e.g. <code>sarah</code>, <code>viewer</code>).</td></tr>
+      <tr><td><code>full_name</code></td><td>Display name (e.g. <code>Sarah Jones</code>).</td></tr>
+      <tr><td><code>email</code></td><td>Optional; may be empty / NULL if your table allows.</td></tr>
+      <tr><td><code>password_hash</code></td><td>Paste the full <code>$2y$10$…</code> line from section 4.</td></tr>
+      <tr><td><code>role</code></td><td>Choose one: <code>owner</code>, <code>admin</code>, <code>manager</code>, <code>staff</code>, or <code>viewer</code>.</td></tr>
+      <tr><td><code>is_active</code></td><td>Set to <strong>1</strong> so login works.</td></tr>
+    </table>
+  </li>
+  <li>Leave <code>id</code> empty if phpMyAdmin says it auto-increments.</li>
+  <li>For <code>created_at</code> / <code>updated_at</code>, use defaults such as <strong>CURRENT_TIMESTAMP</strong> if offered.</li>
+  <li>Click <strong>Go</strong>. You should see a green success message.</li>
+</ol>
+
+<h2>6 · Change an existing user’s password or role</h2>
+<ol class="steps">
+  <li>phpMyAdmin → database → <strong><code>users</code></strong> → <strong>Browse</strong>.</li>
+  <li>Click <strong>Edit</strong> (pencil) on that row.</li>
+  <li>To reset password: generate a <strong>new</strong> hash (section 4), paste into <strong><code>password_hash</code></strong>, click <strong>Go</strong>.</li>
+  <li>To make someone read-only: set <strong><code>role</code></strong> to <strong><code>viewer</code></strong>, save.</li>
+  <li>To disable login without deleting history: set <strong><code>is_active</code></strong> to <strong>0</strong>.</li>
+</ol>
+
+<h2>7 · “Too many failed attempts” (locked out)</h2>
+<p>The login screen blocks an IP after <strong>five failed tries in fifteen minutes</strong>. Clearing attempts fixes it.</p>
+<ol class="steps">
+  <li>phpMyAdmin → correct database → tab <strong>SQL</strong>.</li>
+  <li>Paste:
+    <div class="box mono" style="margin-top:6px;">DELETE FROM user_login_attempts;</div>
+  </li>
+  <li>Click <strong>Go</strong>. Retry login with the correct username and password.</li>
+</ol>
+
+<h2>8 · Test the new login</h2>
+<ol class="steps">
+  <li>Open your site login page (e.g. <code>…/auth/login.php</code>).</li>
+  <li>Use <strong>username</strong> exactly as in <code>users.username</code>.</li>
+  <li>Use the <strong>plain password</strong> you typed inside <code>password_hash('…', PASSWORD_DEFAULT)</code> — <strong>not</strong> the long hash.</li>
+  <li>Confirm the role badge top-right matches what you set.</li>
+</ol>
+
+<h2>9 · Two passwords people confuse</h2>
+<table>
+  <tr><th>Secret</th><th>Where</th><th>Purpose</th></tr>
+  <tr><td>MySQL password</td><td><code>config/secrets.live.php</code> → <code>db.pass</code></td><td>Lets <strong>PHP</strong> connect to the <strong>database</strong>. Not the staff login.</td></tr>
+  <tr><td>Staff password</td><td><code>users.password_hash</code></td><td>Lets <strong>hassan / viewer / staff</strong> sign into the <strong>website</strong>.</td></tr>
+</table>
+
+<h2>10 · Security checklist (short)</h2>
+<ul>
+  <li>Never commit <code>secrets.live.php</code> or real passwords to Git.</li>
+  <li>Use strong passwords for <strong>staff</strong> accounts; share verbally or password manager — not email.</li>
+  <li><strong>viewer</strong> is for read-mostly access; do not give <strong>owner</strong> unless required.</li>
+  <li>After testing on live, rotate passwords if they were shown on screen or written in chats.</li>
+</ul>
+
+<div class="foot">
+  Autowagen Master · Staff training · Adding users via <code>users</code> table · For PDF: print from browser · App behaviour follows deployed PHP; menu visibility depends on role checks in <code>includes/header.php</code> and per-page <code>$canEdit</code>.
+</div>
+
+</body>
+</html>
