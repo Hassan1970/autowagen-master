@@ -48,8 +48,48 @@ $flash    = ['type' => null, 'msg' => null];
 $editRow  = null;   // populated if a "save" failed; pre-fills the modal
 $openModal = false;
 
+// POS draft invoice → SHGA workflow: preserve ?return=invoice_edit.php?id=N (whitelist; same pattern as parts_admin.php).
+$returnParamForForms = '';
+if (!empty($_GET['return'])) {
+    $r0 = trim((string) $_GET['return']);
+    if ($r0 !== '' && preg_match('#^invoice_edit\.php\?id=\d+$#', $r0)) {
+        $returnParamForForms = $r0;
+    }
+}
+$returnInvoiceHref    = null;
+$returnInvoiceId      = 0;
+$returnInvoiceDraft   = false;
+if ($returnParamForForms !== '') {
+    $returnInvoiceHref = rtrim(APP_URL, '/') . '/' . $returnParamForForms;
+    if (preg_match('/id=(\d+)/', $returnParamForForms, $mRet)) {
+        $returnInvoiceId = (int) $mRet[1];
+        if ($returnInvoiceId > 0) {
+            $stInvRet = $pdo->prepare(
+                "SELECT status FROM sales_invoices WHERE id = ? AND is_active = 1"
+            );
+            $stInvRet->execute([$returnInvoiceId]);
+            $returnInvoiceDraft = ($stInvRet->fetchColumn() === 'draft');
+        }
+    }
+}
+
 // ---------- POST handling ----------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $rp = trim((string) ($_POST['return'] ?? ''));
+    if ($rp !== '' && preg_match('#^invoice_edit\.php\?id=\d+$#', $rp)) {
+        $returnParamForForms = $rp;
+        $returnInvoiceHref   = rtrim(APP_URL, '/') . '/' . $returnParamForForms;
+        if (preg_match('/id=(\d+)/', $returnParamForForms, $mRet)) {
+            $returnInvoiceId = (int) $mRet[1];
+            if ($returnInvoiceId > 0) {
+                $stInvRet = $pdo->prepare(
+                    "SELECT status FROM sales_invoices WHERE id = ? AND is_active = 1"
+                );
+                $stInvRet->execute([$returnInvoiceId]);
+                $returnInvoiceDraft = ($stInvRet->fetchColumn() === 'draft');
+            }
+        }
+    }
     if (!$canEdit) {
         http_response_code(403);
         $flash = ['type' => 'danger', 'msg' => 'You do not have permission to change customers.'];
@@ -94,7 +134,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmtR = $pdo->prepare('SELECT * FROM customers WHERE id = :id');
                 $stmtR->execute([':id' => $id]);
                 $editRow   = normalize_customers_row($stmtR->fetch() ?: null);
-                $openModal = (bool) $editRow;
+                // From POS draft: stay on list — use "Back to invoice" or Edit (return preserved).
+                $openModal = (bool) $editRow && $returnParamForForms === '';
 
             } elseif ($action === 'save') {
                 $type = ($_POST['type'] ?? 'individual') === 'business' ? 'business' : 'individual';
@@ -245,12 +286,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($uploadFlash) $msg .= '. ' . implode(', ', $uploadFlash) . '.';
                 $flash = ['type' => 'success', 'msg' => $msg];
 
-                // Re-open the modal on the row that was just created/edited
-                // so they can keep adding docs without navigating away.
+                // Re-open the modal on the row that was just created/edited — except when
+                // staff came from a draft invoice (POS / SHGA) so they are not trapped in modal.
                 $stmtR = $pdo->prepare('SELECT * FROM customers WHERE id = :id');
                 $stmtR->execute([':id' => $savedId]);
                 $editRow   = normalize_customers_row($stmtR->fetch() ?: null);
-                $openModal = (bool) $editRow;
+                $openModal = (bool) $editRow && $returnParamForForms === '';
 
             } else {
                 throw new RuntimeException('Unknown action.');
@@ -361,6 +402,10 @@ if ($editRow) {
 }
 $mvId = (int) $mv['id'];
 
+$custAdminReturnQs = $returnParamForForms !== ''
+    ? http_build_query(['return' => $returnParamForForms])
+    : '';
+
 /**
  * Compliance score: 0/2, 1/2 or 2/2.
  *  - 1 point for an ID document on file (id_doc_path)
@@ -376,6 +421,20 @@ function compliance_score(array $r): int {
 ?>
 
 <div class="container-fluid">
+  <?php if ($returnInvoiceHref): ?>
+    <div class="alert alert-primary py-2 d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+      <span class="small mb-0">
+        <i class="bi bi-receipt-cutoff"></i>
+        Draft invoice workflow: capture <strong>SHGA</strong> below, then return to <strong>POS</strong>.
+        <?php if (!$returnInvoiceDraft): ?>
+          <span class="badge bg-secondary ms-1">Invoice is no longer draft — finalize may already have run.</span>
+        <?php endif; ?>
+      </span>
+      <a class="btn btn-sm btn-dark" href="<?= e($returnInvoiceHref) ?>">
+        <i class="bi bi-arrow-left"></i> Back to invoice
+      </a>
+    </div>
+  <?php endif; ?>
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
       <h1 class="h4 mb-1"><i class="bi bi-people-fill"></i> Customers</h1>
@@ -405,6 +464,9 @@ function compliance_score(array $r): int {
   <?php endif; ?>
 
   <form method="get" class="row g-2 mb-3">
+    <?php if ($returnParamForForms !== ''): ?>
+      <input type="hidden" name="return" value="<?= e($returnParamForForms) ?>">
+    <?php endif; ?>
     <div class="col-md-4">
       <input type="text" name="q" value="<?= e($q) ?>"
              class="form-control form-control-sm"
@@ -439,7 +501,7 @@ function compliance_score(array $r): int {
         <i class="bi bi-search"></i> Search
       </button>
       <?php if ($q !== '' || $typeFilt !== '' || $compFilt !== '' || $showInact): ?>
-        <a class="btn btn-sm btn-outline-secondary" href="<?= e(APP_URL) ?>/customers_admin.php">Clear</a>
+        <a class="btn btn-sm btn-outline-secondary" href="<?= e(rtrim(APP_URL, '/') . '/customers_admin.php' . ($custAdminReturnQs !== '' ? '?' . $custAdminReturnQs : '')) ?>">Clear</a>
       <?php endif; ?>
     </div>
   </form>
@@ -519,7 +581,7 @@ function compliance_score(array $r): int {
               <?php if ($canEdit): ?>
                 <td class="text-end">
                   <a class="btn btn-sm btn-outline-dark"
-                     href="<?= e(APP_URL) ?>/customers_admin.php?edit=<?= (int) $c['id'] ?>"
+                     href="<?= e(rtrim(APP_URL, '/') . '/customers_admin.php?' . http_build_query(array_filter(['edit' => (int) $c['id'], 'return' => $returnParamForForms ?: null], fn ($x) => $x !== null && $x !== ''))) ?>"
                      title="Edit">
                     <i class="bi bi-pencil"></i>
                   </a>
@@ -528,6 +590,9 @@ function compliance_score(array $r): int {
                     <input type="hidden" name="csrf"   value="<?= e(csrf_token()) ?>">
                     <input type="hidden" name="action" value="toggle_active">
                     <input type="hidden" name="id"     value="<?= (int) $c['id'] ?>">
+                    <?php if ($returnParamForForms !== ''): ?>
+                      <input type="hidden" name="return" value="<?= e($returnParamForForms) ?>">
+                    <?php endif; ?>
                     <button class="btn btn-sm btn-outline-secondary" type="submit"
                             title="<?= $c['is_active'] ? 'Deactivate' : 'Activate' ?>">
                       <i class="bi bi-power"></i>
@@ -547,10 +612,11 @@ function compliance_score(array $r): int {
       <ul class="pagination pagination-sm">
         <?php
           $base = '?' . http_build_query(array_filter([
-            'q'          => $q !== '' ? $q : null,
-            'type'       => $typeFilt !== '' ? $typeFilt : null,
-            'compliance' => $compFilt !== '' ? $compFilt : null,
-            'inactive'   => $showInact ? 1 : null,
+            'q'           => $q !== '' ? $q : null,
+            'type'        => $typeFilt !== '' ? $typeFilt : null,
+            'compliance'  => $compFilt !== '' ? $compFilt : null,
+            'inactive'    => $showInact ? 1 : null,
+            'return'      => $returnParamForForms !== '' ? $returnParamForForms : null,
           ]));
           $sep  = $base === '?' ? '' : '&';
           for ($p = 1; $p <= $totalPages; $p++):
@@ -565,15 +631,17 @@ function compliance_score(array $r): int {
 </div>
 
 <?php if ($canEdit): ?>
-<!-- Add / Edit customer modal.
-     File inputs must submit with a real submit control inside the same
-     form — some browsers omit multipart file fields when the only
-     submitter is outside the form (even with the HTML5 `form` attr).
-     The visible Save in the footer calls `.click()` on a hidden submit
-     button at the end of #cm-form. -->
+<!-- Add / Edit customer modal: entire .modal-content is one <form> so the red
+     Save is a native type="submit" (no JS .click() on a hidden submit). -->
 <div class="modal fade" id="customerModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
-    <div class="modal-content">
+    <form method="post" id="cm-form" class="modal-content" enctype="multipart/form-data">
+      <input type="hidden" name="csrf"   value="<?= e(csrf_token()) ?>">
+      <input type="hidden" name="action" value="save">
+      <input type="hidden" name="id"     value="<?= $mvId ?>">
+      <?php if ($returnParamForForms !== ''): ?>
+        <input type="hidden" name="return" value="<?= e($returnParamForForms) ?>">
+      <?php endif; ?>
       <div class="modal-header">
         <h5 class="modal-title" id="cm-title">
           <?php if ($mvId > 0): ?>
@@ -582,13 +650,9 @@ function compliance_score(array $r): int {
             Add customer
           <?php endif; ?>
         </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <form method="post" id="cm-form" enctype="multipart/form-data">
-          <input type="hidden" name="csrf"   value="<?= e(csrf_token()) ?>">
-          <input type="hidden" name="action" value="save">
-          <input type="hidden" name="id"     value="<?= $mvId ?>">
           <div class="row g-3">
             <div class="col-md-3">
               <label class="form-label small">Type</label>
@@ -800,17 +864,30 @@ function compliance_score(array $r): int {
               </div>
             </div>
           </div>
-          <!-- Real submit inside the form so multipart uploads are always included. -->
-          <button type="submit" id="cm-form-do-save" class="visually-hidden" tabindex="-1" aria-hidden="true">Save</button>
-        </form>
       </div>
-      <div class="modal-footer">
-        <a class="btn btn-link" href="<?= e(APP_URL) ?>/customers_admin.php">Cancel</a>
-        <button class="btn btn-danger" type="button" id="cm-save-btn">
-          <i class="bi bi-save"></i> Save
-        </button>
+      <div class="modal-footer d-flex flex-wrap gap-2">
+        <?php $cmCloseHref = rtrim(APP_URL, '/') . '/customers_admin.php' . ($custAdminReturnQs !== '' ? '?' . $custAdminReturnQs : ''); ?>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <button type="button" class="btn btn-link p-0 text-decoration-none" data-bs-dismiss="modal">
+            <?= $returnInvoiceHref ? 'Close' : 'Cancel' ?>
+          </button>
+          <?php if ($returnInvoiceHref): ?>
+            <span class="text-muted small">&middot;</span>
+            <a class="small" href="<?= e($cmCloseHref) ?>">Refresh list only</a>
+          <?php endif; ?>
+        </div>
+        <div class="ms-auto d-flex flex-wrap gap-2">
+          <?php if ($returnInvoiceHref): ?>
+            <a class="btn btn-outline-dark" href="<?= e($returnInvoiceHref) ?>">
+              <i class="bi bi-arrow-left"></i> Back to invoice<?= $returnInvoiceId ? ' #' . (int) $returnInvoiceId : '' ?>
+            </a>
+          <?php endif; ?>
+          <button class="btn btn-danger" type="submit" id="cm-save-btn">
+            <i class="bi bi-save"></i> Save
+          </button>
+        </div>
       </div>
-    </div>
+    </form>
   </div>
 </div>
 
@@ -821,6 +898,9 @@ function compliance_score(array $r): int {
   <input type="hidden" name="action" value="delete_doc">
   <input type="hidden" name="id"     value="">
   <input type="hidden" name="which"  value="">
+  <?php if ($returnParamForForms !== ''): ?>
+    <input type="hidden" name="return" value="<?= e($returnParamForForms) ?>">
+  <?php endif; ?>
 </form>
 
 <script>
@@ -861,13 +941,6 @@ function compliance_score(array $r): int {
 
   document.addEventListener('DOMContentLoaded', function () {
     cmTypeChanged();
-    const saveBtn = document.getElementById('cm-save-btn');
-    const realSub = document.getElementById('cm-form-do-save');
-    if (saveBtn && realSub) {
-      saveBtn.addEventListener('click', function () {
-        realSub.click();
-      });
-    }
   });
 </script>
 

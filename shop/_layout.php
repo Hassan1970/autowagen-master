@@ -32,7 +32,7 @@ function shop_layout_head(string $title): void {
 function shop_layout_nav(string $base, int $cartItems): void {
     echo '<nav class="navbar navbar-expand-lg shop-nav navbar-dark">';
     echo '<div class="container">';
-    echo '<a class="navbar-brand shop-brand" href="' . e($base) . '/shop/"><i class="bi bi-truck-front"></i> AUTOWAGEN</a>';
+    echo '<a class="navbar-brand shop-brand" href="' . e($base) . '/shop/"><i class="bi bi-truck-front"></i> ' . e(APP_NAME) . '</a>';
     echo '<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#shopNav">';
     echo '<span class="navbar-toggler-icon"></span></button>';
     echo '<div class="collapse navbar-collapse" id="shopNav"><ul class="navbar-nav ms-auto">';

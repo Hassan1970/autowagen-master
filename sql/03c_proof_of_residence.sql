@@ -21,7 +21,7 @@
 -- 1. has_proof_of_residence TINYINT(1)  AFTER seller_id_copy_path
 -- ---------------------------------------------------------------------
 SET @col_exists := (SELECT COUNT(*) FROM information_schema.COLUMNS
-  WHERE TABLE_SCHEMADATABASE() AND TABLE_NAME = 'vehicles'
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'vehicles'
     AND COLUMN_NAME = 'has_proof_of_residence');
 SET @sql := IF(@col_exists = 0,
   'ALTER TABLE `vehicles` ADD COLUMN `has_proof_of_residence` TINYINT(1) NOT NULL DEFAULT 0 AFTER `seller_id_copy_path`',

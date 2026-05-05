@@ -30,12 +30,11 @@ project. Old project stays untouched as read-only reference. Built in
 
 > Format: `Stage N — Title:  STATUS  (last verified YYYY-MM-DD HH:MM TZ)`
 >
-> **Last overnight handoff:** **2026-05-05 (end of day) UTC+2** — **Valatone local:** `valaotne-saas` + DB **`valatone_master`** — Stages **1–7** SQL applied; **Option A SaaS**; handoff **`docs/SESSION_2026-05-05_HANDOFF.md`**. **When back:** read that file **or** **`CLAUDE.md`** §**10** → **`HOW_TO_START_NEW_CHAT.md`** STEP **2** (paste + add *local smoke tests / polish*). **Next:** login · POS · shop · Reports on Laragon — then **`git push`**; live Autowagen rollout still **`docs/BACKLOG_POST_STAGE7.md`** when you switch context.
-
-> **Previous handoff note (2026-05-02):** roll out **Phase A** → **Phase B** on **hosted Autowagen** when that track is active — **`docs/rollout_execution_order_print.html`**.
+> **Last overnight handoff:** **2026-05-02 (end of day) UTC+2** — **hassan** closed session. **When back:** **`HOW_TO_START_NEW_CHAT.md`** STEP **2** paste into new chat + read **`CLAUDE.md`** §**10** (**Pause — end of day**). **Next:** rollout **Phase A** (live deploy / `secrets.live.php` / host SQL) → **Phase B** test — **`docs/BACKLOG_POST_STAGE7.md`** or **`docs/rollout_execution_order_print.html`**.
 
 - **Stage 1 — Foundation (auth, layout, config):** ✅ DONE & TESTED
   *(verified 2026-04-26, see Stage 1 deliverables below)*
+  - **`auth/login.php` lockout (2026-05-02):** up to **6** wrong passwords per **lowercased username + IP** in a rolling **15-minute** window (`LOGIN_MAX_FAILED_IN_WINDOW`); next submit shows lockout until the window moves; **successful login** deletes prior **failed** rows for that username+IP; dev/test: phpMyAdmin **`DELETE FROM user_login_attempts;`** on `autowagen_master` if needed.
 - **Stage 2 — EPC parts tree (6-level catalogue):** ✅ DONE & TESTED
   *(verified 2026-04-26)*  
   - **2026-04-28 — optional catalogue expansion (hassan):** `02b` 12 categories,
@@ -299,24 +298,26 @@ autowagen-master/
 │  ├─ manual_supplier_purchase_screen.html   ← A–G training sheet (print → PDF)
 │  ├─ supplier_purchase_screen_full_guide.html ← supplier purchase What/Why/When/How
 │  ├─ invoice_screen_full_guide.html        ← Stage 5 invoice / POS (detailed zones S/P + figure placeholders; print → PDF)
+│  ├─ pos_invoice_marketing_walkthrough_print.html ← POS brochure: figures A–L + marketing-pos-*.png → Print PDF
 │  ├─ git_github_handout_print.html          ← Session handout (hosting + GitHub; Print → PDF)
 │  ├─ git_laragon_terminal_start_to_finish_print.html ← Laragon terminal: cd → status → add → commit -m → push + PAT (Print → PDF)
 │  ├─ CHANGELOG.md                           ← dated changes Markdown (pair with CHANGELOG.html; newest first)
 │  ├─ CHANGELOG.html                         ← HTML mirror · Print → PDF
 │  ├─ developer_quick_sheet_print.html       ← laminate: Git + triple-changelog reminders (Print → PDF)
 │  ├─ add_users_staff_guide_print.html       ← add staff users / roles / phpMyAdmin / password hash (Print → PDF)
+│  ├─ live_db_password_rotation_secrets_print.html ← live host: rotate MySQL password + secrets.live.php (Print → PDF)
 │  ├─ database_update_backup_guide_print.html ← full DB replace vs incremental SQL / keep data (Print → PDF)
 │  ├─ session_pause_handoff_print.html          ← before PC shutdown: Git · §9 · optional md_backup · Export DB (Print → PDF)
 │  ├─ reports_staff_guide_print.html         ← AP / AR / statement / web orders — steps + illustration samples (PDF)
 │  ├─ ar_report_and_customer_statement_explained_print.html ← AR report + statement: every section explained (PDF)
+│  ├─ customer_ar_report_explained_abcdef_print.html ← AR report zones A–F + sample figures (Print → PDF)
+│  ├─ supplier_ap_report_explained_print.html ← AP owed report: sections A–D + Print/PDF deploy note (Print → PDF)
 │  ├─ credit_notes_system_guide_print.html    ← Stage 7 · credits · invoice/AR/statement · viewer vs shop → Print PDF
 │  ├─ credit_notes_ar_vs_cash_refund_print.html ← AR vs cash (locked net + split columns) → Print PDF
 │  ├─ rollout_execution_order_print.html      ← Live → test → backlog → test → polish (Print → PDF)
-│  ├─ saas_option_a_new_customer_checklist_print.html ← Option A SaaS: new DB + secrets per yard · SQL ladder · Print → PDF
-│  ├─ session_recap_valatone_2026-05-05_print.html   ← Narrative recap: valatone DB ladder + SaaS Option A arc · Print → PDF
-│  ├─ SESSION_2026-05-05_HANDOFF.md                  ← End-of-day handoff diary (Markdown) · Valatone local / Option A
-│  ├─ VALATONE_SAAS_WAY_FORWARD.md           ← Valatone SaaS planning: Option A hosted copies vs B multi-tenant · Cursor folder advice
-│  └─ BACKLOG_POST_STAGE7.md                  ← rollout ladder at top · supplier returns · SMTP · shop payments
+│  ├─ CURSOR_NEW_CHAT_MASTER_PROMPT.md          ← full “paste into new Cursor chat” project brain-dump
+│  ├─ BACKLOG_POST_STAGE7.md                  ← rollout ladder at top · supplier returns · SMTP · shop payments
+│  └─ SESSION_2026-05-04_HANDOFF.md           ← dated session diary · deploy checklist · resume · defer Phase C until client talk (copy also in md_backups/2026-05-04/)
 ├─ .gitignore
 ├─ index.php                    ← auth-aware redirect
 ├─ main_dashboard.php
@@ -357,7 +358,6 @@ autowagen-master/
 │  ├─ invoice-letterhead.png     ← fallback full banner if logo file missing
 │  └─ invoice-logo.png          ← logo strip for built HTML letterhead (print + screen)
 ├─ tools/                        ← optional one-off helpers (Laragon PHP CLI + GD)
-│  ├─ generate_password_hash.php ← CLI bcrypt for `users.password_hash` (insert new logins)
 │  ├─ trim_letterhead.php       ← crop empty vertical margins from banner PNG
 │  └─ extract_logo.php          ← extract logo row from banner → invoice-logo.png
 ├─ auth/
@@ -553,6 +553,7 @@ If the file approaches ~200 lines, **prune** the Session log
 
 - App home: `http://localhost/autowagen-master/`
 - Login page: `http://localhost/autowagen-master/auth/login.php`
+  (**Lockout:** six failed passwords for the **same username + IP** within **15 minutes** — then wait or clear `user_login_attempts` in phpMyAdmin; see `auth/login.php`.)
 - phpMyAdmin: `http://localhost/phpmyadmin` → DB `autowagen_master`
 - Run a SQL file: phpMyAdmin → click DB → **SQL** tab → paste contents
   of `sql/NN_*.sql` → click **Go**.
@@ -564,9 +565,9 @@ If the file approaches ~200 lines, **prune** the Session log
 - **Change log (browse / PDF):** **`docs/CHANGELOG.html`** or **`docs/CHANGELOG.md`** (Markdown is easiest for Git “go back” diffs).
 - **Add staff users (roles, phpMyAdmin, password hash):** **`docs/add_users_staff_guide_print.html`** → open in **Chrome/Edge** → **Ctrl+P** → Save as PDF (**Pages: All**, clear text selection first — Cursor-only print may clip pages).
 - **Database updates (full replace vs keep data):** **`docs/database_update_backup_guide_print.html`** — same PDF workflow as above.
+- **Live hosting — rotate MySQL password / `secrets.live.php` (after leaked creds):** **`docs/live_db_password_rotation_secrets_print.html`** — Print → PDF.
 - **Pause before PC shutdown:** **`docs/session_pause_handoff_print.html`** — Git · §9 · optional snapshot · DB export.
 - **Git terminal — start to finish (PDF):** **`docs/git_laragon_terminal_start_to_finish_print.html`** — Laragon/Cursor terminal → **`git push`** + PAT troubleshooting.
-- **Valatone / SaaS direction (planning draft, not built):** **`docs/VALATONE_SAAS_WAY_FORWARD.md`** — how SaaS differs from today’s app; Option A vs B; when to use same repo vs new Cursor folder.
 
 ---
 
@@ -574,15 +575,29 @@ If the file approaches ~200 lines, **prune** the Session log
 
 > Each entry: `YYYY-MM-DD HH:MM TZ — short description (who, what, result)`.
 
-- **2026-05-05 (end of day) UTC+2** — **Session close — Valatone local:** **`valatone_master`** ladder done in **`valaotne-saas`** · Option A SaaS · docs **`saas_option_a_new_customer_checklist_print.html`**, **`session_recap_valatone_2026-05-05_print.html`** · **`SESSION_2026-05-05_HANDOFF.md`** · **`HOW_TO`** / **`CHANGELOG`** touched. **Next:** local polish + smoke tests (login · POS · shop) before live deploy · **`git push`**. **Recorder:** Hassan (Cursor).
+- **2026-05-04 (time unknown) UTC+2** — **Master new-chat prompt:** **`docs/CURSOR_NEW_CHAT_MASTER_PROMPT.md`** (paste-everything brain-dump for future sessions) · **`HOW_TO`** pointer · **`CLAUDE.md`** §10 quick table · **`CHANGELOG`**. **Recorder:** Hassan (Cursor).
 
-- **2026-05-05 (time unknown) UTC+2** — **`docs/session_recap_valatone_2026-05-05_print.html`** (Print → PDF) + **`tools/generate_password_hash.php`** — recap of **`valatone_master`** ladder + SaaS Option A arc; bcrypt CLI helper for **`users.password_hash`**; **`docs/client_training_index.html`** · **`CLAUDE.md`** §3/§8. **Recorder:** Hassan (Cursor).
+- **2026-05-04 (time unknown) UTC+2** — **MD snapshot + session handoff:** **`docs/md_backups/2026-05-04/`** (CLAUDE · ROADMAP · HOW_TO · TRAINING_SCREENSHOTS · CHANGELOG · **`SESSION_2026-05-04_HANDOFF.md`**) · **`docs/md_backups/README.md`** latest · **`HOW_TO`** pointer · **`BACKLOG_POST_STAGE7.md`** Phase C = client-agree first · Recorder: Hassan (Cursor).
 
-- **2026-05-05 (time unknown) UTC+2** — **SaaS Option A provisioning:** **`docs/saas_option_a_new_customer_checklist_print.html`** (Print → PDF) — new DB + secrets per customer, SQL ladder table with ☐ ticks, worksheet; **`docs/client_training_index.html`** card; **`docs/VALATONE_SAAS_WAY_FORWARD.md`** Phase **1a** cross-link. **`CHANGELOG`** pair updated. **Recorder:** Hassan (Cursor).
+- **2026-05-04 (time unknown) UTC+2** — **AR printable A–F:** **`docs/customer_ar_report_explained_abcdef_print.html`** (zones A–F + mock tables → PDF); **`docs/client_training_index.html`** card · **`reports_staff_guide_print.html`** §2 · **`CLAUDE.md`** §3 · **`CHANGELOG`**. **Recorder:** Hassan (Cursor).
 
-- **2026-05-04 (time unknown) UTC+2** — **`docs/VALATONE_SAAS_WAY_FORWARD.md`** — added **§7** (Option B isolation: separate `valatone-saas` folder/repo + **new DB**, never share `autowagen_master` deploy path) so live Autowagen client is not touched. **Recorder:** Hassan (Cursor).
+- **2026-05-04 (time unknown) UTC+2** — **AP report:** **`docs/supplier_ap_report_explained_print.html`** (A–D + deploy); toolbar **What A–D means** → handout; **`docs/client_training_index.html`** / **`reports_staff_guide_print.html`** · **`CHANGELOG`** · **`supplier_ap_report.php`**. **Recorder:** Hassan (Cursor).
 
-- **2026-05-04 (time unknown) UTC+2** — **`docs/VALATONE_SAAS_WAY_FORWARD.md`** — SaaS planning (hosted copies vs multi-tenant; commercial questions; Cursor/workspace advice). **`CLAUDE.md`** §3/§8/§10 cross-links. **Note:** `CLAUDE.md` restored from Git after accidental overwrite; re-merge any local diary lines if needed. **Recorder:** Hassan (Cursor).
+- **2026-05-04 (time unknown) UTC+2** — **`supplier_ap_report.php`:** **Print / PDF** button + print CSS (hide nav/footer/filters/`Open` column; A4); on-screen **How to read this report** (**A–D**). **Recorder:** Hassan (Cursor).
+
+- **2026-05-02 (time unknown) UTC+2** — **Print handout:** **`docs/live_db_password_rotation_secrets_print.html`** (live MySQL password + **`secrets.live.php`** server-only; GitHub purge link) · **`docs/client_training_index.html`** · **`CLAUDE.md`** §3/table · **`TRAINING_SCREENSHOTS`** · **`CHANGELOG`**. **Recorder:** Hassan (Cursor).
+
+- **2026-05-02 (time unknown) UTC+2** — **Login lockout — MD docs synced:** **`CLAUDE.md`** §2 Stage 1 + §8 · **`ROADMAP.md`** Stage 1 · **`HOW_TO_START_NEW_CHAT.md`** (troubleshooting) · **`docs/TRAINING_SCREENSHOTS.md`** · **`CHANGELOG`** / **`CHANGELOG.html`** (deduped older “IP-only” row; added doc-sync bullets). **Recorder:** Hassan (Cursor).
+
+- **2026-05-02 (time unknown) UTC+2** — **`auth/login.php` lockout:** **6** failed attempts / **15 min** per **lowercased username + IP**; **`LOGIN_MAX_FAILED_IN_WINDOW`**; success **clears** prior failures for that pair; **`CHANGELOG`**. **Recorder:** Hassan (Cursor).
+
+- **2026-05-02 (time unknown) UTC+2** — **POS marketing PNGs filled in:** Copied hassan’s screenshots → **`docs/manual_screenshots/marketing-pos-a-…` through `…-l-…`**, enabled `<img>` in **`pos_invoice_marketing_walkthrough_print.html`**, **`MARKETING_POS_SOURCES.md`** lookup table. **Recorder:** Hassan (Cursor).
+
+- **2026-05-02 (time unknown) UTC+2** — **Marketing POS PDF scaffold:** **`docs/pos_invoice_marketing_walkthrough_print.html`** — figures **A–L** + **`marketing-pos-*.png`** names · **`docs/client_training_index.html`** · **`docs/TRAINING_SCREENSHOTS.md`** · **`CLAUDE.md`** §3/UI table. **Recorder:** Hassan (Cursor).
+
+- **2026-05-02 (time unknown) UTC+2** — **`customers_admin.php` modal fix:** Wrapped **`modal-content`** in **one `<form>`**; **`Save`** = native **`type="submit"`** (footer inside form; removes flaky **`.click()`** on **`visually-hidden`** submit); **Cancel / Close** = **`data-bs-dismiss="modal"`** (no full-page link = no confuse with submit). **Recorder:** Hassan (Cursor).
+
+- **2026-05-02 (time unknown) UTC+2** — **`customers_admin.php`** + **`invoice_edit.php`:** Draft POS workflow — **`Open customers`** (SHGA card) passes whitelisted **`return=invoice_edit.php?id=N`**; customers list shows **Back to invoice** bar; **`return`** preserved in search/pagination/edit/toggle/delete/save; modal footer **Back to invoice** + **Close** keeps query; after **Save** / **delete doc**, modal does **not** auto-re-open when **`return`** is set (avoid “stuck” in modal). **Recorder:** Hassan (Cursor).
 
 - **2026-05-02 (end of day) UTC+2** — **Session pause — hassan:** closing for the day. **When I return:** paste **`HOW_TO_START_NEW_CHAT.md`** STEP **2** into a new chat; read **`CLAUDE.md`** §**10** (**Pause — end of day**). **Next:** rollout **Phase A → B** (**`docs/BACKLOG_POST_STAGE7.md`** top / **`docs/rollout_execution_order_print.html`**). **Before PC off (optional):** **`HOW_TO`** “Before you shut down” · **`docs/session_pause_handoff_print.html`**. Repo pushed this session unless local edits pending.
 
@@ -1133,15 +1148,13 @@ Before switching off: **`HOW_TO_START_NEW_CHAT.md`** → **“Before you shut do
 
 ### Pause — end of day (hassan — latest)
 
-**Stopped 2026-05-05 (end of day) UTC+2.** **Valatone / local track:** **`valaotne-saas`** + DB **`valatone_master`** — full **`sql/`** ladder applied (Stages **1–7**); **Option A SaaS** (provision DB + secrets per customer); printable **`docs/saas_option_a_new_customer_checklist_print.html`**, **`docs/session_recap_valatone_2026-05-05_print.html`**; **`tools/generate_password_hash.php`**; handoff diary **`docs/SESSION_2026-05-05_HANDOFF.md`**.
+**Stopped for today.** When you come back:
 
-**When you come back:**
+1. Open **`HOW_TO_START_NEW_CHAT.md`** → **STEP 2** → select the whole **grey box** → copy → **new Cursor chat** → paste → **Enter**.
+2. Or paste the shorter **“overnight”** block under Step 2 in that file (says you are back and continue rollout).
+3. The assistant will read **`CLAUDE.md`** (especially **section 10** and **section 2**). **Your next build order** is already written at the **top** of **`docs/BACKLOG_POST_STAGE7.md`**: **Phase A** Live/Ops → **Phase B** test → later **Phase C** backlog → **Phase D** test → **Phase E** polish. Printable: **`docs/rollout_execution_order_print.html`**.
 
-1. Open **`docs/SESSION_2026-05-05_HANDOFF.md`** (today’s package) **or** **`CLAUDE.md`** §**10** first.
-2. New chat: **`HOW_TO_START_NEW_CHAT.md`** → **STEP 2** → grey box → paste → add one line: *continuing **local** smoke tests / polish on **`valatone_master`*** (before live hosting).
-3. **Next concrete work (your choice this week):** confirm **`users`** login · Dashboard · POS · **`/shop/`** · Reports · optional uploads / invoice PDF · then **`git push`**. **Live Autowagen rollout** (Phase **A**→**B**) stays in **`docs/BACKLOG_POST_STAGE7.md`** when you switch context back to hosted deploy.
-
-**No half-finished code** this session — docs + SQL-on-local-DB + handoff only.
+**No code left half-finished this session** (last pushes: rollout ladder docs + Stage 6 sales-summary credits block).
 
 ### Pause — 2026-05-01 end of day (archived note)
 
@@ -1210,6 +1223,7 @@ run **`06a_customer_account.sql`**. If **`list_online` / shop** errors, run **`0
 | **Public spares shop** | **`/shop/`** (e.g. `http://localhost/autowagen-master/shop/`) — no login; **New + non-stripped** parts with **List on website**. Staff: **Reports** → **Web shop orders** → `shop_orders_admin.php`. |
 | **Parts from invoice (browse & return)** | Draft invoice → **Select item…** → coloured **Stripped** / **Third Party** / **OEM** / **Replacement** links → **`parts_admin.php`** with blue **Back to invoice**; per-row **Add to invoice** (qty + POST) for **Available** parts with stock. |
 | **Printable POS manual** | **`docs/invoice_screen_full_guide.html`** (+ optional PNGs per **`docs/TRAINING_SCREENSHOTS.md`**) |
+| **POS marketing / brochure PDF (A–L figures)** | **`docs/pos_invoice_marketing_walkthrough_print.html`** |
 | **Printable full-system manual** | **`docs/complete_system_manual.html`** — staff + POS + web shop + AR/backups — figures **`full-01`…`full-36`** (optional PNGs); entry **`docs/client_training_index.html`** |
 | **Credit notes (returns)** | **Reports → Credit notes** (`credit_notes_admin.php`) · **New credit note** · **`docs/credit_notes_system_guide_print.html`** + **`docs/credit_notes_ar_vs_cash_refund_print.html`** → Print PDF |
 | **Sales summary — client PDF briefing** | **`docs/sales_summary_report_client_print.html`** — what the report measures, how to run it, sample mock screen · **Print → PDF** for clients/partners |
@@ -1219,7 +1233,6 @@ run **`06a_customer_account.sql`**. If **`list_online` / shop** errors, run **`0
 
 - **Guest enquiries / Web shop messages:** If **`sql/06e_shop_guest_enquiries.sql`** was **never** run on **that** database, the guest enquiry form and **`Reports → Web shop messages`** may **error** until phpMyAdmin runs **`06e`** once (`06b` ≠ `06e`).
 - **Not built in MVP:** **Supplier** returns / AP credit automation (**manual** workaround). **SMTP** outbound email & auto reminders; **no magic deploy** — **GitHub** backs up **code** only; **live hosting** still needs **FTP/upload** or server **`git pull`** (+ host MySQL + server secrets).
-- **Multi-tenant SaaS (Valatone):** Not implemented — strategy draft only: **`docs/VALATONE_SAAS_WAY_FORWARD.md`**.
 
 ### Quick — what path to open next (`docs/` on disk)
 
@@ -1228,19 +1241,20 @@ run **`06a_customer_account.sql`**. If **`list_online` / shop** errors, run **`0
 | **Full “how to use Autowagen” manual** | **`docs/complete_system_manual.html`** → Print PDF optional |
 | **Menu / links to all guides** | **`docs/client_training_index.html`** |
 | POS invoice screen only | **`docs/invoice_screen_full_guide.html`** |
+| POS story for brochures (A–L screenshots) | **`docs/pos_invoice_marketing_walkthrough_print.html`** |
 | Supplier purchases | **`docs/manual_supplier_purchase_screen.html`** or **`supplier_purchase_screen_full_guide.html`** |
 | New PC install | **`docs/client_install_print.html`** |
 | Git workflow + triple changelog (Markdown/HTML/CLAUDE §9) | **`docs/developer_quick_sheet_print.html`** (+ **`CHANGELOG.md`**) |
 | **Git terminal — Laragon → GitHub start to finish** | **`docs/git_laragon_terminal_start_to_finish_print.html`** |
 | **AR report & statement — section-by-section PDF** | **`docs/ar_report_and_customer_statement_explained_print.html`** — Alerts, filters, every column · statement toolbar & table |
+| **AR report — zones A–F (sample layout) PDF** | **`docs/customer_ar_report_explained_abcdef_print.html`** — Title/help/filters/totals/tables explained with illustration |
+| **Supplier AP report — sections A–D (PDF)** | **`docs/supplier_ap_report_explained_print.html`** — Payable vs receivable · deploy note for **Print / PDF** button |
 | **Add staff users (viewer/staff · phpMyAdmin · hashes)** | **`docs/add_users_staff_guide_print.html`** |
+| **Live site: rotate MySQL password after leaked credentials** | **`docs/live_db_password_rotation_secrets_print.html`** — cPanel → `secrets.live.php` on server only |
 | **SQL / DB: full replace vs incremental (keep customer data)** | **`docs/database_update_backup_guide_print.html`** |
 | **Pause / shutdown — resume next session** | **`docs/session_pause_handoff_print.html`** · **`HOW_TO_START_NEW_CHAT.md`** (before shutdown block) |
 | **Rollout order (Live → test → backlog → polish)** | **`docs/rollout_execution_order_print.html`** · top of **`docs/BACKLOG_POST_STAGE7.md`** |
-| **SaaS Option A — new customer (provision DB + secrets)** | **`docs/saas_option_a_new_customer_checklist_print.html`** · Print → PDF |
-| **Session recap · Valatone DB + SaaS Option A · 2026-05-05** | **`docs/session_recap_valatone_2026-05-05_print.html`** · Print → PDF |
-| **Session handoff diary · 2026-05-05 (Markdown)** | **`docs/SESSION_2026-05-05_HANDOFF.md`** — closing for today |
-| **Valatone SaaS — way forward (draft)** | **`docs/VALATONE_SAAS_WAY_FORWARD.md`** — not implemented yet; defines Option A vs B |
+| **Paste-everything prompt (full project context for a new chat)** | **`docs/CURSOR_NEW_CHAT_MASTER_PROMPT.md`** — long handoff; **`CLAUDE.md`** still wins if conflict |
 | AI/project diary & “what next” | Repo root **`CLAUDE.md`** · especially **§10** |
 
 ### Suggested next session (pick one)

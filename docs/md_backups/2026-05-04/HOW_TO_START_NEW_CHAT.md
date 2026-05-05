@@ -4,18 +4,16 @@
 > losing where we are. The new chat will read `CLAUDE.md` and pick
 > up exactly where we left off — nothing is lost.
 
-**Full project context (long leave / new machine / new assistant):** open **`docs/CURSOR_NEW_CHAT_MASTER_PROMPT.md`** — copy the grey box into a new chat **or** attach the file and ask the assistant to read it first. **Save as PDF:** open **`docs/CURSOR_NEW_CHAT_MASTER_PROMPT_print.html`** in Chrome/Edge → **Ctrl+P** → **Save as PDF**. **`CLAUDE.md`** remains authoritative if anything conflicts.
+**Full project context (long leave / new machine / new assistant):** open **`docs/CURSOR_NEW_CHAT_MASTER_PROMPT.md`** — copy the grey box into a new chat **or** attach the file and ask the assistant to read it first. **`CLAUDE.md`** remains authoritative if anything conflicts.
 
-**Detailed “build the whole stack from nothing” prompt (another AI / greenfield):** **`docs/BUILD_WHOLE_PROJECT_AI_PROMPT.md`** — stages 1–7, SQL order, rules, acceptance tests; attach that file in the other tool **with** `CLAUDE.md` if you need a full spec.
-
-**Planning Valatone as SaaS:** **`docs/VALATONE_SAAS_WAY_FORWARD.md`** — roadmap only (nothing automatic is built yet). Paste your goal in new chat **and** “read VALATONE_SAAS_WAY_FORWARD.”
+---
 
 ## Before you shut down the PC (pick up later)
 
 Do **these** so work survives reboot / power-off:
 
 1. **Save files** — `Ctrl+S` in Cursor on anything open (if auto-save is off).
-2. **Git (strongly recommended)** — In PowerShell: `cd` to **your** project folder (e.g. ` C:\laragon\www\autowagen-master` **or** `C:\laragon\www\valaotne-saas`) → `git add .` → `git commit -m "Where I stopped …"` → `git push`. Then your code is on **GitHub**, not only this PC.
+2. **Git (strongly recommended)** — In PowerShell: `cd C:\laragon\www\autowagen-master` → `git add .` → `git commit -m "Where I stopped …"` → `git push`. Then your code is on **GitHub**, not only this PC.
 3. **`CLAUDE.md` §9** — Add **one line at the top** of the Session log: date (UTC+2 if you know it), what you did, **what’s next** (one sentence).
 4. **`CHANGELOG`** — If you changed behaviour/docs meaningfully today: prepend **`docs/CHANGELOG.md`** + **`docs/CHANGELOG.html`** (same dated block).
 5. **Optional snapshot** — Copy **`CLAUDE.md`**, **`ROADMAP.md`**, **`HOW_TO_START_NEW_CHAT.md`**, **`docs/TRAINING_SCREENSHOTS.md`**, **`docs/CHANGELOG.md`** into **`docs/md_backups/YYYY-MM-DD/`** (new folder with today’s date). Steps: **`docs/md_backups/README.md`**.
@@ -66,7 +64,7 @@ That's it. The new agent will read `CLAUDE.md`, see **section 10**
 (**Pause — end of day**) and the rollout ladder in **`BACKLOG_POST_STAGE7.md`**,
 and continue from **Phase A** unless you say you finished more.
 
-**Handoff diary (today’s work packaged):** latest **`docs/SESSION_2026-05-05_HANDOFF.md`** (Valatone **`valatone_master`** / Option A · 2026-05-05) · earlier **`docs/SESSION_2026-05-04_HANDOFF.md`** · **`docs/md_backups/YYYY-MM-DD/`** = optional snapshot `.md` copies.
+**Handoff diary (today’s work packaged):** open **`docs/SESSION_2026-05-04_HANDOFF.md`** · **`docs/md_backups/2026-05-04/`** = snapshot `.md` copies.
 
 ---
 

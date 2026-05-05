@@ -1,6 +1,12 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 
+/**
+ * Failed logins (same normalized username + IP) allowed in the rolling window before lockout.
+ * The next attempt after this many failures is blocked for 15 minutes (see SQL INTERVAL below).
+ */
+const LOGIN_MAX_FAILED_IN_WINDOW = 6;
+
 if (!empty($_SESSION['user_id'])) {
     header('Location: ' . APP_URL . '/main_dashboard.php');
     exit;
@@ -15,63 +21,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $username = trim($_POST['username'] ?? '');
         $password = (string) ($_POST['password'] ?? '');
-        $ip       = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        $ip       = $_SERVER['REMOTE_ADDR'] ?? '';
+        $ip       = $ip !== '' ? $ip : '0.0.0.0';
         $ua       = substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255);
+        // One bucket per login name + IP (lowercase) so case variants share the same 6-try limit.
+        $attemptKey = mb_strtolower($username, 'UTF-8');
 
-        $recent = $pdo->prepare(
-            'SELECT COUNT(*) FROM user_login_attempts
-             WHERE ip_address = :ip AND success = 0
-               AND attempted_at > (NOW() - INTERVAL 15 MINUTE)'
-        );
-        $recent->execute([':ip' => $ip]);
-        $failed = (int) $recent->fetchColumn();
-
-        if ($failed >= 5) {
-            $error = 'Too many failed attempts. Try again in 15 minutes.';
-        } elseif ($username === '' || $password === '') {
+        // Require fields first so we do not count empty submits toward lockout.
+        if ($username === '' || $password === '') {
             $error = 'Username and password are required.';
         } else {
-            $stmt = $pdo->prepare(
-                'SELECT id, username, full_name, password_hash, role, is_active
-                 FROM users WHERE username = :u LIMIT 1'
+            $recent = $pdo->prepare(
+                'SELECT COUNT(*) FROM user_login_attempts
+                 WHERE ip_address = :ip AND username = :uname AND success = 0
+                   AND attempted_at > (NOW() - INTERVAL 15 MINUTE)'
             );
-            $stmt->execute([':u' => $username]);
-            $user = $stmt->fetch();
+            $recent->execute([':ip' => $ip, ':uname' => $attemptKey]);
+            $failed = (int) $recent->fetchColumn();
 
-            $ok = $user
-                && (int) $user['is_active'] === 1
-                && password_verify($password, $user['password_hash']);
+            if ($failed >= LOGIN_MAX_FAILED_IN_WINDOW) {
+                $error = 'Too many failed attempts. Try again in 15 minutes.';
+            } else {
+                $stmt = $pdo->prepare(
+                    'SELECT id, username, full_name, password_hash, role, is_active
+                     FROM users WHERE username = :u LIMIT 1'
+                );
+                $stmt->execute([':u' => $username]);
+                $user = $stmt->fetch();
 
-            $log = $pdo->prepare(
-                'INSERT INTO user_login_attempts (username, ip_address, user_agent, success)
-                 VALUES (:u, :ip, :ua, :s)'
-            );
-            $log->execute([
-                ':u'  => $username,
-                ':ip' => $ip,
-                ':ua' => $ua,
-                ':s'  => $ok ? 1 : 0,
-            ]);
+                $ok = $user
+                    && (int) $user['is_active'] === 1
+                    && password_verify($password, $user['password_hash']);
 
-            if ($ok) {
-                session_regenerate_id(true);
-                $_SESSION['user_id']   = (int) $user['id'];
-                $_SESSION['username']  = $user['username'];
-                $_SESSION['full_name'] = $user['full_name'];
-                $_SESSION['role']      = $user['role'];
+                $log = $pdo->prepare(
+                    'INSERT INTO user_login_attempts (username, ip_address, user_agent, success)
+                     VALUES (:u, :ip, :ua, :s)'
+                );
+                $log->execute([
+                    ':u'  => $attemptKey,
+                    ':ip' => $ip,
+                    ':ua' => $ua,
+                    ':s'  => $ok ? 1 : 0,
+                ]);
 
-                $upd = $pdo->prepare('UPDATE users SET last_login_at = NOW() WHERE id = :id');
-                $upd->execute([':id' => $user['id']]);
+                if ($ok) {
+                    // Clear prior failure streak for this account + IP after a good login.
+                    $clr = $pdo->prepare(
+                        'DELETE FROM user_login_attempts
+                         WHERE ip_address = :ip AND username = :uname AND success = 0'
+                    );
+                    $clr->execute([':ip' => $ip, ':uname' => $attemptKey]);
 
-                $next = $_GET['next'] ?? ($_POST['next'] ?? '');
-                $safeNext = ($next !== '' && strpos($next, '/') === 0 && strpos($next, '//') !== 0)
-                    ? $next
-                    : APP_URL . '/main_dashboard.php';
+                    session_regenerate_id(true);
+                    $_SESSION['user_id']   = (int) $user['id'];
+                    $_SESSION['username']  = $user['username'];
+                    $_SESSION['full_name'] = $user['full_name'];
+                    $_SESSION['role']      = $user['role'];
 
-                header('Location: ' . $safeNext);
-                exit;
+                    $upd = $pdo->prepare('UPDATE users SET last_login_at = NOW() WHERE id = :id');
+                    $upd->execute([':id' => $user['id']]);
+
+                    $next = $_GET['next'] ?? ($_POST['next'] ?? '');
+                    $safeNext = ($next !== '' && strpos($next, '/') === 0 && strpos($next, '//') !== 0)
+                        ? $next
+                        : APP_URL . '/main_dashboard.php';
+
+                    header('Location: ' . $safeNext);
+                    exit;
+                }
+                $error = 'Invalid username or password.';
             }
-            $error = 'Invalid username or password.';
         }
     }
 }
@@ -134,7 +153,7 @@ $next = $_GET['next'] ?? '';
   <div class="row justify-content-center">
     <div class="col-12 col-md-6 col-lg-5">
       <div class="login-card p-4 p-md-5">
-        <h1 class="h4 brand text-center mb-1">AUTOWAGEN MASTER</h1>
+        <h1 class="h4 brand text-center mb-1"><?= e(APP_NAME) ?></h1>
         <p class="text-center text-secondary mb-4">Sign in to continue</p>
 
         <?php if ($error): ?>

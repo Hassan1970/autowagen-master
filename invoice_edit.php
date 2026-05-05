@@ -1203,7 +1203,11 @@ $letterheadAddress   = [
       <div class="card-header bg-warning bg-opacity-25 small"><strong>SHGA</strong></div>
       <div class="card-body small">
         <p class="mb-2">If any line is <strong>stripped</strong> or <strong>not new</strong> condition, the customer must have <strong>ID doc + proof of address</strong> on file.</p>
-        <a href="<?= e(APP_URL) ?>/customers_admin.php" class="btn btn-sm btn-outline-danger">Open customers</a>
+        <?php
+        $awCustFromInv = 'invoice_edit.php?id=' . (int) $id;
+        $awCustListHref = rtrim(APP_URL, '/') . '/customers_admin.php?' . http_build_query(['return' => $awCustFromInv]);
+        ?>
+        <a href="<?= e($awCustListHref) ?>" class="btn btn-sm btn-outline-danger">Open customers</a>
       </div>
     </div>
   </div>

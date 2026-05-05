@@ -81,7 +81,7 @@ shop_layout_head($shopPageTitle);
 shop_layout_nav($base, shop_cart_count_items());
 ?>
 <div class="container py-4 col-lg-7">
-  <h1 class="h3 mb-2">Message Autowagen</h1>
+  <h1 class="h3 mb-2">Message <?= e(APP_NAME) ?></h1>
   <p class="text-muted small">Ask about <strong>any</strong> part (third-party, stripped, used). <strong>Add to cart</strong> applies to <strong>OEM new</strong> or <strong>Replacement</strong> parts graded <strong>New</strong>, <strong>Good</strong> or <strong>Fair</strong>.</p>
 
   <?php if (!shop_guest_enquiries_ready($pdo)): ?>

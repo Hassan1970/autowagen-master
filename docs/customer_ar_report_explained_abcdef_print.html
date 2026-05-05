@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autowagen — Accounts receivable report explained (A–F → PDF)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.55;
+      color: #222;
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 28px 22px 56px;
+      background: #fff;
+    }
+    h1 {
+      font-size: 1.25rem;
+      margin: 0 0 10px;
+      color: #0a0a0a;
+      border-bottom: 3px solid #c8102e;
+      padding-bottom: 10px;
+    }
+    .sub { color: #555; font-size: 10pt; margin: 0 0 18px; }
+    h2 {
+      font-size: 1.06rem;
+      color: #c8102e;
+      margin: 26px 0 10px;
+      border-left: 4px solid #0a0a0a;
+      padding-left: 10px;
+      page-break-after: avoid;
+    }
+    .letter { font-weight: 800; color: #c8102e; margin-right: 6px; }
+    p, li { margin: 0 0 10px; }
+    ul { padding-left: 1.25em; margin: 0 0 12px; }
+    .formula { font-family: ui-monospace, Consolas, monospace; background: #eee; padding: 2px 6px; border-radius: 3px; font-size: 0.92em; }
+    .note {
+      font-size: 9.5pt;
+      border-left: 3px solid #c8102e;
+      padding: 10px 14px;
+      margin: 14px 0;
+      background: #fafafa;
+    }
+    kbd { background: #eee; padding: 1px 6px; border-radius: 3px; }
+    .muted { color: #666; font-size: 9.5pt; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+    .tag { font-size: 8pt; background: #333; color: #fff; padding: 2px 8px; border-radius: 3px; display: inline-block; margin-bottom: 8px; }
+    .mock {
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 12px 14px;
+      margin: 12px 0;
+      background: #fafafa;
+    }
+    .mock-title { font-size: 11pt; font-weight: 700; color: #0a0a0a; margin-bottom: 4px; }
+    .mock-sub { font-size: 9pt; color: #555; margin-bottom: 10px; }
+    .grey-box {
+      font-size: 9.5pt;
+      background: #f0f0f0;
+      border: 1px solid #ddd;
+      padding: 8px 10px;
+      margin: 8px 0;
+      border-radius: 4px;
+    }
+    .toolbar-mock {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: flex-end;
+      font-size: 9pt;
+    }
+    .fake-btn {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid #333;
+      background: #fff;
+    }
+    .fake-btn-red {
+      background: #c8102e;
+      color: #fff;
+      border-color: #a00d26;
+      font-weight: 600;
+    }
+    .sum-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .sum-card {
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 10pt;
+    }
+    .sum-dark { background: #0a0a0a; color: #fff; border: 2px solid #c8102e; }
+    .sum-redbar { border-left: 4px solid #c8102e; background: #fff; border: 1px solid #ddd; border-left-width: 4px; }
+    table.fake {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9pt;
+      margin-top: 6px;
+    }
+    table.fake th, table.fake td {
+      border: 1px solid #ccc;
+      padding: 6px 8px;
+      text-align: left;
+    }
+    table.fake th { background: #e9ecef; }
+    td.num { text-align: right; font-weight: 600; }
+    .badge { padding: 2px 6px; border-radius: 3px; font-size: 8pt; border: 1px solid #999; background: #f8f8f8; }
+    .badge-od { background: #dc3545; color: #fff; border-color: #a71d2a; }
+    .mono { font-family: ui-monospace, Consolas, monospace; font-size: 9pt; }
+    @media print {
+      @page { margin: 12mm; size: A4; }
+      body { padding: 0; max-width: 100%; font-size: 10pt; }
+      h2 { page-break-after: avoid; }
+      .no-print { display: none !important; }
+      .mock { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+  <p class="no-print note"><strong>Save as PDF:</strong> click a blank area of the page, then <kbd>Ctrl</kbd>+<kbd>P</kbd> → choose <strong>Save as PDF</strong> → <strong>Pages: All</strong> → optionally turn <strong>Background graphics</strong> <strong>ON</strong>.</p>
+
+  <h1>Autowagen Master — <strong style="color:#c8102e;">Accounts receivable</strong> report (<span class="letter">A</span>–<span class="letter">F</span> explained)</h1>
+  <p class="sub">Screen: <strong>Reports → Accounts receivable (owed)</strong> · <code>customer_ar_report.php</code> · Opens from <strong>docs/client_training_index.html</strong> · Sample numbers below are <strong>illustration only</strong>.</p>
+
+  <div class="mock">
+    <div class="tag">Example layout — not your live database</div>
+    <div class="mock-title"><span style="color:#c8102e;">AUTOWAGEN</span> — Accounts receivable</div>
+    <div class="mock-sub">As at <strong>2026-05-04</strong> (Johannesburg)</div>
+
+    <div class="grey-box"><strong>Credit notes — locked rules:</strong> <strong>Balance</strong> = net due after payments and <em>all</em> finalized credits. <strong>AR cr.</strong> / <strong>Refund</strong> columns split credits for bookkeeping (after Stage 7 SQL).</div>
+    <div class="grey-box"><strong>Two different reports:</strong> This page = customers owe <strong>you</strong>. <strong>Accounts payable</strong> = you owe suppliers (<strong>Reports</strong> menu).</div>
+    <div class="grey-box"><strong>Overdue</strong> = unpaid balance where invoice <strong>due date</strong> is <em>before</em> <strong>As at</strong>. No due date → not “overdue” here, but still owed.</div>
+
+    <div class="toolbar-mock">
+      <span><strong>As at</strong> <span class="fake-btn">2026-05-04 ⌄</span></span>
+      <label><input type="checkbox" disabled> Overdue only</label>
+      <label><input type="checkbox" disabled> Account customers only</label>
+      <span class="fake-btn">Apply</span>
+      <span class="fake-btn fake-btn-red">Print / PDF</span>
+      <span class="fake-btn">Sales invoices</span>
+    </div>
+
+    <div class="sum-row">
+      <div class="sum-card sum-dark">
+        <strong>Total owed (listed customers):</strong> <span style="float:right;">R 1&nbsp;849.99</span>
+      </div>
+      <div class="sum-card sum-redbar">
+        <strong>Of which overdue</strong> <span class="muted">(due &lt; as at)</span> <span style="float:right;color:#c8102e;font-weight:700;">R 500.00</span>
+      </div>
+    </div>
+
+    <div style="margin-top:14px;font-size:9pt;color:#c8102e;font-weight:bold;text-transform:uppercase;">By customer</div>
+    <table class="fake">
+      <thead><tr><th>Customer</th><th>Account</th><th>Phone</th><th class="num">Balance</th><th class="num">AR&nbsp;cr.</th><th class="num">Refund</th><th class="num">Overdue</th></tr></thead>
+      <tbody>
+        <tr><td><strong>J. Soap CC</strong></td><td><span class="badge" style="background:#c8102e;color:#fff;border:0;">Account</span></td><td>082&nbsp;555&nbsp;0101</td><td class="num" style="color:#c8102e;">R 1&nbsp;000.00</td><td class="num muted">—</td><td class="num muted">—</td><td class="num" style="color:#c8102e;">R 500.00</td></tr>
+        <tr><td><strong>Walk‑in Motors</strong></td><td>—</td><td>—</td><td class="num" style="color:#c8102e;">R 849.99</td><td class="num muted">R 150.00</td><td class="num muted">—</td><td class="num muted">—</td></tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:14px;font-size:9pt;color:#c8102e;font-weight:bold;text-transform:uppercase;">By invoice <span style="font-weight:normal;text-transform:none;color:#666;">(open balance)</span></div>
+    <table class="fake">
+      <thead><tr><th>Invoice</th><th>Customer</th><th>Inv date</th><th>Due date</th><th>Status</th><th class="num">Balance</th><th class="num">AR&nbsp;cr.</th><th class="num">Refund&nbsp;cn.</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="mono">INV-2026-00088</td>
+          <td>J. Soap CC</td>
+          <td class="muted">2026-04-01</td>
+          <td class="muted">2026-04-25</td>
+          <td><span class="badge badge-od">Overdue 9d</span></td>
+          <td class="num" style="color:#c8102e;">R 1&nbsp;000.00</td>
+          <td class="num muted">—</td>
+          <td class="num muted">—</td>
+        </tr>
+        <tr>
+          <td class="mono">INV-2026-00092</td>
+          <td>Walk‑in Motors</td>
+          <td class="muted">2026-04-28</td>
+          <td class="muted">—</td>
+          <td><span class="badge">No due date</span></td>
+          <td class="num" style="color:#c8102e;">R 849.99</td>
+          <td class="num muted">R 150.00</td>
+          <td class="num muted">—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2><span class="letter">A</span>Printed title strip</h2>
+  <p>Bold banner line (<strong>AUTOWAGEN — Accounts receivable</strong>) and <strong>As at DATE (Johannesburg)</strong>. Same block appears first when you click <strong>Print / PDF</strong> on the live screen — it is formatted for filing or emailing as PDF.</p>
+
+  <h2><span class="letter">B</span>Grey help panels (three boxes)</h2>
+  <ul>
+    <li><strong>Credit notes:</strong> how <strong>Balance</strong> is calculated with finalized credit notes (<span class="formula">invoice total − payments − all finalized credits</span>) and why <strong>AR cr.</strong> vs <strong>Refund</strong> columns exist.</li>
+    <li><strong>Payable ≠ receivable:</strong> directs staff to supplier <strong>payable</strong> if they confuse the reports.</li>
+    <li><strong>Overdue rule:</strong> ties to invoice <strong>due date</strong> vs report <strong>As at</strong>.</li>
+  </ul>
+
+  <h2><span class="letter">C</span>Filters and buttons</h2>
+  <ul>
+    <li><strong>As at</strong> — date printed on PDF; overdue math compares invoice due dates to this day.</li>
+    <li><strong>Overdue only</strong> — narrows both tables to overdue-related rows (per app rules).</li>
+    <li><strong>Account customers only</strong> — appears after <code>sql/06a_customer_account.sql</code>; limits to flagged account buyers.</li>
+    <li><strong>Apply</strong> — reloads report with ticks/date.</li>
+    <li><strong>Print / PDF</strong> — browser print; choose <strong>Save as PDF</strong>.</li>
+    <li><strong>Sales invoices</strong> — shortcut to POS invoice list.</li>
+  </ul>
+
+  <h2><span class="letter">D</span>Two summary totals</h2>
+  <ul>
+    <li><strong>Total owed</strong> (black card) — sum of customer balances in the filtered <strong>By customer</strong> list.</li>
+    <li><strong>Of which overdue</strong> — portion of debt where due date &lt; <strong>As at</strong> and balance &gt; 0.</li>
+  </ul>
+
+  <h2><span class="letter">E</span>By customer table</h2>
+  <ul>
+    <li>One row per customer with unpaid <strong>final</strong> invoice balance.</li>
+    <li><strong>Balance</strong> — net still owed (<strong>all</strong> credit types subtract from headline net due).</li>
+    <li><strong>AR cr.</strong> / <strong>Refund</strong> — bookkeeping split of credit notes only (screens after Stage&nbsp;7); both still reduced net due.</li>
+    <li><strong>Overdue</strong> — that customer’s overdue portion only.</li>
+    <li><strong>Statement</strong> — printable statement; <strong>Customer</strong> — opens customer edit.</li>
+  </ul>
+
+  <h2><span class="letter">F</span>By invoice (open balance) table</h2>
+  <ul>
+    <li>Each unfinished <strong>final</strong> sale with balance &gt; 0.</li>
+    <li><strong>Status</strong> — <strong>Overdue Nd</strong> (days), <strong>Open</strong> (has due date, not overdue yet), or <strong>No due date</strong>.</li>
+    <li><strong>Open</strong> button on screen opens that invoice for payments / notes (hidden when printing).</li>
+    <li><strong>Refund cn.</strong> — cash‑refund side of credits on that invoice (label may read <strong>Refund</strong> on customer row vs <strong>Refund cn.</strong> here).</li>
+  </ul>
+
+  <div class="note">
+    <strong>Opposite report:</strong> money <strong>you</strong> owe suppliers = <strong>Reports → Accounts payable (owed)</strong>. Guide with A–D: <code>docs/supplier_ap_report_explained_print.html</code>.
+  </div>
+
+  <p class="muted">Autowagen Master · training handout · <code>docs/customer_ar_report_explained_abcdef_print.html</code> · not legal or tax advice.</p>
+
+</body>
+</html>

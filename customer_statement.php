@@ -243,7 +243,7 @@ require_once __DIR__ . '/includes/header.php';
 
 <div class="container-fluid py-3 aw-stmt-doc">
   <div class="aw-stmt-head">
-    <h1 class="mb-0"><span style="color:#c8102e;">AUTOWAGEN</span> — Customer account statement</h1>
+    <h1 class="mb-0"><span style="color:#c8102e;"><?= e(APP_NAME) ?></span> — Customer account statement</h1>
     <div class="small text-muted">Statement date: <strong><?= e($asOf) ?></strong> · Currency ZAR · VAT as per invoices</div>
   </div>
 

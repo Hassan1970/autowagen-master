@@ -14,7 +14,7 @@ return [
         'charset' => 'utf8mb4',
     ],
     'app' => [
-        'name'  => 'Autowagen Master',
+        'name'  => 'Autowagen Master',   // Shown in nav, login, shop, print report titles — change per host (e.g. "Valatone Demo")
         'url'   => 'https://your-live-domain.com',
         'debug' => false,
     ],

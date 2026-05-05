@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autowagen Master — POS invoice walkthrough (marketing PDF)</title>
+  <style>
+    @page { margin: 12mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 11pt;
+      line-height: 1.5;
+      color: #222;
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 8px 18px 36px;
+      background: #fff;
+    }
+    h1 {
+      font-size: 1.25rem;
+      margin: 0 0 4px;
+      color: #0a0a0a;
+      border-bottom: 4px solid #c8102e;
+      padding-bottom: 8px;
+    }
+    .tag {
+      display: inline-block;
+      background: #0a0a0a;
+      color: #fff;
+      font-size: 8pt;
+      letter-spacing: .08em;
+      padding: 2px 8px;
+      border-radius: 3px;
+      margin-bottom: 8px;
+    }
+    .faq-why {
+      background: #fff0f2;
+      border: 2px solid #c8102e;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      font-size: 10pt;
+      border-radius: 4px;
+    }
+    .print-hint {
+      background: #fff8e6;
+      border: 1px solid #e6c200;
+      padding: 8px 12px;
+      font-size: 9.5pt;
+      margin-bottom: 12px;
+      border-radius: 4px;
+    }
+    .flow-intro {
+      background: #f8f9fa;
+      border-left: 4px solid #c8102e;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      font-size: 10pt;
+    }
+    h2 {
+      font-size: 1rem;
+      margin: 18px 0 10px;
+      color: #c8102e;
+    }
+    .steps-ol {
+      margin: 0 0 12px;
+      padding-left: 1.35em;
+      font-size: 10.5pt;
+    }
+    .steps-ol li { margin: 6px 0; }
+    .zones { display: flex; flex-direction: column; gap: 18px; }
+    .zone {
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 14px 14px 14px 56px;
+      position: relative;
+      background: #fafafa;
+      page-break-inside: avoid;
+    }
+    .zone .letter {
+      position: absolute;
+      left: 12px;
+      top: 14px;
+      min-width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #c8102e;
+      color: #fff;
+      font-weight: 800;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Georgia, serif;
+    }
+    .zone h3 { margin: 0 0 8px; font-size: 1.05rem; color: #0a0a0a; }
+    .zone p { margin: 6px 0; font-size: 10.5pt; }
+    .zone .why { font-size: 9.75pt; color: #495057; margin-top: 8px; }
+    .shot-box {
+      margin: 12px 0 0;
+      border: 2px dashed #868e96;
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #fff;
+      page-break-inside: avoid;
+    }
+    .shot-box .shot-caption { font-size: 10pt; font-weight: 600; margin: 0 0 6px; }
+    .shot-box .shot-filename {
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: 8.75pt;
+      color: #6c757d;
+      word-break: break-all;
+      margin-bottom: 6px;
+    }
+    .shot-box img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin-top: 4px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .footnote {
+      margin-top: 22px;
+      padding-top: 12px;
+      border-top: 1px solid #ccc;
+      font-size: 9pt;
+      color: #555;
+    }
+    kbd {
+      background: #eee;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 0.92em;
+    }
+    @media print {
+      body { padding: 0; }
+      .print-hint { border-style: dashed; }
+    }
+  </style>
+</head>
+<body>
+
+  <span class="tag">MARKETING · PRINT TO PDF</span>
+  <h1>POS sales invoice — end-to-end walkthrough</h1>
+  <p class="subtitle"><strong>Autowagen Master</strong> · Prospect / brochure version · Figures <strong>A</strong> … <strong>L</strong> = your real screen photos (PNG) — see dashed boxes.</p>
+
+  <div class="faq-why">
+    <strong>Your screenshots are wired in.</strong>
+    Figures <strong>A–L</strong> load from <code>docs/manual_screenshots/marketing-pos-*.png</code>. Open this page as <code>http://localhost/autowagen-master/docs/pos_invoice_marketing_walkthrough_print.html</code> (or double‑click the file) so image paths work. Replace any PNG to refresh a figure.
+  </div>
+
+  <div class="print-hint">
+    <strong>Turn this page into PDF:</strong> Chrome or Edge → <kbd>Ctrl</kbd>+<kbd>P</kbd> → Destination <strong>Save as PDF</strong> · <strong>Pages: All</strong> · click blank area first so Chrome does not print “selection only”. More capture tips: <code>docs/TRAINING_SCREENSHOTS.md</code>.
+  </div>
+
+  <div class="flow-intro">
+    <strong>Covered in order:</strong> start a draft sale · pick or create a buyer · attach spare parts · (SA compliance reminder when selling used/stripped goods) · lock the invoice · print handout for the customer.<br>
+    <strong>Note:</strong> Your shop decides who may finalize prices and refunds; screens match the shipped product (Stage&nbsp;5 POS on <code>invoice_edit.php</code>).
+  </div>
+
+  <h2>Story you tell in a demo (short script)</h2>
+  <ol class="steps-ol">
+    <li>“Staff open <strong>POS → New sale</strong>; the system creates a private <strong>draft</strong> — nothing touches stock yet.”</li>
+    <li>“They tie the invoice to whoever is paying: existing customer from the list, or <strong>New customer (quick)</strong> in two fields, then returning to finish the basket.”</li>
+    <li>“Adding parts is easiest with <strong>Select item…</strong> search; power users can paste a numeric <strong>Part ID</strong>.”</li>
+    <li>“When paperwork for second-hand buyer rules is required, our yellow reminder points to Customers — uploads happen once per buyer, reused on later sales.”</li>
+    <li>“<strong>Finalize</strong> issues the numbered invoice and adjusts stock automatically; <strong>Print</strong> gives PDF or paper with your letterhead styling.”</li>
+  </ol>
+
+  <h2>Figures — what to screenshot (markers A&nbsp;through&nbsp;L)</h2>
+  <p style="font-size:10.5pt;margin:0 0 8px">Each block shows <strong>callout&nbsp;<span style="font-family:Georgia,serif;color:#c8102e;font-size:13pt;font-weight:bold">A</span></strong>-style lettering to draw on‑screen overlays in PowerPoint/Inkscape if you like; the dashed box is sized for roughly one screenshot each.</p>
+
+  <div class="zones">
+
+    <div class="zone">
+      <span class="letter">A</span>
+      <h3>Start the sale — POS menu</h3>
+      <p>Capture the top black navigation bar with <strong>POS</strong> open and <strong>New sale</strong> visible (or Dashboard card that leads to POS). Helps viewers recognise where daily trade begins.</p>
+      <div class="shot-box">
+        <p class="shot-caption">Figure&nbsp;A — Navigation: POS → New sale</p>
+        <p class="shot-filename">File: <code>docs/manual_screenshots/marketing-pos-a-pos-new-sale.png</code></p>
+        <img src="manual_screenshots/marketing-pos-a-pos-new-sale.png" alt="Figure A POS New sale">
+      </div>
+      <p class="why"><strong>Tip:</strong> Include browser URL ending in <code>invoice_edit.php?id=</code> in a later shot so brochure readers trust it is live software.</p>
+    </div>
+
+    <div class="zone">
+      <span class="letter">B</span>
+      <h3>New draft invoice</h3>
+      <p>Show the headline <strong>Draft invoice&nbsp;#…</strong>, breadcrumb/link <strong>All invoices</strong>, and empty or partial working area — establishes “sandbox before commitment”.</p>
+      <div class="shot-box">
+        <p class="shot-caption">Figure&nbsp;B — Draft title + workspace</p>
+        <p class="shot-filename">File: <code>docs/manual_screenshots/marketing-pos-b-draft-header.png</code></p>
+        <img src="manual_screenshots/marketing-pos-b-draft-header.png" alt="Figure B Draft invoice header">
+      </div>
+    </div>
+
+    <div class="zone">
+      <span class="letter">C</span>
+      <h3>Buyer on the invoice</h3>
+      <p>Frame the <strong>Customer & dates</strong> card: dropdown, <strong>New customer (quick)</strong>, invoice date / optional due date, notes, red <strong>Save draft</strong>. This answers “how we know who owes us.”</p>
+      <div class="shot-box">
+        <p class="shot-caption">Figure&nbsp;C — Customer + Save draft</p>
+        <p class="shot-filename">File: <code>docs/manual_screenshots/marketing-pos-c-customer-block.png</code></p>
+        <img src="manual_screenshots/marketing-pos-c-customer-block.png" alt="Figure C Customer dates Save draft">
+      </div>
+    </div>
+
+    <div class="zone">
+      <span class="letter">D</span>
+      <h3>New customer doesn’t exist yet — Quick add screen</h3>
+      <p>After clicking <strong>New customer (quick)</strong>, capture the minimalist form (<code>customer_quick_add.php</code>): type, name, phone, billing address · note the line that promises full docs later under <strong>Master data → Customers</strong>.</p>
+      <div class="shot-box">
+        <p class="shot-caption">Figure&nbsp;D — Quick add customer</p>
+        <p class="shot-filename">File: <code>docs/manual_screenshots/marketing-pos-d-quick-add-customer.png</code></p>
+        <img src="manual_screenshots/marketing-pos-d-quick-add-customer.png" alt="Figure D Quick add customer">
+      </div>
+    </div>
+
+    <div class="zone">
+      <span class="letter">E</span>
+      <h3>Customers list — picking or fixing the buyer record</h3>
+      <p>Opened from draft invoice (<strong>Open customers</strong>) or Master data · shows compliance at a glance (Docs&nbsp;2/2) · blue <strong>Back to invoice</strong> bar returns to the POS draft.</p>
+      <div class="shot-box">
+        <p class="shot-caption">Figure&nbsp;E — Customers with “Back to invoice” (invoice workflow)</p>
+        <p class="shot-filename">File: <code>docs/manual_screenshots/marketing-pos-e-customer-selected.png</code></p>
+        <img src="manual_screenshots/marketing-pos-e-customer-selected.png" alt="Figure E Customers list Back to invoice">
+      </div>
+    </div>
+
+    <div class="zone">
+      <span class="letter">F</span>
+      <h3>Ready to attach spares</h3>
+      <p>Capture the card with <strong>Select item…</strong>, numeric <strong>Part ID</strong> / qty / optional price · maybe <strong>Add manual line</strong> header edge. Highlights two ways merchandise enters the invoice.</p>
+      <div class="shot-box">
+        <p class="shot-caption">Figure&nbsp;F — Add part tools</p>
+        <p class="shot-filename">File: <code>docs/manual_screenshots/marketing-pos-f-add-part-card.png</code></p>
+        <img src="manual_screenshots/marketing-pos-f-add-part-card.png" alt="Figure F Add part">
+      </div>
+    </div>
+
+    <div class="zone">
+      <span class="letter">G</span>
+      <h3>Choosing spares — search modal</h3>
+      <p>Open <strong>Select item…</strong> with typed search plus at least two result rows. Shows clerks don’t need paper SKU lists memorised.</p>
+      <div class="shot-box">
+        <p class="shot-caption">Figure&nbsp;G — Modal search results</p>
+        <p class="shot-filename">File: <code>docs/manual_screenshots/marketing-pos-g-select-item-modal.png</code></p>
+        <img src="manual_screenshots/marketing-pos-g-select-item-modal.png" alt="Figure G Select item modal">
+      </div>
+    </div>
+
+    <div class="zone">
+      <span class="letter">H</span>
+      <h3>Choosing lines from full inventory (optional path)</h3>
+      <p>From coloured links in <strong>Select item…</strong> staff land on parts list filtered by source · qty + <strong>Add to invoice</strong> posts rows to the draft · <strong>Back to invoice</strong> blue bar restores the POS screen · only <strong>Available</strong> lines get the red buttons.</p>
+      <div class="shot-box">
+        <p class="shot-caption">Figure&nbsp;H — Parts list + Add to invoice (from invoice workflow)</p>
+        <p class="shot-filename">File: <code>docs/manual_screenshots/marketing-pos-h-lines-total.png</code></p>
+        <img src="manual_screenshots/marketing-pos-h-lines-total.png" alt="Figure H Parts inventory Add to invoice">
+      </div>
+    </div>
+
+    <div class="zone">
+      <span class="letter">I</span>
+      <h3>SA compliance uploads on the buyer (SHGA)</h3>
+      <p>Edit customer captures ID copy &amp; proof of address once per buyer · <strong>Save</strong> persists scans · <strong>Back to invoice&nbsp;#…</strong> returns to finalize when docs are ready.</p>
+      <div class="shot-box">
+        <p class="shot-caption">Figure&nbsp;I — Edit customer · compliance docs (from POS)</p>
+        <p class="shot-filename">File: <code>docs/manual_screenshots/marketing-pos-i-shga-aside.png</code></p>
+        <img src="manual_screenshots/marketing-pos-i-shga-aside.png" alt="Figure I SHGA customer modal">
+      </div>
+    </div>
+
+    <div class="zone">
+      <span class="letter">J</span>
+      <h3>Lock it in — Finalize</h3>
+      <p>Green <strong>Finalize invoice</strong> after customer + lines are correct · numbering + stock follow this click · same screen area also shows Notes / Lines / Manual line entry.</p>
+      <div class="shot-box">
+        <p class="shot-caption">Figure&nbsp;J — Draft invoice with Finalize visible</p>
+        <p class="shot-filename">File: <code>docs/manual_screenshots/marketing-pos-j-finalize.png</code></p>
+        <img src="manual_screenshots/marketing-pos-j-finalize.png" alt="Figure J Finalize">
+      </div>
+    </div>
+
+    <div class="zone">
+      <span class="letter">K</span>
+      <h3>Printed face — Invoice / letterhead preview</h3>
+      <p>Shown: <strong>Draft</strong> headline + black bar contact strip + POS instructions — reuse structure for marketing; swap this PNG for any <strong>INV-YYYY-NNNNN</strong> final screenshot when available.</p>
+      <div class="shot-box">
+        <p class="shot-caption">Figure&nbsp;K — Branded header + draft banner (upgrade to finalized INV‑… later)</p>
+        <p class="shot-filename">File: <code>docs/manual_screenshots/marketing-pos-k-final-inv-print-zone.png</code></p>
+        <img src="manual_screenshots/marketing-pos-k-final-inv-print-zone.png" alt="Figure K Invoice header branding">
+      </div>
+    </div>
+
+    <div class="zone">
+      <span class="letter">L</span>
+      <h3>Delivering PDF to the customer</h3>
+      <p><strong>Placeholder reuse:</strong> Shows mid-invoice chrome (Finalize / lines). Replace file with Chrome <kbd>Ctrl</kbd>+<kbd>P</kbd> → Destination: <strong>Save as PDF</strong> dialog when exporting for email/WhatsApp hand-off.</p>
+      <div class="shot-box">
+        <p class="shot-caption">Figure&nbsp;L — Swap for browser Print→PDF dialog (recommended)</p>
+        <p class="shot-filename">File: <code>docs/manual_screenshots/marketing-pos-l-print-to-pdf.png</code></p>
+        <img src="manual_screenshots/marketing-pos-l-print-to-pdf.png" alt="Figure L Print placeholder">
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footnote">
+    <strong>Optional deeper technical manual:</strong> <code>docs/invoice_screen_full_guide.html</code> (alternate zone letters S,P,… for power users).<br>
+    <strong>Collateral checklist:</strong> (1)&nbsp;take Figures&nbsp;A–L on staging or sanitized data · (2)&nbsp;annotate with arrows A–L in your favourite slide tool if needed · (3)&nbsp;export merged PDF brochure or keep this HTML as living source.<br>
+    Autowagen Master · SHGA mentions align with SA Second-Hand Goods record-keeping habits for yard parts — not legal advice.
+  </div>
+
+</body>
+</html>

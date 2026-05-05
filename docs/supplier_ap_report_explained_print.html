@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autowagen — Accounts payable report (explained A–D → PDF)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.55;
+      color: #222;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 28px 22px 56px;
+      background: #fff;
+    }
+    h1 {
+      font-size: 1.25rem;
+      margin: 0 0 10px;
+      color: #0a0a0a;
+      border-bottom: 3px solid #c8102e;
+      padding-bottom: 10px;
+    }
+    .sub { color: #555; font-size: 10pt; margin: 0 0 18px; }
+    h2 {
+      font-size: 1.06rem;
+      color: #c8102e;
+      margin: 28px 0 10px;
+      border-left: 4px solid #0a0a0a;
+      padding-left: 10px;
+      page-break-after: avoid;
+    }
+    h3 { font-size: 0.98rem; color: #333; margin: 14px 0 8px; }
+    p, li { margin: 0 0 10px; }
+    ul { padding-left: 1.25em; margin: 0 0 12px; }
+    .box {
+      background: #f8f8f8;
+      border: 1px solid #ddd;
+      padding: 12px 14px;
+      margin: 12px 0;
+      border-radius: 4px;
+      font-size: 10pt;
+    }
+    .formula { font-family: ui-monospace, Consolas, monospace; background: #eee; padding: 2px 6px; border-radius: 3px; font-size: 0.92em; }
+    .note {
+      font-size: 9.5pt;
+      border-left: 3px solid #c8102e;
+      padding: 10px 14px;
+      margin: 16px 0;
+      background: #fafafa;
+    }
+    kbd { background: #eee; padding: 1px 6px; border-radius: 3px; }
+    .muted { color: #666; font-size: 9.5pt; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+    .deploy { border: 2px dashed #c8102e; padding: 12px 14px; margin: 14px 0; background: #fff8f8; font-size: 10pt; }
+    @media print {
+      @page { margin: 14mm; size: A4; }
+      body { padding: 0; max-width: 100%; font-size: 10pt; }
+      h2 { page-break-after: avoid; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Autowagen Master — <strong style="color:#c8102e;">Accounts payable</strong> report (staff guide)</h1>
+  <p class="sub">Matches <strong>Reports → Accounts payable (owed)</strong> (<code>supplier_ap_report.php</code>). This file is plain HTML — save as PDF: <kbd>Ctrl</kbd>+<kbd>P</kbd> → <strong>Save as PDF</strong> · path: <code>docs/supplier_ap_report_explained_print.html</code></p>
+
+  <p class="note no-print"><strong>Lost the Print button on the live site?</strong> The app only shows <strong>Print / PDF</strong> after you upload the latest <code>supplier_ap_report.php</code> from your PC to your host (same folder as on Laragon). See the dashed box below.</p>
+
+  <div class="deploy no-print">
+    <strong>Deploy so the Print button appears on production</strong>
+    <ol style="margin:8px 0 0; padding-left:1.2em;">
+      <li>On your PC: file <code>autowagen-master/supplier_ap_report.php</code> (in Cursor / File Explorer).</li>
+      <li>Upload it with <strong>FTP / cPanel File Manager</strong> to your website folder, overwriting the old file → path must end like <code>…/supplier_ap_report.php</code> next to other PHP pages.</li>
+      <li>Refresh <code>https://your-domain/supplier_ap_report.php</code> with <kbd>Ctrl</kbd>+<kbd>F5</kbd>. You should see <strong>Print / PDF</strong> and this guide link on the toolbar.</li>
+    </ol>
+  </div>
+
+  <h2>A — Top total &amp; “As at” date</h2>
+  <p><strong>A1 — Red banner</strong> (“Total still owed…”) adds up every unpaid balance from the rows below — that is money <strong>your business still owes</strong> suppliers or private sellers on recorded bills.</p>
+  <p><strong>A2 — As at (report date)</strong> is the date printed on the report for your records. The money columns are <strong>current open balances</strong> from the database (not a historical “what we owed on that old day”).</p>
+
+  <h2>B — Main table (each row = one supplier purchase)</h2>
+  <div class="box">
+    One row appears for each <strong>Supplier purchase</strong> batch where <span class="formula">Bill − payments &gt; 0</span>
+  </div>
+  <ul>
+    <li><strong>Purchase</strong> — internal number <strong>#…</strong> plus your optional reference text (invoice no., etc.).</li>
+    <li><strong>Owed to</strong> — supplier name from <strong>Master data → Suppliers</strong>, or a <strong>private seller</strong> name from the purchase.</li>
+    <li><strong>Bill (ZAR)</strong> — total bill amount you typed on <strong>Inventory → Supplier purchases → Edit purchase</strong>.</li>
+    <li><strong>Paid so far</strong> — sum of all active <strong>payment lines</strong> on that purchase.</li>
+    <li><strong>Balance</strong> — left to pay: <span class="formula">Bill − Paid so far</span>.</li>
+  </ul>
+
+  <h2>C — Status &amp; Due columns</h2>
+  <ul>
+    <li><strong>Unpaid</strong> (red badge) — no payments recorded yet (or effectively zero).</li>
+    <li><strong>Part paid</strong> (yellow badge) — some payments exist but <strong>Balance</strong> is still positive.</li>
+    <li><strong>Due</strong> — shows the purchase’s <strong>due date</strong> if you saved one on the purchase; <strong>—</strong> means no due date on file.</li>
+    <li><strong>Open</strong> (button) — opens that purchase to add more payments or fix the bill. <span class="muted">(Hidden on paper when you use Print / PDF.)</span></li>
+  </ul>
+
+  <h2>D — “Summary by who we owe”</h2>
+  <p>This section groups balances <strong>by party</strong> (each supplier gets one card; each private seller with their own purchase may appear separately). Adding those card totals should match the rows above for each name.</p>
+
+  <h2 id="pdf">Making a PDF from the report screen</h2>
+  <ol>
+    <li>Open the payable report while logged in.</li>
+    <li>Click the red <strong>Print / PDF</strong> button (after deploy — see dashed box).</li>
+    <li>In the dialog: destination <strong>Save as PDF</strong> → Save.</li>
+    <li>If red bars print grey: tick <strong>Background graphics</strong> in print settings (Edge / Chrome).</li>
+  </ol>
+
+  <h2 id="versus">Accounts payable ≠ accounts receivable</h2>
+  <ul>
+    <li><strong>Accounts payable</strong> (this report) — <strong>You owe them</strong> (supplier / seller).</li>
+    <li><strong>Accounts receivable</strong> — <strong>Customers owe you</strong> after sales invoices. Different menu line.</li>
+  </ul>
+
+  <p class="muted">Autowagen Master · training handout · not legal or tax advice.</p>
+
+</body>
+</html>

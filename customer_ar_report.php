@@ -208,7 +208,7 @@ include __DIR__ . '/includes/header.php';
 
 <div class="container-fluid py-3 aw-ar-report">
   <div class="aw-ar-print-title">
-    <h1 class="mb-1"><span style="color:#c8102e;">AUTOWAGEN</span> — Accounts receivable</h1>
+    <h1 class="mb-1"><span style="color:#c8102e;"><?= e(APP_NAME) ?></span> — Accounts receivable</h1>
     <div class="aw-ar-print-meta">
       As at <strong><?= e($asOf) ?></strong> (Johannesburg)
       <?php if ($overdueOnly): ?> &middot; <strong>Overdue only</strong><?php endif; ?>

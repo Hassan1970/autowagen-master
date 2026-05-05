@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session recap — Valatone DB setup &amp; SaaS Option A · 2026-05-05</title>
+<style>
+  :root { --r:#c8102e; --k:#0a0a0a; }
+  @page { size: A4 portrait; margin: 11mm; }
+  body { margin:0 auto; max-width:178mm; padding:8mm 11mm 12mm; font-family:system-ui,"Segoe UI",sans-serif; font-size:9.3pt; line-height:1.42; color:var(--k); }
+  header { background:var(--k); color:#fff; padding:10px 14px; margin:-8mm -11mm 12px -11mm; border-bottom:4px solid var(--r); print-color-adjust:exact; }
+  header h1 { margin:0; font-size:10.8pt; letter-spacing:.05em; }
+  header span.brand { color:var(--r); font-weight:700; }
+  header .sub { margin:5px 0 0; font-size:7.5pt; opacity:.92; }
+  .hint { font-size:7.9pt; background:#fff8e6; border:1px solid #ddc653; padding:8px 10px; margin-bottom:11px; border-radius:4px; }
+  @media print { .no-print{display:none!important;} body{padding:4mm;} }
+  h2 { font-size:9.5pt; color:var(--r); margin:12px 0 6px; border-bottom:1px solid #ccc; padding-bottom:2px; page-break-after:avoid; letter-spacing:.03em; }
+  ul.compact { margin:4px 0 8px; padding-left:1.15em; }
+  ul.compact li { margin:4px 0; }
+  .mono { font-family:Consolas,ui-monospace,monospace; font-size:8pt; background:#f4f4f4; padding:1px 4px; border-radius:2px; }
+  .box { border:1px solid #ccc; border-left:4px solid var(--r); padding:8px 10px; margin:10px 0; background:#fafafa; font-size:8.9pt; }
+  .foot { margin-top:12px; padding-top:8px; border-top:1px solid #ccc; font-size:7.6pt; color:#555; }
+  kbd { border:1px solid #999; padding:0 3px; border-radius:3px; font-size:.85em; background:#eee; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span class="brand">SESSION RECAP</span> — Valatone local DB · SaaS Option A</h1>
+  <div class="sub">Cursor session notes · Printable → PDF · Africa/Johannesburg UTC+2 · dated 2026-05-05</div>
+</header>
+
+<div class="hint no-print">
+  <strong>Save as PDF:</strong> Open this file in <strong>Chrome</strong> or <strong>Edge</strong>. Click blank space (<kbd>Esc</kbd>). <kbd>Ctrl</kbd>+<kbd>P</kbd> → destination <strong>Save as PDF</strong> → <strong>Pages: All</strong> → <strong>Background graphics ON</strong>.
+</div>
+
+<h2>1 · Goal (what “today” covered)</h2>
+<ul class="compact">
+  <li>Work inside the <strong>Valatone / SaaS</strong> project copy (workspace <span class="mono">valaotne-saas</span>) with a <strong>dedicated database</strong> <span class="mono">valatone_master</span> — <strong>not</strong> the live Autowagen <span class="mono">autowagen_master</span> unless you consciously share it.</li>
+  <li>Run the standard <strong>SQL ladder</strong> so POS, shop, AR, credit notes, etc. exist as <strong>tables</strong> on this DB.</li>
+  <li>Lock in <strong>SaaS Option A</strong>: each new paying yard later gets its <strong>own database + secrets + deploy</strong> — see provisioning handout linked in section 6.</li>
+</ul>
+
+<h2>2 · Database work you completed</h2>
+<ul class="compact">
+  <li><strong>Stage 1</strong> · <span class="mono">01_auth.sql</span> · <span class="mono">users</span>, <span class="mono">user_login_attempts</span>.</li>
+  <li><strong>Stage 2 EPC</strong> · <span class="mono">02_epc.sql</span> (six <span class="mono">epc_*</span> tables + <span class="mono">epc_full_view</span>). With <strong>12</strong> rows in <span class="mono">epc_categories</span>, expansion <span class="mono">02b</span> (or equivalent) looks applied — <span class="mono">02c</span>–<span class="mono">02h</span> remain <strong>optional</strong> catalogue depth.</li>
+  <li><strong>Stage 3</strong> · <span class="mono">03_master_data.sql</span> · vehicles, customers, suppliers, vehicle–EPC links. Then <span class="mono">03b</span>, <span class="mono">03c</span>, <span class="mono">03d</span>.</li>
+  <li><strong>3c tip:</strong> if phpMyAdmin showed <strong>#1305</strong>, cause was corrupted text <span class="mono">TABLE_SCHEMADATABASE()</span> — correct line is <span class="mono">TABLE_SCHEMA = DATABASE()</span>.</li>
+  <li><strong>Stage 4</strong> · <span class="mono">04_inventory.sql</span> · <span class="mono">04b</span> · <strong><span class="mono">04c_supplier_purchases.sql</span> only</strong> (skip <span class="mono">04c_tpp_intake.sql</span> — deprecated pointer file) · <span class="mono">04d</span>.</li>
+  <li><strong>Stages 5–7</strong> · <span class="mono">05_pos.sql</span> · <span class="mono">06a</span>, <span class="mono">06b</span>, <span class="mono">06e</span> · <span class="mono">07_credit_notes.sql</span>.</li>
+</ul>
+<p style="margin:8px 0;font-size:8.9pt;"><strong>Note:</strong> Empty row counts (<span class="mono">0</span>) on transactional tables mean <strong>no data yet</strong>, not that SQL scripts failed.</p>
+
+<h2>3 · Config &amp; first login</h2>
+<ul class="compact">
+  <li><span class="mono">config/secrets.local.php</span> — <span class="mono">db.name</span> = <span class="mono">valatone_master</span> (example); <span class="mono">app.url</span> must match the real browser URL and folder under Laragon (<span class="mono">…/valaotne-saas/</span> vs typos).</li>
+  <li><strong>No “Users screen” yet</strong> — first staff row is inserted in phpMyAdmin into <span class="mono">users</span> with a <strong>bcrypt</strong> <span class="mono">password_hash</span> · role <span class="mono">owner</span> · <span class="mono">is_active = 1</span>.</li>
+  <li>Helper on disk: <span class="mono">tools/generate_password_hash.php</span> (run with Laragon’s <span class="mono">php.exe</span>). Full illustrated guide remains <span class="mono">docs/add_users_staff_guide_print.html</span>.</li>
+</ul>
+
+<h2>4 · Docs &amp; tools added during this arc</h2>
+<ul class="compact">
+  <li><span class="mono">docs/saas_option_a_new_customer_checklist_print.html</span> — Option A onboarding (DB + secrets + SQL order + worksheet).</li>
+  <li><span class="mono">tools/generate_password_hash.php</span> — CLI bcrypt for new passwords.</li>
+  <li>Cross-links · <span class="mono">docs/client_training_index.html</span> · <span class="mono">docs/VALATONE_SAAS_WAY_FORWARD.md</span> Phase 1a · <span class="mono">CHANGELOG</span> + <span class="mono">CLAUDE.md</span> §9 entries for the SaaS checklist work.</li>
+</ul>
+
+<h2>5 · Immediate “what’s next”</h2>
+<div class="box">
+  <ol style="margin:0;padding-left:1.2em;line-height:1.45;font-size:inherit;">
+    <li>Confirm <strong>one user row</strong> exists on <span class="mono">valatone_master</span> (<span class="mono">Browse</span> · <span class="mono">users</span>).</li>
+    <li>Open <strong>login</strong> URL that matches <span class="mono">secrets.local.php</span> (<span class="mono">auth/login.php</span>).</li>
+    <li>Smoke-test: <strong>Dashboard</strong> → optional master data · <strong>POS</strong> draft · guest <strong><span class="mono">/shop/</span></strong>.</li>
+    <li>For every <strong>new customer</strong> (Option A): use <span class="mono">saas_option_a_new_customer_checklist_print.html</span> Print → PDF as the run-sheet.</li>
+  </ol>
+</div>
+
+<h2>6 · Related PDF-style pages (already in <span class="mono">docs/</span>)</h2>
+<ul class="compact">
+  <li><strong>Provisioning:</strong> <span class="mono">saas_option_a_new_customer_checklist_print.html</span></li>
+  <li><strong>Add users / hashes:</strong> <span class="mono">add_users_staff_guide_print.html</span></li>
+  <li><strong>DB incremental vs replace:</strong> <span class="mono">database_update_backup_guide_print.html</span></li>
+  <li><strong>New PC install:</strong> <span class="mono">client_install_print.html</span></li>
+  <li><strong>SaaS strategy (Markdown):</strong> <span class="mono">VALATONE_SAAS_WAY_FORWARD.md</span></li>
+</ul>
+
+<div class="foot">
+  This recap is narrative only — not SQL. Canonical SQL path in repo root <span class="mono">CLAUDE.md</span> §10. Index of handouts: <span class="mono">docs/client_training_index.html</span>.
+</div>
+
+</body>
+</html>

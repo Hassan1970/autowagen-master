@@ -94,13 +94,48 @@ $pageTitle = 'Supplier payables (owed)';
 include __DIR__ . '/includes/header.php';
 ?>
 
-<div class="container-fluid py-3">
-  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+<style>
+  .aw-ap-print-title { border-bottom: 3px solid #c8102e; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+  .aw-ap-print-title h1 { color: #0a0a0a; font-size: 1.25rem; font-weight: 700; letter-spacing: .08em; }
+  .aw-ap-print-meta { color: #444; font-size: 0.85rem; }
+  @media print {
+    @page { margin: 12mm; size: A4; }
+    body { background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    nav.navbar, .navbar-aw, footer, .no-print { display: none !important; }
+    main.container-fluid { padding: 0 !important; max-width: 100% !important; }
+    .aw-ap-print-title h1 { color: #000; }
+    .table { font-size: 9pt; }
+    .badge { border: 1px solid #333; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .card { border: 1px solid #ccc !important; box-shadow: none !important; }
+  }
+</style>
+
+<div class="container-fluid py-3 aw-ap-report">
+  <div class="aw-ap-print-title">
+    <h1 class="mb-1"><span style="color:#c8102e;"><?= e(APP_NAME) ?></span> — Accounts payable (who we owe)</h1>
+    <div class="aw-ap-print-meta">
+      Report date (as at) <strong><?= e($asOf) ?></strong> &middot; <?= e(APP_NAME) ?> &middot; ZAR
+    </div>
+  </div>
+
+  <?php if ($apReady && $rows): ?>
+    <div class="alert alert-light border small mb-3 no-print">
+      <div class="fw-semibold mb-2 text-dark">How to read this report</div>
+      <ul class="mb-0 ps-3">
+        <li class="mb-2"><strong>A — Top total &amp; date</strong> — The red banner shows the <strong>grand total</strong> you still owe suppliers/private sellers (sum of every row below). Use <strong>As at (report date)</strong> for your printout’s “as at” stamp; money amounts are always <strong>today’s open balances</strong>, not a historical snapshot.</li>
+        <li class="mb-2"><strong>B — Main table (each purchase)</strong> — One row per <strong>supplier batch purchase</strong> that still has money owing. <strong>Bill</strong> = what you owe on that purchase. <strong>Paid so far</strong> = payments you recorded. <strong>Balance</strong> = Bill minus paid (what is still left to pay).</li>
+        <li class="mb-2"><strong>C — Status &amp; due</strong> — <strong>Unpaid</strong> = nothing recorded against the bill yet. <strong>Part paid</strong> = some payment lines exist but balance remains. <strong>Due</strong> shows the purchase’s due date when you set it on the purchase; blank (—) means no due date saved.</li>
+        <li><strong>D — Summary blocks</strong> — “Summary by who we owe” adds up balances <strong>per supplier</strong> (or per private seller). It should match the detail rows above for that name.</li>
+      </ul>
+    </div>
+  <?php endif; ?>
+
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 no-print">
     <div>
-      <h1 class="h4 mb-0">
-        <i class="bi bi-cash-coin"></i> Accounts payable — who we still owe
-      </h1>
-      <p class="text-muted small mb-0">ZAR only. Set bill amounts and record payments on each purchase. Private sellers included.</p>
+      <p class="text-muted small mb-0">
+        ZAR only. Bills and payments are edited on each purchase. This is <strong>accounts payable</strong>
+        (money <strong>you owe</strong>), not customer <strong>accounts receivable</strong>.
+      </p>
     </div>
     <div class="d-flex flex-wrap align-items-end gap-2">
       <form method="get" class="d-flex align-items-end gap-2">
@@ -110,12 +145,18 @@ include __DIR__ . '/includes/header.php';
         </div>
         <button class="btn btn-sm btn-outline-dark" type="submit">Apply</button>
       </form>
+      <button type="button" class="btn btn-sm btn-danger" onclick="window.print();">
+        <i class="bi bi-printer"></i> Print / PDF
+      </button>
       <a class="btn btn-sm btn-outline-secondary" href="<?= e(APP_URL) ?>/supplier_purchases_admin.php">Supplier purchases</a>
+      <a class="btn btn-sm btn-outline-dark" target="_blank" rel="noopener" href="<?= e(APP_URL) ?>/docs/supplier_ap_report_explained_print.html" title="Opens help page — use Ctrl+P to save as PDF">
+        <i class="bi bi-journal-text"></i> What A–D means
+      </a>
     </div>
   </div>
 
   <?php if (!$apReady): ?>
-    <div class="alert alert-warning">
+    <div class="alert alert-warning no-print">
       Run <code>sql/04d_supplier_accounts_payable.sql</code> in phpMyAdmin (database <code>autowagen_master</code>) to enable this report.
     </div>
   <?php elseif (!$rows): ?>
@@ -125,6 +166,9 @@ include __DIR__ . '/includes/header.php';
         <strong>Nothing outstanding</strong> — no purchase has a positive balance, or no bill amounts are set.
       </div>
     </div>
+    <p class="small text-muted no-print mb-0 mt-2">
+      Tip: open <strong>Inventory → Supplier purchases</strong>, set <strong>Bill</strong> on each purchase, then record <strong>Payments</strong> until balance is zero.
+    </p>
   <?php else: ?>
     <div class="card border-0 shadow-sm border-danger border-2 mb-3">
       <div class="card-body py-2 d-flex flex-wrap align-items-center justify-content-between">
@@ -145,7 +189,7 @@ include __DIR__ . '/includes/header.php';
               <th class="text-end">Balance</th>
               <th>Status</th>
               <th>Due</th>
-              <th></th>
+              <th class="no-print"></th>
             </tr>
           </thead>
           <tbody>
@@ -172,7 +216,7 @@ include __DIR__ . '/includes/header.php';
               <td class="text-end fw-bold">R <?= number_format((float) $r['balance'], 2) ?></td>
               <td><?= $st ?></td>
               <td class="text-muted"><?= $r['due_date'] ? e($r['due_date']) : '—' ?></td>
-              <td>
+              <td class="no-print">
                 <a class="btn btn-sm btn-outline-dark" href="<?= e(APP_URL) ?>/supplier_purchase_edit.php?id=<?= (int) $r['id'] ?>">Open</a>
               </td>
             </tr>
@@ -181,6 +225,10 @@ include __DIR__ . '/includes/header.php';
         </table>
       </div>
     </div>
+
+    <p class="small text-muted no-print mb-0 mt-3">
+      <strong>Print / PDF:</strong> click <strong>Print / PDF</strong> above — in the dialog choose your printer or <strong>Save as PDF</strong>. If the red bar fades, enable <strong>Background graphics</strong> in print options.
+    </p>
 
     <h2 class="h6 mt-4 mb-2 text-muted">Summary by who we owe</h2>
     <div class="row g-2">

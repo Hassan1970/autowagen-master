@@ -118,7 +118,7 @@ $pageTitle = $pageTitle ?? 'Dashboard';
 
 <nav class="navbar navbar-expand-lg navbar-dark navbar-aw px-3">
   <a class="navbar-brand" href="<?= e(APP_URL) ?>/main_dashboard.php">
-    <i class="bi bi-truck-front"></i> AUTOWAGEN
+    <i class="bi bi-truck-front"></i> <?= e(APP_NAME) ?>
   </a>
 
   <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">

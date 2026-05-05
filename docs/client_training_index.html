@@ -68,6 +68,19 @@
   <h1>Autowagen Master — training guides</h1>
   <p class="tagline">Plain-language steps for <strong>shop staff</strong> using the system day to day. Open each link in <strong>Chrome</strong> or <strong>Edge</strong>. To save a handout: <kbd>Ctrl</kbd>+<kbd>P</kbd> → <strong>Save as PDF</strong>.</p>
 
+  <div class="card" style="border-left:4px solid #6610f2;background:#faf8ff;">
+    <h2>Valatone SaaS — Option A: new customer (DB + secrets per yard)</h2>
+    <p><strong>Owner / provisioning:</strong> One checklist page — create empty DB · DB user · deploy PHP · <code>secrets.live.php</code> · run <code>sql/*.sql</code> in standard order · first <code>users</code> row · smoke test. For strategy context see <code>docs/VALATONE_SAAS_WAY_FORWARD.md</code>.</p>
+    <a href="saas_option_a_new_customer_checklist_print.html">Open: Option A — new customer checklist → Print / PDF</a>
+  </div>
+
+  <div class="card" style="border-left:4px solid #6c757d;background:#f8f9fa;">
+    <h2>Session recap — Valatone DB + SaaS Option A · 2026-05-05</h2>
+    <p><strong>Notebook PDF:</strong> What we wired on <code>valatone_master</code>, SQL ladder notes, <code>03c</code> / <code>04c</code> pitfalls, pointers to onboarding + login helpers.</p>
+    <a href="session_recap_valatone_2026-05-05_print.html">Open: Today’s session recap → Print / PDF</a>
+    <p style="margin:10px 0 0;font-size:10pt;"><strong>Closing for today (Markdown diary):</strong> <a href="SESSION_2026-05-05_HANDOFF.md" style="font-weight:600;">SESSION_2026-05-05_HANDOFF.md</a> — open in Cursor or browser.</p>
+  </div>
+
   <div class="card" style="border:2px solid #198754;background:#f8fff9;">
     <h2>Rollout order — Live → test → backlog → test → polish</h2>
     <p><strong>Owner:</strong> The sequence hassan chose: deploy/hosting first, smoke-test, then pick <strong>one</strong> backlog build (SMTP, supplier AP, PayFast, etc.), test again, then training screenshots and PDFs. Full steps also at the top of <code>docs/BACKLOG_POST_STAGE7.md</code>.</p>
@@ -86,6 +99,19 @@
     <a href="developer_quick_sheet_print.html">Open: Developer quick sheet → PDF</a>
   </div>
 
+  <div class="card" style="border-left:4px solid #6f42c1;background:#faf9ff;">
+    <h2>New Cursor chat — master prompt (full context)</h2>
+    <p><strong>Owner / Cursor:</strong> Single printable page with the paste-in block (stack, secrets, phases, reports). Same text as <code>docs/CURSOR_NEW_CHAT_MASTER_PROMPT.md</code>. Use when a new assistant needs the whole picture; day-to-day use <code>HOW_TO_START_NEW_CHAT.md</code> Step 2 instead.</p>
+    <a href="CURSOR_NEW_CHAT_MASTER_PROMPT_print.html">Open: Master prompt for new chat → Print / PDF</a>
+  </div>
+
+  <div class="card" style="border-left:4px solid #0d6efd;background:#f5f9ff;">
+    <h2>Rebuild the whole app — detailed AI specification</h2>
+    <p><strong>Developers / AI agents:</strong> Stage-by-stage build order (1–7), tables, business rules (SHGA, parts, POS, shop, credit notes), SQL sequence, what is out of scope. Attach this Markdown in another tool to implement or audit a full greenfield build. Not a daily handout — use the shorter master prompt above for normal chats.</p>
+    <p style="margin:0 0 8px;font-size:10pt;"><strong>File:</strong> <code>docs/BUILD_WHOLE_PROJECT_AI_PROMPT.md</code> (open in Cursor or any editor; optional Print via Markdown preview).</p>
+    <a href="BUILD_WHOLE_PROJECT_AND_CLAUDE_print.html">Open: BUILD spec + full CLAUDE.md → Print / PDF (large)</a>
+  </div>
+
   <div class="card" style="border-left:4px solid #c8102e;">
     <h2>Git start → finish — Laragon terminal → GitHub</h2>
     <p><strong>Owner / IT:</strong> Linear PDF-style sheet — open Laragon/Cursor terminal, <code>cd</code> to the project, <code>git status</code>, <code>git add .</code>, <code>git commit -m</code>, <code>git push</code>, GitHub Personal Access Token as password, Credential Manager fixes, “everything up-to-date”, Vim escape.</p>
@@ -96,6 +122,12 @@
     <h2>Add staff users — viewer / manager / POS</h2>
     <p><strong>Owner / IT:</strong> There is no “Users” screen in the app yet — new logins go into MySQL table <code>users</code>. Detailed PDF-style notes: roles table, Laragon <code>password_hash</code> command, phpMyAdmin Insert steps, lockout reset SQL, testing.</p>
     <a href="add_users_staff_guide_print.html">Open: Add users — full guide → Print / PDF</a>
+  </div>
+
+  <div class="card" style="border-left:4px solid #c8102e;background:#fff8f8;">
+    <h2>Live hosting — leaked DB password? Rotate MySQL &amp; secrets → PDF</h2>
+    <p><strong>Owner / IT:</strong> Step-by-step: change MySQL user password in cPanel (or your host), update <code>config/secrets.live.php</code> on the <strong>server only</strong> (<code>db.pass</code>), never commit real secrets, test the site. If credentials were ever pushed to GitHub, see GitHub’s “remove sensitive data” doc link inside.</p>
+    <a href="live_db_password_rotation_secrets_print.html">Open: Live DB password &amp; secrets checklist → Print / PDF</a>
   </div>
 
   <div class="card">
@@ -149,6 +181,18 @@
   </div>
 
   <div class="card">
+    <h2>Accounts receivable — zones A–F with sample layout → PDF</h2>
+    <p>One printable page-set: labelled <strong>A</strong>–<strong>F</strong> (title strip, grey help boxes, filters, totals, “By customer”, “By invoice”) plus a dashed <strong>example</strong> table — good for laminating or client training.</p>
+    <a href="customer_ar_report_explained_abcdef_print.html">Open: AR report — A–F explained (sample figures) → PDF</a>
+  </div>
+
+  <div class="card">
+    <h2>Accounts payable report — sections A–D explained → PDF</h2>
+    <p>For <strong>Reports → Accounts payable (owed)</strong>: what each part means (<strong>A</strong> total &amp; date, <strong>B</strong> bill/paid/balance rows, <strong>C</strong> status &amp; due, <strong>D</strong> summary cards), payable vs receivable, and how to <strong>Print / PDF</strong> once the updated report file is deployed.</p>
+    <a href="supplier_ap_report_explained_print.html">Open: Supplier AP report — explained (A–D) → PDF</a>
+  </div>
+
+  <div class="card">
     <h2>Credit notes — how balances stay consistent → PDF</h2>
     <p>Linked to original <strong>INV-…</strong>, stock restore on finalize, <strong>AR reduction</strong> vs <strong>cash refund</strong>, and why <strong>invoice / AR report / customer statement</strong> use the same maths. Includes <strong>viewer role</strong> vs <strong>public shop</strong> for advertising.</p>
     <a href="credit_notes_system_guide_print.html">Open: Credit notes system guide → Print / PDF</a>
@@ -170,6 +214,12 @@
     <h2>Sales invoice (POS)</h2>
     <p>Draft invoices, search parts, add lines, customer &amp; SA compliance (SHGA) checks, finalize, record payments, print.</p>
     <a href="invoice_screen_full_guide.html">Open: Sales invoice — full guide →</a>
+  </div>
+
+  <div class="card">
+    <h2>POS invoice — marketing / brochure PDF</h2>
+    <p>Prospect-friendly story flow: New sale → customer / quick-add → spare parts → SHGA cue → finalize → print/PDF · figures <strong>A–L</strong> with dashed screenshot slots (<code>marketing-pos-*.png</code>). Open → <strong>Ctrl+P</strong> → Save as PDF after you attach PNGs.</p>
+    <a href="pos_invoice_marketing_walkthrough_print.html">Open: POS marketing walkthrough (A–L) →</a>
   </div>
 
   <div class="card">

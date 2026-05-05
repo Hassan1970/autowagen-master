@@ -190,7 +190,7 @@ require_once __DIR__ . '/includes/header.php';
 
 <div class="container-fluid py-3">
   <div class="aw-ss-print-title">
-    <h1 class="mb-1"><span style="color:#c8102e;">AUTOWAGEN</span> — Sales summary</h1>
+    <h1 class="mb-1"><span style="color:#c8102e;"><?= e(APP_NAME) ?></span> — Sales summary</h1>
     <div class="aw-ss-print-meta">
       Invoice date from <strong><?= e($dateFrom) ?></strong> to <strong><?= e($dateTo) ?></strong> (Johannesburg)
       · <span class="text-muted">POS invoices only</span>

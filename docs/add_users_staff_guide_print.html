@@ -180,7 +180,7 @@ php -r "echo password_hash('YourPasswordHere', PASSWORD_DEFAULT), PHP_EOL;"
 </ol>
 
 <h2>7 · “Too many failed attempts” (locked out)</h2>
-<p>The login screen blocks an IP after <strong>five failed tries in fifteen minutes</strong>. Clearing attempts fixes it.</p>
+<p>The login screen counts wrong passwords per <strong>username</strong> (stored lowercase in the log) <strong>and IP address</strong>. After <strong>six failed tries</strong> within a rolling <strong>fifteen-minute</strong> window, the next attempt is blocked until that window passes. A <strong>successful</strong> login clears earlier failures for that username+IP. If you are <strong>testing</strong> or need an immediate reset, clear the log table (below).</p>
 <ol class="steps">
   <li>phpMyAdmin → correct database → tab <strong>SQL</strong>.</li>
   <li>Paste:

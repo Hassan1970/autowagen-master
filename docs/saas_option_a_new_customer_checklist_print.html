@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Valatone / Autowagen — Option A: new customer provisioning checklist</title>
+<style>
+  :root { --r:#c8102e; --k:#0a0a0a; }
+  @page { size: A4 portrait; margin: 11mm; }
+  body { margin:0 auto; max-width:178mm; padding:8mm 11mm 12mm; font-family:system-ui,"Segoe UI",sans-serif; font-size:9.4pt; line-height:1.4; color:var(--k); }
+  header { background:var(--k); color:#fff; padding:10px 14px; margin:-8mm -11mm 12px -11mm; border-bottom:4px solid var(--r); print-color-adjust:exact; }
+  header h1 { margin:0; font-size:10.8pt; letter-spacing:.05em; }
+  header span.brand { color:var(--r); font-weight:700; }
+  header .sub { margin:5px 0 0; font-size:7.4pt; opacity:.92; }
+  .hint { font-size:7.8pt; background:#fff8e6; border:1px solid #ddc653; padding:7px 9px; margin-bottom:10px; border-radius:4px; }
+  @media print { .no-print{display:none!important;} body{padding:4mm;} }
+  h2 { font-size:9.5pt; color:var(--r); margin:12px 0 6px; border-bottom:1px solid #ccc; padding-bottom:2px; text-transform:uppercase; letter-spacing:.04em; page-break-after:avoid; }
+  ol.main > li { margin:8px 0; }
+  ol.main ol { margin:4px 0 8px 0; }
+  ol.main ol li { margin:3px 0; }
+  .mono { font-family:Consolas,ui-monospace,monospace; font-size:7.9pt; background:#f4f4f4; padding:1px 4px; border-radius:2px; }
+  table { width:100%; border-collapse:collapse; font-size:8.1pt; margin:6px 0 10px; }
+  th, td { border:1px solid #bbb; padding:5px 6px; text-align:left; vertical-align:top; }
+  th { background:#efefef; }
+  td:first-child { font-family:Consolas,ui-monospace,monospace; white-space:nowrap; }
+  .tick { width:26px; text-align:center; }
+  .notes { border:1px dashed #999; padding:8px 10px; margin-top:10px; font-size:8.5pt; min-height:2.8em; }
+  .foot { margin-top:10px; padding-top:6px; border-top:1px solid #ccc; font-size:7.4pt; color:#555; }
+  kbd { border:1px solid #999; padding:0 3px; border-radius:3px; font-size:.85em; background:#eee; }
+  .warn { border-left:3px solid var(--r); padding:6px 10px; background:#fff5f5; font-size:8.3pt; margin:8px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span class="brand">OPTION A</span> — New customer (one tenant = one database)</h1>
+  <div class="sub">Valatone SaaS provisioning · repeatable manual checklist · timezone Africa/Johannesburg UTC+2 · pair with <span class="mono">docs/VALATONE_SAAS_WAY_FORWARD.md</span></div>
+</header>
+
+<div class="hint no-print">
+  <strong>Save as PDF:</strong> Chrome or Edge → <kbd>Ctrl</kbd>+<kbd>P</kbd> → <strong>Save as PDF</strong> → <strong>Pages: All</strong> → <strong>Background graphics ON</strong>. Clear selection first so print is not “selection only”.
+</div>
+
+<p><strong>What Option A is:</strong> Each yard gets its <strong>own</strong> MySQL database, its <strong>own</strong> <span class="mono">secrets.*.php</span>, and its <strong>own</strong> deployed folder/subdomain. No shared multi-tenant table — isolation is by separate DB.</p>
+
+<div class="warn">
+  <strong>Never</strong> point two customers at the same database name. <strong>Never</strong> reuse another client’s FTP path unless you intentionally overwrote them (don’t).</div>
+
+<h2>Per customer — do in order</h2>
+<ol class="main">
+  <li><strong>Record</strong> (write on this sheet footer or your CRM): company name · planned URL/subdomain · <strong>DB name</strong> · DB user · provision date · who ran the checklist.</li>
+  <li><strong>Create an empty database</strong> on the server (hosting control panel or phpMyAdmin) with UTF-8 (utf8mb4). Example name pattern: <span class="mono">yard_slug_master</span> — unique per customer.</li>
+  <li><strong>Create MySQL user</strong> granted only that database — not global <span class="mono">root</span> on production.</li>
+  <li><strong>Deploy PHP files</strong> to this customer’s directory (FTP, git deploy, ZIP). Same codebase version as your gold master.</li>
+  <li><strong>Secrets file on the server:</strong> <span class="mono">config/secrets.live.php</span> — set <span class="mono">db.name</span>, <span class="mono">db.user</span>, <span class="mono">db.pass</span>, <span class="mono">db.host</span>, and <span class="mono">app.url</span> to their <strong>exact</strong> public base URL (trailing slash rule = match whatever the app expects). Never commit secrets to Git.</li>
+  <li><strong>Run SQL migrations</strong> on <strong>this database only</strong> — phpMyAdmin → pick <strong>that</strong> DB → SQL tab → paste file contents → Go. Use the table in the next section <strong>in order</strong>. Skip a file only if you are absolutely sure it already ran on this DB.</li>
+  <li><strong>First login user:</strong> insert one row into <span class="mono">users</span> with a bcrypt <span class="mono">password_hash</span>, role <span class="mono">owner</span> — full steps: <span class="mono">docs/add_users_staff_guide_print.html</span>.</li>
+  <li><strong>Smoke test:</strong> open their URL → login → Dashboard · create one test vehicle or part (optional) · open POS draft · open public <span class="mono">/shop/</span> (if used) · Reports menu loads.</li>
+  <li><strong>Handoff:</strong> give the customer their login URL + username reset policy; keep your copy of DB name and deploy path.</li>
+</ol>
+
+<h2>SQL sequence (fresh empty database)</h2>
+<p>Each row = one file under <span class="mono">sql/</span>. Paste whole file unless your process uses CLI. Yellow #1681 “display width” warnings are usually harmless.</p>
+<table>
+  <thead><tr><th class="tick">☐</th><th>File</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td class="tick"></td><td>01_auth.sql</td><td><span class="mono">users</span>, login attempts</td></tr>
+    <tr><td class="tick"></td><td>02_epc.sql</td><td>EPC tables + starter tree</td></tr>
+    <tr><td class="tick"></td><td>02b … 02h (optional)</td><td>Bigger catalogue — only if you standardise expanded EPC for all tenants; see <span class="mono">sql/README_EPC_EXPANSION.txt</span></td></tr>
+    <tr><td class="tick"></td><td>03_master_data.sql</td><td>Vehicles, customers, suppliers</td></tr>
+    <tr><td class="tick"></td><td>03b_vehicle_extras.sql</td><td></td></tr>
+    <tr><td class="tick"></td><td>03c_proof_of_residence.sql</td><td>Uses <span class="mono">TABLE_SCHEMA = DATABASE()</span> guards</td></tr>
+    <tr><td class="tick"></td><td>03d_customer_compliance.sql</td><td></td></tr>
+    <tr><td class="tick"></td><td>04_inventory.sql</td><td>Parts</td></tr>
+    <tr><td class="tick"></td><td>04b_part_tpp_compliance.sql</td><td></td></tr>
+    <tr><td class="tick"></td><td>04c_supplier_purchases.sql</td><td><strong>Not</strong> <span class="mono">04c_tpp_intake.sql</span> — that file is a pointer only</td></tr>
+    <tr><td class="tick"></td><td>04d_supplier_accounts_payable.sql</td><td>Bills + supplier payments</td></tr>
+    <tr><td class="tick"></td><td>05_pos.sql</td><td>Invoices</td></tr>
+    <tr><td class="tick"></td><td>06a_customer_account.sql</td><td>On-account customers / AR UX</td></tr>
+    <tr><td class="tick"></td><td>06b_web_shop.sql</td><td>Shop tables + <span class="mono">list_online</span></td></tr>
+    <tr><td class="tick"></td><td>06e_shop_guest_enquiries.sql</td><td>After <strong>06b</strong></td></tr>
+    <tr><td class="tick"></td><td>07_credit_notes.sql</td><td>After <strong>05</strong></td></tr>
+  </tbody>
+</table>
+
+<h2>Laragon (local trial copy for one customer)</h2>
+<ul style="margin:4px 0 8px 1em; font-size:8.9pt;">
+  <li>Copy project to a folder · create local DB · <span class="mono">config/secrets.local.php</span> → <span class="mono">dbname</span> + <span class="mono">app.url</span> (e.g. <span class="mono">http://localhost/customer-folder/</span>).</li>
+  <li>Same SQL order as above.</li>
+</ul>
+
+<h2>Customer worksheet (handwriting)</h2>
+<div class="notes">
+  Customer / company: _________________________ Date: ________ Tech initials: ________<br>
+  Public URL: _________________________________________________________________<br>
+  Database name: ______________________________ DB user: ____________________<br>
+  Deploy folder on host (path): _______________________________________________<br>
+  Git tag / ZIP version deployed: ____________________________________________
+</div>
+
+<div class="foot">
+  Related: <span class="mono">docs/database_update_backup_guide_print.html</span> (incremental vs full replace) · <span class="mono">docs/client_install_print.html</span> · <span class="mono">CLAUDE.md</span> SQL order · Index: <span class="mono">docs/client_training_index.html</span>
+</div>
+
+</body>
+</html>

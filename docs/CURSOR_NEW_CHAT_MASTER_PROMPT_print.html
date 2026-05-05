@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Master prompt — new Cursor chat · Autowagen Master</title>
+<style>
+  :root { --r:#c8102e; --k:#0a0a0a; }
+  @page { size: A4 portrait; margin: 14mm; }
+  body { margin:0 auto; max-width: 175mm; padding:10mm 12mm; font-family:system-ui,sans-serif; font-size:10pt; line-height:1.5; color:var(--k); }
+  header { background:var(--k); color:#fff; padding:10px 14px; margin:-10mm -12mm 12px -12mm; border-bottom:4px solid var(--r); print-color-adjust:exact; }
+  header h1 { margin:0; font-size:12pt; letter-spacing:.06em; }
+  header span { color:var(--r); font-weight:700; }
+  header .sub { margin:5px 0 0; font-size:7.8pt; opacity:.92; }
+  .hint { font-size:8pt; background:#fff8e6; border:1px solid #ddc653; padding:8px 10px; margin-bottom:12px; border-radius:4px; }
+  @media print { .no-print{display:none!important;} body{padding:4mm;} }
+  h2 { font-size:10pt; color:var(--r); margin:14px 0 6px; border-bottom:1px solid #ccc; padding-bottom:2px; text-transform:uppercase; letter-spacing:.05em; }
+  p { margin:6px 0; }
+  .prompt-box {
+    font-family: Consolas, "Courier New", monospace;
+    font-size:8.4pt;
+    line-height:1.45;
+    background:#f6f6f6;
+    border:1px solid #ccc;
+    border-left:4px solid var(--r);
+    padding:10px 12px;
+    white-space:pre-wrap;
+    word-break:break-word;
+    margin:10px 0;
+  }
+  table { width:100%; border-collapse:collapse; font-size:9pt; margin:8px 0; }
+  table th, table td { border:1px solid #ccc; padding:6px 8px; text-align:left; vertical-align:top; }
+  table th { background:#ebebeb; }
+  ul { margin:4px 0; padding-left:1.15em; }
+  .mono { font-family:Consolas,monospace; font-size:8.8pt; background:#f4f4f4; padding:2px 5px; border-radius:2px; }
+  .foot { margin-top:14px; padding-top:8px; border-top:1px solid #ccc; font-size:7.8pt; color:#555; }
+  kbd { border:1px solid #999; padding:0 4px; border-radius:3px; font-size:.9em; background:#eee; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span>AUTOWAGEN</span> MASTER — master prompt for a new Cursor chat</h1>
+  <div class="sub">Full brain-dump · source Markdown: docs/CURSOR_NEW_CHAT_MASTER_PROMPT.md · TZ UTC+2</div>
+</header>
+
+<div class="hint no-print"><strong>Save as PDF:</strong> Chrome or Edge → click in the page (no text selected) → <kbd>Ctrl</kbd>+<kbd>P</kbd> → <strong>Save as PDF</strong> · <strong>Pages: All</strong> · optional <strong>Background graphics</strong> ON (header bar prints red/black).</div>
+
+<p><strong>Purpose.</strong> Give any future assistant enough context to resume the project safely — without replacing <span class="mono">CLAUDE.md</span> (still the single source of truth). Update the Markdown file when the big picture changes (new stage, hosting change).</p>
+
+<p><strong>Copy everything in the box below</strong> into a new Cursor chat (or attach the .md file and say “read and follow”).</p>
+
+<h2>Paste block</h2>
+<div class="prompt-box">You are helping with AUTOWAGEN MASTER — a PHP 8 + MySQL + Bootstrap 5 rebuild of a legacy app.
+
+WORKSPACE: C:\laragon\www\autowagen-master
+Never modify c:\laragon\www\autowagengit\ or the old `autowagen` database — read-only reference only.
+
+FIRST ACTION (every session): Read repo root CLAUDE.md top to bottom — especially §2 Live state, §6 Hard rules, §10 what to do now, §9 Session log. Then read docs/BACKLOG_POST_STAGE7.md (rollout Phase A→B before Phase C).
+
+STACK: No Composer. PDO only, prepared statements. Output with e(). CSRF on all forms. Timezone Africa/Johannesburg. Bootstrap 5 + Icons CDN. Brand #c8102e, nav #0a0a0a.
+SECRETS: Never commit secrets. Local: config/secrets.local.php (gitignored). Live server only: config/secrets.live.php — never paste real passwords in chat.
+DATABASE name locally is usually autowagen_master (phpMyAdmin). Live DB name comes from secrets.live.php on the SERVER — not the PC’s localhost DB.
+
+STAGES 1–7 ARE BUILT in code: auth/EPC/master data/inventory+supplier purchases+AP/POS/AR+shop+stripping+enquiries/sales summary/credit notes. New empty DB: run sql/*.sql in order listed in CLAUDE.md §10 (05, 06a, 06b, 06e, 07, etc. as needed).
+
+OWNER USER: hassan (role owner) — user is new to coding: every instruction numbered, plain English, exact clicks/types.
+
+AFTER MEANINGFUL CHANGES: Append one line to CLAUDE.md §9 Session log; update §2 if stage/SQL status changes; prepend same-dated block to docs/CHANGELOG.md AND docs/CHANGELOG.html (Recorder + UTC+2).
+
+ROLL (LIVE HOSTING): Phase A = push code, upload files to host, secrets.live.php on server, run missing SQL on HOST phpMyAdmin, verify Reports menu. Phase B = smoke test live (login, dashboard, POS draft, AR, sales summary, /shop/). Phase C backlog (SMTP, supplier AP return automation, PayFast/Stripe, alternate accountant net-due rule) — build ONLY after client agreement; see docs/BACKLOG_POST_STAGE7.md and docs/SESSION_2026-05-04_HANDOFF.md §2.
+
+REPORTS: Accounts receivable = customer_ar_report.php (money owed TO us). Accounts payable = supplier_ap_report.php (money WE owe). Sales summary = sales_summary_report.php (different). Reports dropdown in includes/header.php.
+
+TRAINING DOCS: docs/client_training_index.html links printable HTML → Print → PDF. Optional screenshots: docs/TRAINING_SCREENSHOTS.md → docs/manual_screenshots/
+
+OPTIONAL SESSION DIARY (2026-05-04): docs/SESSION_2026-05-04_HANDOFF.md — deploy list, login/hosting lessons, defer Phase C until client talks. Markdown snapshot folder: docs/md_backups/2026-05-04/
+
+NEW CHAT SHORTCUT: HOW_TO_START_NEW_CHAT.md Step 2 grey box — use for daily handoff; use THIS FILE when you need the full project brain-dump.
+
+If anything conflicts, CLAUDE.md wins.</div>
+
+<h2>When to use this vs shorter prompts</h2>
+<table>
+  <thead>
+    <tr><th>Situation</th><th>Use</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>New assistant / long break / new PC</td><td>Paste the box above (or attach <span class="mono">docs/CURSOR_NEW_CHAT_MASTER_PROMPT.md</span>).</td></tr>
+    <tr><td>Day-to-day</td><td><span class="mono">HOW_TO_START_NEW_CHAT.md</span> Step 2 only + “read CLAUDE.md §10”.</td></tr>
+    <tr><td>Live deploy smoke test</td><td><span class="mono">docs/SESSION_2026-05-04_HANDOFF.md</span> or <span class="mono">docs/BACKLOG_POST_STAGE7.md</span> Phase A–B.</td></tr>
+  </tbody>
+</table>
+
+<h2>Maintainer: keeping the Markdown accurate</h2>
+<p>When a <strong>major</strong> project fact changes (stack, stage completion, hosting domain, SQL order), edit:</p>
+<ul>
+  <li>The grey box in <span class="mono">docs/CURSOR_NEW_CHAT_MASTER_PROMPT.md</span></li>
+  <li><span class="mono">CLAUDE.md</span> (required)</li>
+  <li>Optionally <span class="mono">ROADMAP.md</span></li>
+</ul>
+<p>Recorder + time: note in <span class="mono">docs/CHANGELOG.md</span> if you change the master prompt meaningfully. Refresh this print HTML if the pasted block changes.</p>
+
+<div class="foot">
+  Pair with <code>HOW_TO_START_NEW_CHAT.md</code> · Index of guides: <code>docs/client_training_index.html</code>
+</div>
+
+</body>
+</html>

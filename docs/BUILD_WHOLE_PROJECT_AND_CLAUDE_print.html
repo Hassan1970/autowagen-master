@@ -1,11 +1,291 @@
-﻿# CLAUDE.md — Autowagen Master project memory
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Build spec + CLAUDE.md — Autowagen Master (Print → PDF)</title>
+<style>
+  :root { --r:#c8102e; --k:#0a0a0a; }
+  @page { size: A4 portrait; margin: 12mm; }
+  body { margin:0 auto; max-width: 190mm; padding:8mm 10mm; font-family:system-ui,sans-serif; font-size:9pt; line-height:1.4; color:var(--k); }
+  header { background:var(--k); color:#fff; padding:10px 14px; margin:0 0 14px 0; border-bottom:4px solid var(--r); print-color-adjust:exact; }
+  header h1 { margin:0; font-size:11pt; letter-spacing:.05em; }
+  header span { color:var(--r); font-weight:700; }
+  header .sub { margin:5px 0 0; font-size:7.5pt; opacity:.9; }
+  .hint { font-size:8pt; background:#fff8e6; border:1px solid #ddc653; padding:8px 10px; margin-bottom:12px; border-radius:4px; }
+  @media print { .no-print{display:none!important;} }
+  h2.doc-title { font-size:10pt; color:var(--r); margin:20px 0 8px; padding-bottom:4px; border-bottom:2px solid var(--r); page-break-after:avoid; }
+  pre.doc { font-family:Consolas,"Courier New",monospace; font-size:7.5pt; line-height:1.35; white-space:pre-wrap; word-wrap:break-word; background:#fafafa; border:1px solid #ddd; padding:10px 12px; margin:0 0 16px; border-radius:4px; }
+  .section-break { page-break-before:always; }
+  kbd { border:1px solid #999; padding:0 4px; border-radius:3px; font-size:.9em; background:#eee; }
+  .foot { font-size:7.5pt; color:#666; margin-top:8px; }
+</style>
+</head>
+<body>
 
-> **READ THIS FILE FIRST. EVERY SESSION. NO EXCEPTIONS.**
->
-> This is the single source of truth for what's built, what works, and what to
-> do next. If a chat ever gets confused, read this top-to-bottom before
-> touching anything. After every meaningful action, **update the
-> "Live state" and "Session log" sections** with an accurate timestamp.
+<header>
+  <h1><span>AUTOWAGEN</span> MASTER — combined reference (Print → PDF)</h1>
+  <div class="sub">Part A: docs/BUILD_WHOLE_PROJECT_AI_PROMPT.md · Part B: CLAUDE.md · Generated 2026-05-04 16:04 (regenerate: php tools/generate_build_claude_combined_print.php when PHP is on PATH)</div>
+</header>
+
+<div class="hint no-print"><strong>Save as PDF:</strong> Chrome or Edge → <kbd>Ctrl</kbd>+<kbd>P</kbd> → <strong>Save as PDF</strong> · <strong>Pages: All</strong></div>
+
+<h2 class="doc-title">Part A — BUILD_WHOLE_PROJECT_AI_PROMPT.md</h2>
+<pre class="doc"># Detailed AI build prompt — Autowagen Master (full project specification)
+
+**Purpose:** Give an AI coding agent enough **structure, rules, and stage order** to **implement or reproduce** this application. It does **not** replace reading **`CLAUDE.md`** and **`ROADMAP.md`** in the repo — those stay the live diary. **If this prompt conflicts with the repo, the repo wins.**
+
+**Audience:** Another AI, or a senior developer, building the system from a blank folder + empty MySQL database.
+
+---
+
+## 1. Mission and constraints
+
+### 1.1 What this is
+
+- **Autowagen Master** is a **clean rebuild** of a legacy PHP app for a **South African vehicle dismantler / parts seller** (strip &amp; sell parts — SA legal compliance matters).
+- **Legacy reference only:** `c:\laragon\www\autowagengit\` and MySQL database **`autowagen`** — **never modify, never migrate blindly**. Use only as read-only comparison.
+- **New workspace:** `autowagen-master\` (or equivalent path). New database: **`autowagen_master`** (local Laragon/phpMyAdmin or hosted MySQL).
+
+### 1.2 Hard rules (never break)
+
+1. **No Composer** — plain PHP 8 includes only.
+2. **PDO only**, **prepared statements** for all dynamic SQL. Never concatenate user input into queries.
+3. **Secrets:** no passwords in committed files. **`config/secrets.local.php`** (gitignored) for dev; **`config/secrets.live.php`** on server only for production — never commit real credentials.
+4. **Output** via `e()` (htmlspecialchars). **CSRF** on every mutating form: hidden `csrf` field + `csrf_check()` on POST.
+5. **Soft delete** on master entities (`is_active = 0`). **Do not** hard-delete vehicles, customers, suppliers, users from UI.
+6. **`uploads/`** — deny PHP execution (`.htaccess`); uploads via helpers in `includes/uploads.php` (size cap ~5 MB, extension whitelist).
+7. **`created_by`** — `INT UNSIGNED NULL` FK to `users.id` on new business tables; set from `$_SESSION[&#39;user_id&#39;]` on insert.
+8. **Timezone:** `Africa/Johannesburg` (UTC+2) in PHP and project docs.
+9. **UI:** Bootstrap 5 + Bootstrap Icons (CDN). Brand **`#c8102e`**, nav **`#0a0a0a`**.
+10. **Pagination:** 50 rows per list page unless specified otherwise.
+
+### 1.3 Stack summary
+
+| Layer | Choice |
+|--------|--------|
+| Runtime | PHP 8 |
+| Database | MySQL (MariaDB-compatible patterns for DDL use INFORMATION_SCHEMA guards where needed) |
+| HTTP | Apache (e.g. Laragon on Windows) |
+| Frontend | Bootstrap 5, no build step |
+| Auth | PHP sessions, password_hash, role-based `user_has_role()` |
+
+---
+
+## 2. Staged implementation order (do not skip)
+
+Build and **apply SQL + smoke-test** each stage before the next. SQL files live in **`sql/`**, are **additive** (`CREATE TABLE IF NOT EXISTS`; ALTERs idempotent where used).
+
+### Stage 1 — Foundation
+
+**Goal:** Config, PDO, CSRF, `e()`, login/logout, layout shell, dashboard redirect.
+
+**SQL:** `01_auth.sql` → tables **`users`**, **`user_login_attempts`**.
+
+**Behaviour:**
+
+- `config/config.php` loads env + secrets, exposes `$pdo`, helpers `csrf_token()`, `csrf_check()`, `e()`.
+- `auth/login.php`: CSRF, session regenerate on success. **Lockout:** configurable max failed attempts per **lowercased username + client IP** in a rolling window (e.g. 6 failures / 15 minutes); log attempts in `user_login_attempts`; **successful login removes failed rows** for that pair.
+- `includes/auth_check.php`: `current_user()`, `user_has_role()` for `owner` / `admin` / `manager` / `staff` / `viewer`.
+- `includes/header.php` + `includes/footer.php`: shared nav; iterate roles for menu visibility.
+- `index.php`: auth-aware redirect. `main_dashboard.php`: post-login landing.
+
+**Deliverables checklist:** Login works; unauthorized pages redirect; no secrets in git.
+
+---
+
+### Stage 2 — EPC (six-level parts catalogue tree)
+
+**Goal:** Canonical hierarchy for tagging parts and vehicles.
+
+**Levels:** **Category → Subcategory → Type → Subsystem → Component → Variant**
+
+**SQL:** `02_epc.sql` → `epc_categories`, `epc_subcategories`, `epc_types`, `epc_subsystems`, `epc_components`, `epc_variants`, view **`epc_full_view`**. Rules: parent FKs with `ON DELETE CASCADE` where appropriate; **`UNIQUE (parent_id, slug)`** per level; `is_active`, `sort_order`, timestamps.
+
+**PHP:**
+
+- `includes/epc_helpers.php` — level metadata, `epc_slugify`, `epc_next_sort`.
+- `ajax/epc_cascade.php` — authenticated JSON cascade for dropdowns (optional `include_inactive` for admin).
+- `epc_browse.php` — 6-column drill-down for any logged-in user.
+- `epc_admin.php` — owner/admin: CRUD-ish (add, rename, reorder, toggle active) with CSRF.
+- Optional: `epc_full_tree.php` — printable reference.
+
+**Optional expansion (separate SQL files, run in project-documented order):** `02b` … `02h`, `README_EPC_EXPANSION.txt` — expands categories/spine; re-verify with read-only scripts `02_verify_epc_integrity.sql`.
+
+---
+
+### Stage 3 — Master data (vehicles, customers, suppliers)
+
+**SQL:** `03_master_data.sql` → `vehicles`, `customers`, `suppliers`, **`vehicle_epc_links`** (composite PK vehicle_id + variant_id). Unique indexes on vehicle VIN/plate when present. Soft-delete.
+
+**SQL (3b):** `03b_vehicle_extras.sql` — extended vehicle fields for dismantler: `stock_code` (e.g. **AWG-XXXX**), status, transmission, fuel, body, supplier FK, private seller fields, purchase info, **legal document flags + paths** (logbook, receipt, seller ID), yard location; table **`vehicle_photos`**.
+
+**SQL (3c):** `03c_proof_of_residence.sql` — 4th paper: seller proof of residence.
+
+**SQL (3d):** `03d_customer_compliance.sql` — customer **SA ID / CIPC**, `id_doc_path`, proof of address — **Second-Hand Goods Act** paper trail for **buyers**.
+
+**PHP:**
+
+- `vehicles_admin.php`, `vehicle_edit.php` (multipart uploads, photo gallery, EPC linker).
+- `customers_admin.php`, `suppliers_admin.php`.
+- Extend `includes/uploads.php` for vehicle, customer, part paths (see later stages).
+
+**Rule:** Stage 5 POS will **enforce** customer ID + proof-of-address on file when selling **stripped** parts or **non-new** condition parts.
+
+---
+
+### Stage 4 — Inventory (parts)
+
+**SQL:** `04_inventory.sql` → **`parts`**, **`part_photos`**, **`part_epc_links`**.
+
+**Part model:**
+
+| Dimension | Values |
+|-----------|--------|
+| **source** | `stripped`, `oem_new`, `replacement`, `third_party` |
+| **condition** | `new`, `good`, `fair`, `poor`, `scrap` |
+| **status** | `on_vehicle`, `available`, `reserved`, `sold`, `scrapped` |
+| **SKU** | Stripped: `AWG-&lt;vehicle_stock&gt;-P##`; OEM/REP/TPP: `OEM-####`, `REP-####`, `TPP-####` with per-scope counters |
+| **VAT** | Column `vat_rate` default `0.00` (VAT not registered yet but schema-ready) |
+
+**SQL (4b):** `04b_part_tpp_compliance.sql` — TPP private-seller compliance doc columns on `parts`.
+
+**SQL (4c):** `04c_supplier_purchases.sql` → **`supplier_purchases`**, nullable **`parts.supplier_purchase_id`** — one purchase, many parts. Legacy URL names may redirect to `supplier_purchases_*`.
+
+**SQL (4d):** `04d_supplier_accounts_payable.sql` — bill fields on purchase + **`supplier_purchase_payments`**; **`supplier_ap_report.php`** — **Accounts payable (owed)**.
+
+**PHP:** `parts_admin.php`, `part_edit.php`; purchase admin/edit; vehicle page shows stripped-parts summary.
+
+---
+
+### Stage 5 — POS (sales invoices)
+
+**SQL:** `05_pos.sql` → **`sales_invoices`** (draft/final/void, `invoice_no` **INV-YYYY-NNNNN** on finalize), **`sales_invoice_lines`** (optional `part_id`, qty, VAT snapshot), **`sales_invoice_payments`**.
+
+**Behaviour:**
+
+- Draft invoice: add lines (parts from **`ajax/parts_search.php`** modal + manual lines); **line-level price override** on part lines in draft.
+- **Finalize:** assign invoice number; reduce **`qty_on_hand`** / mark sold for parts; enforce **SHGA** (customer docs) when lines require it.
+- **Payments:** cash/EFT/card/other; soft-deactivate payment rows; show remaining balance.
+- **Void:** defined behaviour without silent stock corruption (per implementation).
+- **Print:** HTML letterhead (`assets/invoice-logo.png` or fallback banner), **`print-color-adjust: exact`** for black bar in PDF.
+- **Parts list return path:** `parts_admin.php?return=invoice_edit.php?id=N` with **Back to invoice** bar when whitelisted.
+
+---
+
+### Stage 6 — Reports, AR, public shop, stripping catalogue, enquiries
+
+**SQL (6a):** `06a_customer_account.sql` — **`customers.account_customer`**, optional **`credit_limit_zar`**. **Finalize** with **due date** requires account customer.
+
+**SQL (6b):** `06b_web_shop.sql` — **`parts.list_online`**, **`shop_orders`**, **`shop_order_lines`**. Guest checkout reduces stock like POS; staff cancel restores.
+
+**SQL (6e):** `06e_shop_guest_enquiries.sql` — **`shop_guest_enquiries`**.
+
+**PHP (high level):**
+
+- `customer_ar_report.php`, `customer_statement.php`, `sales_summary_report.php`.
+- `customer_quick_add.php` from draft invoice.
+- **`includes/shop_helpers.php`** — e.g. **`shop_part_purchasable_online()`**: only **non-stripped** parts; **OEM new** or **Replacement** in **New / Good / Fair** (not Poor/Scrap for buy-online — enquiry instead); rules must match UI copy across `part_edit`, `parts_admin`, shop pages.
+- Public **`shop/`** — index, part, cart, checkout, thanks, `enquiry.php`; **`shop/stripping/`** — vehicles being stripped (uses `vehicles` + `vehicle_photos`, no extra SQL).
+- `shop_orders_admin.php`, `shop_enquiries_admin.php`.
+- Nav: consolidate **Reports** (AP, AR, invoices, statements link, web orders, messages, sales summary, credit notes after Stage 7).
+
+**Not in MVP:** payment gateway, SMTP bulk email, automated WhatsApp API.
+
+---
+
+### Stage 7 — Credit notes (customer returns)
+
+**SQL:** `07_credit_notes.sql` (after `05`) → **`sales_credit_notes`**, **`sales_credit_note_lines`** — always linked to a **final** invoice; **`credit_no`** **CN-YYYY-NNNNN** on finalize; **`adjustment_type`**: `ar_reduction` vs `cash_refund`.
+
+**Behaviour:**
+
+- Draft → finalize: **restore stock** for returned part lines; cap credits vs invoice and prior finalized credits.
+- **Net due** on invoice/reporting subtracts **all** finalized credits; AR/statement can **split display** AR reduction vs cash refund without changing net.
+
+**PHP:** `includes/credit_note_helpers.php`, `credit_notes_admin.php`, `credit_note_edit.php`; integrate **`invoice_edit.php`**, **`customer_ar_report.php`**, **`customer_statement.php`**.
+
+---
+
+## 3. Canonical SQL run order (new empty database)
+
+Run in phpMyAdmin (or mysql CLI) **in order**, skipping files already applied:
+
+1. `01_auth.sql`
+2. `02_epc.sql` (+ optional `02b` → `02c` → `02d` → optional `02e` → optional `02f` → `02g` → `02h` per `README_EPC_EXPANSION.txt`)
+3. `03_master_data.sql` → `03b` → `03c` → `03d`
+4. `04_inventory.sql` → `04b` → `04c` → `04d`
+5. `05_pos.sql`
+6. `06a_customer_account.sql`
+7. `06b_web_shop.sql`
+8. `06e_shop_guest_enquiries.sql` (after 6b)
+9. `07_credit_notes.sql` (after 5)
+
+---
+
+## 4. Accounting and reporting semantics (must stay consistent)
+
+- **Accounts receivable (AR):** money **customers owe you** — `customer_ar_report.php`. Not the same as AP.
+- **Accounts payable (AP):** money **you owe suppliers / sellers** — `supplier_ap_report.php`.
+- **Sales summary:** turnover by **invoice date** vs cash by **payment date**; optional **credit notes in range by credit date** when Stage 7 tables exist.
+- **Customer statement:** printable; `wa.me` + `mailto:` helpers for staff (not automated SMTP).
+
+---
+
+## 5. Repository and documentation hygiene
+
+- After meaningful code/SQL/docs changes: prepend **`docs/CHANGELOG.md`** + **`docs/CHANGELOG.html`**; append one line to **`CLAUDE.md`** section 9 Session log; update **`CLAUDE.md`** section 2 if stage status changes.
+- Training index: **`docs/client_training_index.html`** — links printable HTML guides (Print → PDF).
+
+---
+
+## 6. Explicitly out of scope (post-MVP / backlog)
+
+Do **not** treat these as required for a first complete build unless the product owner re-opens them:
+
+- Supplier **return** credits / AP automation
+- **SMTP** reminders; **PayFast/Stripe** on shop checkout
+- Full **legacy data import** from old DB (plan separate migration after schema proven)
+- **Quotes** split from invoices; advanced **credit limits** automation
+
+See **`docs/BACKLOG_POST_STAGE7.md`**.
+
+---
+
+## 7. Acceptance testing (minimum per stage)
+
+| Stage | Minimum smoke test |
+|-------|---------------------|
+| 1 | Login, logout, lockout behaviour, dashboard |
+| 2 | Browse tree to deepest variant; admin add/toggle node |
+| 3 | Create vehicle with stock code + upload one doc; create customer with 2/2 compliance docs |
+| 4 | Create stripped part + OEM part; SKU format; photo upload; optional purchase batch + AP line |
+| 5 | Draft invoice, part from search, finalize, stock decreases; print PDF |
+| 6 | Account customer + due date rule; list part online; guest order; order appears in admin; optional cancel restores |
+| 7 | Credit note from final invoice; finalize restores stock; AR/invoice remaining match rules |
+
+---
+
+## 8. How to use this document with an AI agent
+
+1. **Attach** this file **plus** repo **`CLAUDE.md`** (or zip the whole `autowagen-master` folder).
+2. Instruction example: *“Implement Stage N following BUILD_WHOLE_PROJECT_AI_PROMPT.md; use prepared statements and project conventions; do not modify the legacy `autowagengit` folder.”*
+3. For **full greenfield rebuild**, say: *“Build Stages 1 through 7 in order; after each stage list files created and SQL applied; stop for my confirmation before the next stage.”*
+
+---
+
+*File: `docs/BUILD_WHOLE_PROJECT_AI_PROMPT.md` — Autowagen Master. Keep in sync when architecture or stage boundaries change.*
+</pre>
+
+<h2 class="doc-title section-break">Part B — CLAUDE.md</h2>
+<pre class="doc"># CLAUDE.md — Autowagen Master project memory
+
+&gt; **READ THIS FILE FIRST. EVERY SESSION. NO EXCEPTIONS.**
+&gt;
+&gt; This is the single source of truth for what&#39;s built, what works, and what to
+&gt; do next. If a chat ever gets confused, read this top-to-bottom before
+&gt; touching anything. After every meaningful action, **update the
+&gt; &quot;Live state&quot; and &quot;Session log&quot; sections** with an accurate timestamp.
 
 ---
 
@@ -28,22 +308,21 @@ project. Old project stays untouched as read-only reference. Built in
 
 ## 2. Live state — UPDATE AFTER EVERY ACTION
 
-> Format: `Stage N — Title:  STATUS  (last verified YYYY-MM-DD HH:MM TZ)`
->
-> **Last overnight handoff:** **2026-05-05 (end of day) UTC+2** — **Valatone local:** `valaotne-saas` + DB **`valatone_master`** — Stages **1–7** SQL applied; **Option A SaaS**; handoff **`docs/SESSION_2026-05-05_HANDOFF.md`**. **When back:** read that file **or** **`CLAUDE.md`** §**10** → **`HOW_TO_START_NEW_CHAT.md`** STEP **2** (paste + add *local smoke tests / polish*). **Next:** login · POS · shop · Reports on Laragon — then **`git push`**; live Autowagen rollout still **`docs/BACKLOG_POST_STAGE7.md`** when you switch context.
+&gt; Format: `Stage N — Title:  STATUS  (last verified YYYY-MM-DD HH:MM TZ)`
+&gt;
+&gt; **Last overnight handoff:** **2026-05-02 (end of day) UTC+2** — **hassan** closed session. **When back:** **`HOW_TO_START_NEW_CHAT.md`** STEP **2** paste into new chat + read **`CLAUDE.md`** &#167;**10** (**Pause — end of day**). **Next:** rollout **Phase A** (live deploy / `secrets.live.php` / host SQL) → **Phase B** test — **`docs/BACKLOG_POST_STAGE7.md`** or **`docs/rollout_execution_order_print.html`**.
 
-> **Previous handoff note (2026-05-02):** roll out **Phase A** → **Phase B** on **hosted Autowagen** when that track is active — **`docs/rollout_execution_order_print.html`**.
-
-- **Stage 1 — Foundation (auth, layout, config):** ✅ DONE & TESTED
+- **Stage 1 — Foundation (auth, layout, config):** ✅ DONE &amp; TESTED
   *(verified 2026-04-26, see Stage 1 deliverables below)*
-- **Stage 2 — EPC parts tree (6-level catalogue):** ✅ DONE & TESTED
+  - **`auth/login.php` lockout (2026-05-02):** up to **6** wrong passwords per **lowercased username + IP** in a rolling **15-minute** window (`LOGIN_MAX_FAILED_IN_WINDOW`); next submit shows lockout until the window moves; **successful login** deletes prior **failed** rows for that username+IP; dev/test: phpMyAdmin **`DELETE FROM user_login_attempts;`** on `autowagen_master` if needed.
+- **Stage 2 — EPC parts tree (6-level catalogue):** ✅ DONE &amp; TESTED
   *(verified 2026-04-26)*  
   - **2026-04-28 — optional catalogue expansion (hassan):** `02b` 12 categories,
     `02c`, `02d` spine, optional `02e` dismantler variants, optional `02f` Body→Doors,
     optional **`02g`**, **`02h`** (subsystem per type), optional **`02e`**;
     `02_audit`, **`02_verify_epc_integrity`** + `README_EPC_EXPANSION.txt`.
 - **Stage 3 — Master data (vehicles / customers / suppliers / EPC links):**
-  ✅ **DONE & TESTED** *(last verified 2026-04-27 13:21 UTC+2 — vehicles,
+  ✅ **DONE &amp; TESTED** *(last verified 2026-04-27 13:21 UTC+2 — vehicles,
   customers, suppliers, EPC links; Test 4: supplier **HASSAN NIZAMIE** on
   `suppliers_admin.php`.)*
   - SQL `sql/03_master_data.sql` ran successfully *(2026-04-26 17:47 UTC+2)*.
@@ -54,7 +333,7 @@ project. Old project stays untouched as read-only reference. Built in
     *(2026-04-27 07:18 UTC+2)*. All 19 new columns verified on
     `vehicles` table. New `vehicle_photos` table created. Blocker
     lifted — `vehicles_admin.php` and `vehicle_edit.php` now load.
-  - ✅ Business type confirmed: **option 1 — strip & sell parts**
+  - ✅ Business type confirmed: **option 1 — strip &amp; sell parts**
     (vehicle dismantler, SA legal compliance) *(2026-04-27 06:14 UTC+2)*.
   - ✅ Stage 3b extra vehicle fields agreed: stock code (`AWG-XXXX`),
     status, transmission, fuel type, body type, supplier dropdown,
@@ -78,23 +357,23 @@ project. Old project stays untouched as read-only reference. Built in
     SQL re-ran cleanly. All 19 columns present.
   - ✅ **Test 2c partial** *(2026-04-27 07:23 UTC+2)*: `vehicle_edit.php`
     new-vehicle form opened cleanly, all 5 sections render correctly
-    (STOCK & IDENTITY / STATUS & SPECS / ACQUISITION / LEGAL PAPERS /
-    YARD & GENERAL NOTES). Confirmed via 3 screenshots.
+    (STOCK &amp; IDENTITY / STATUS &amp; SPECS / ACQUISITION / LEGAL PAPERS /
+    YARD &amp; GENERAL NOTES). Confirmed via 3 screenshots.
   - ✅ **Test 2c Part A PASSED (2026-04-27 08:11 UTC+2)** — hassan
     re-filled the Toyota form with UNIQUE values (VIN `TOY1234567`,
     plate `ND 1111`, stock code `0002`, year `2001`), clicked
     Create vehicle. Save succeeded. `vehicles_admin.php` screenshot
     confirms the list now shows BOTH vehicles: VW md (legacy, no
     stock code, papers 0/3) and **AWG-0002 TOYOTA HILUX** (white,
-    2001, "Being stripped" badge, red Papers 3/3 badge, yard
+    2001, &quot;Being stripped&quot; badge, red Papers 3/3 badge, yard
     `bay 3`, plate `ND 1111`, VIN `TOY1234567`, 12,345 km, Active).
     All Stage 3b list columns rendering correctly.
   - ✅ **First paper upload tested (2026-04-27 ~08:25 UTC+2)** —
     hassan uploaded a picture into the Logbook slot, clicked
-    Save changes, got "Saved" green banner, "View current scan"
+    Save changes, got &quot;Saved&quot; green banner, &quot;View current scan&quot;
     link appeared. Confirms doc upload pipeline works.
   - ✅ **Stage 3c shipped (2026-04-27 08:35 UTC+2)** — added a
-    4th legal-paper slot **Seller's proof of residence** for
+    4th legal-paper slot **Seller&#39;s proof of residence** for
     fuller SA Second-Hand Goods Act compliance. Files written:
     - `sql/03c_proof_of_residence.sql` (2 new columns,
       idempotent INFORMATION_SCHEMA-guarded ALTERs).
@@ -110,15 +389,15 @@ project. Old project stays untouched as read-only reference. Built in
   - ⛔ **NEW BLOCKER (NOT broken — just needs the SQL run):**
     until hassan runs `sql/03c_proof_of_residence.sql` in
     phpMyAdmin, both `vehicles_admin.php` AND `vehicle_edit.php`
-    will throw `PDOException Column not found: 'has_proof_of_residence'`.
-    Same pattern as Stage 3b's blocker yesterday.
+    will throw `PDOException Column not found: &#39;has_proof_of_residence&#39;`.
+    Same pattern as Stage 3b&#39;s blocker yesterday.
   - ⏭️ **NEXT STEP — run the new SQL, then resume Test 2c Part B**:
     open Toyota in `vehicle_edit.php`, confirm a 4th card
-    "Seller's proof of residence" now appears in LEGAL PAPERS
+    &quot;Seller&#39;s proof of residence&quot; now appears in LEGAL PAPERS
     section (cards are now col-md-6 col-lg-3 — 4 across on
     desktop), upload 1 photo + delete 1 photo (already partly
     tested — log book upload worked), then close out 2c-B.
-  - ✅ **Stage 3d shipped & tested (2026-04-27 12:22 UTC+2)** — added
+  - ✅ **Stage 3d shipped &amp; tested (2026-04-27 12:22 UTC+2)** — added
     SA Second-Hand Goods Act compliance docs to `customers` table.
     Files written:
     - `sql/03d_customer_compliance.sql` (5 new columns: sa_id_number,
@@ -139,16 +418,16 @@ project. Old project stays untouched as read-only reference. Built in
     same session: (a) Save button hidden because the form wrapped
     the whole modal-content (broke Bootstrap scrollable flex), and
     (b) some browsers dropped multipart file uploads when the only
-    submit was outside the form via `form="cm-form"` HTML attr.
+    submit was outside the form via `form=&quot;cm-form&quot;` HTML attr.
     Fix: real submit lives inside the form (visually hidden), red
-    footer Save is `type="button"` and `.click()`s the inner submit.
+    footer Save is `type=&quot;button&quot;` and `.click()`s the inner submit.
   - ✅ **Test 4 PASSED (2026-04-27 13:21 UTC+2)** — hassan added supplier
     **HASSAN NIZAMIE** (contact, phone `0815358539`, email
     `hassannizamie@gmail.com`, payment terms 30 days). Green banner
     *Added supplier: HASSAN NIZAMIE*; list shows 1 row Active. Screenshot
     `Screenshot_2026-04-27_132055-...png`.
-- **Stage 4 — Inventory & parts (+ 4b TPP, 4c batch purchases, 4d AP):** ✅
-  **DONE & TESTED** *(core list/edit verified 2026-04-27 10:30 UTC+2; 4b/4c/4d
+- **Stage 4 — Inventory &amp; parts (+ 4b TPP, 4c batch purchases, 4d AP):** ✅
+  **DONE &amp; TESTED** *(core list/edit verified 2026-04-27 10:30 UTC+2; 4b/4c/4d
   shipped and exercised same period — run `04b` → `04c` → `04d` on any DB
   that does not have those objects yet)*
   - SQL `sql/04_inventory.sql` ran successfully. 3 new tables
@@ -160,9 +439,9 @@ project. Old project stays untouched as read-only reference. Built in
   - Auto-SKU works: stripped headlight on Toyota saved as
     `AWG-0002-P01` (after a same-session double-prefix bugfix).
   - Photo upload tested: 3 photos uploaded to the headlight part,
-    saved under `uploads/parts/<part_id>/photos/`.
-  - `vehicle_edit.php` "PARTS STRIPPED FROM THIS VEHICLE" card
-    appears on the Toyota's page, listing AWG-0002-P01.
+    saved under `uploads/parts/&lt;part_id&gt;/photos/`.
+  - `vehicle_edit.php` &quot;PARTS STRIPPED FROM THIS VEHICLE&quot; card
+    appears on the Toyota&#39;s page, listing AWG-0002-P01.
   - Inventory nav item live in `includes/header.php` (dropdown:
     All parts / Add part).
   - All lints clean.
@@ -172,7 +451,7 @@ project. Old project stays untouched as read-only reference. Built in
       `tpp_proof_of_address_path` (private third-party only;
       cleared when source ≠ `third_party` or supplier is selected).
     - `includes/uploads.php` — `save_uploaded_part_compliance_doc()`
-      → `uploads/parts/<id>/docs/`.
+      → `uploads/parts/&lt;id&gt;/docs/`.
     - `part_edit.php` — SHGA cards under **From a private individual**;
       tab auto-select supplier vs private; delete-doc actions.
     - `parts_admin.php` — **TPP docs** column (`—` / `N/A` / `Docs 0–2/2`).
@@ -188,10 +467,10 @@ project. Old project stays untouched as read-only reference. Built in
     - `part_edit.php` — batch mode: seller + part-level TPP section hidden when linked;
       compliance inherited from purchase row.
     - `parts_admin.php` — JOIN purchase for **TPP docs** badge; **From** → **Purchase #N**.
-    - `includes/uploads.php` — `supplier_purchase_uploads_dir()` → `uploads/supplier_purchases/<id>/docs/`.
+    - `includes/uploads.php` — `supplier_purchase_uploads_dir()` → `uploads/supplier_purchases/&lt;id&gt;/docs/`.
     - `includes/header.php` — Inventory → **Supplier purchases** / **New supplier purchase**.
     - ⛔ **Run `sql/04c_supplier_purchases.sql`** before testing 4c UI.
-  - ✅ **Stage 4d (accounts payable — supplier & private)** — shipped *(2026-04-27)*:
+  - ✅ **Stage 4d (accounts payable — supplier &amp; private)** — shipped *(2026-04-27)*:
     - `sql/04d_supplier_accounts_payable.sql` — `supplier_purchases.bill_amount`,
       `bill_date`, `due_date` (ZAR); table `supplier_purchase_payments`.
     - `supplier_purchase_edit.php` — bill fields + payment list / add / soft-remove.
@@ -229,22 +508,22 @@ project. Old project stays untouched as read-only reference. Built in
     gains an **Invoice** column: **Qty** + **Add to invoice** (`add_line_part`, same rules as search modal:
     **Available** + `qty_on_hand`). ✅ **hassan verified back bar** *(2026-04-28 UTC+2)*. Links without `return`
     (e.g. nav **All parts**) do not show the bar or column.
-  - **Handoff (2026-04-28 UTC+2):** If a chat **jumped topics**, read **§10 "Resume handoff"** — sums up returns backlog (defer), training PNGs, customer-docs UX; **no half-finished code**; next steps are **§10 "Suggested next session"**.
-  - **Not in this MVP:** email/WhatsApp reminders (see §10 AR + reminders), quotes vs invoices split,
+  - **Handoff (2026-04-28 UTC+2):** If a chat **jumped topics**, read **&#167;10 &quot;Resume handoff&quot;** — sums up returns backlog (defer), training PNGs, customer-docs UX; **no half-finished code**; next steps are **&#167;10 &quot;Suggested next session&quot;**.
+  - **Not in this MVP:** email/WhatsApp reminders (see &#167;10 AR + reminders), quotes vs invoices split,
     full credit limits. On-account = use **Due date** + record partial **Payments** until Remaining = 0.
-- **Stage 6 — Reports / shop / polish:** ✅ **DONE & TESTED** *(code complete 2026-05-01 UTC+2; sales summary + credits block shipped 2026-05-02 UTC+2)* — **6a / AR / statements / shop / stripping / enquiries / sales summary** on disk:
-  - **Nav (2026-05-01 UTC+2):** top bar **Reports** dropdown — AP (staff+), AR (all logged-in), **Sales invoices** (all), Customers shortcut for statements, **Web shop orders** / **messages** (staff+) · removed duplicate links from **Inventory** / **POS** (`includes/header.php`); **`docs/complete_system_manual.html`**, **`docs/reports_staff_guide_print.html`**, supplier/Git printouts, **`CLAUDE.md` §10**, **`ROADMAP.md`** paths updated.
+- **Stage 6 — Reports / shop / polish:** ✅ **DONE &amp; TESTED** *(code complete 2026-05-01 UTC+2; sales summary + credits block shipped 2026-05-02 UTC+2)* — **6a / AR / statements / shop / stripping / enquiries / sales summary** on disk:
+  - **Nav (2026-05-01 UTC+2):** top bar **Reports** dropdown — AP (staff+), AR (all logged-in), **Sales invoices** (all), Customers shortcut for statements, **Web shop orders** / **messages** (staff+) &#183; removed duplicate links from **Inventory** / **POS** (`includes/header.php`); **`docs/complete_system_manual.html`**, **`docs/reports_staff_guide_print.html`**, supplier/Git printouts, **`CLAUDE.md` &#167;10**, **`ROADMAP.md`** paths updated.
   - ✅ **`sql/06a_customer_account.sql`** applied on hassan’s `autowagen_master` *(verified 2026-04-29 UTC+2 — `customers.account_customer` / `credit_limit_zar`; AR + customer modal).*
-  - **`customer_ar_report.php`** — **Reports → Accounts receivable (owed)** (visible to all logged-in roles). Balances = final invoices − payments − **finalized credits** (**net due** includes both **AR reduction** and **cash refund** types when **`07`** applied). Extra columns **AR cr.** / **Refund** show the **`adjustment_type`** split · **Overdue** vs **As at** · **Print / PDF** · note: **not** supplier AP (that is **Reports → Accounts payable (owed)** · staff roles).
-  - **`sales_summary_report.php`** — **Reports → Sales summary (period)** *(2026-05-01 · CN block 2026-05-02)*: POS turnover by **invoice date** vs payments by **paid date** · finalized **credit notes** in range by **credit date** (when **`07`** applied) — totals + AR vs cash-refund split + list · top customers · print/PDF · **no new SQL**.
-  - **MySQL 8 / strict:** AR SQL avoids invalid date literal `'0000-00-00'` (use `1900-01-01` + `IS NOT NULL` in SQL; PHP `ar_due_is_meaningful()` on statement/AR pages).
+  - **`customer_ar_report.php`** — **Reports → Accounts receivable (owed)** (visible to all logged-in roles). Balances = final invoices − payments − **finalized credits** (**net due** includes both **AR reduction** and **cash refund** types when **`07`** applied). Extra columns **AR cr.** / **Refund** show the **`adjustment_type`** split &#183; **Overdue** vs **As at** &#183; **Print / PDF** &#183; note: **not** supplier AP (that is **Reports → Accounts payable (owed)** &#183; staff roles).
+  - **`sales_summary_report.php`** — **Reports → Sales summary (period)** *(2026-05-01 &#183; CN block 2026-05-02)*: POS turnover by **invoice date** vs payments by **paid date** &#183; finalized **credit notes** in range by **credit date** (when **`07`** applied) — totals + AR vs cash-refund split + list &#183; top customers &#183; print/PDF &#183; **no new SQL**.
+  - **MySQL 8 / strict:** AR SQL avoids invalid date literal `&#39;0000-00-00&#39;` (use `1900-01-01` + `IS NOT NULL` in SQL; PHP `ar_due_is_meaningful()` on statement/AR pages).
   - **`customer_statement.php`** — printable **customer account statement**; **WhatsApp** (`wa.me` text summary; attach PDF from Print); **Email** (`mailto:` opens PC mail client). Links: **Statement** on AR report + next to name on **Customers** list.
   - **`customer_quick_add.php`** — draft invoice → **New customer (quick)**; **`apply_customer=`** redirect.
   - **`customers_admin.php`** — Account block (dark/red), list **Account** column + filter **Account customers**; **Statement** link.
   - **`invoice_edit.php`** — quick-add; finalize requires **account customer** if **due date** set (after **`06a`**).
   - **UI polish (2026-04-28 UTC+2):** global **red / black / white** form styling in `includes/header.php` (section headers, modals, fields, primary buttons); **`invoice_edit.php`** print/PDF keeps light grey card headers.
-  - **Stage 6b — Public web shop (2026-04-28 code; `06b` SQL ✅ hassan 2026-04-29 UTC+2):** `parts.list_online`, `shop_orders`, `shop_order_lines`; `shop/*.php`; `shop_orders_admin.php`; **Inventory** → **Public shop (website)** · **Reports** → **Web shop orders** (nav updated 2026-05-01). **New + not stripped** only on web (SHGA). Payment gateway **not** in MVP — staff contact buyer after order.
-  - **Stage 6b item A — smoke-test (see §10):** **`06b` ran** — full **numbered clicks** live under **`CLAUDE.md` §10** → **Suggested next session → A** (“Detailed numbered steps”). hassan executes in browser → log **PASS** in §9 when **WEB-…** order + stock check OK.
+  - **Stage 6b — Public web shop (2026-04-28 code; `06b` SQL ✅ hassan 2026-04-29 UTC+2):** `parts.list_online`, `shop_orders`, `shop_order_lines`; `shop/*.php`; `shop_orders_admin.php`; **Inventory** → **Public shop (website)** &#183; **Reports** → **Web shop orders** (nav updated 2026-05-01). **New + not stripped** only on web (SHGA). Payment gateway **not** in MVP — staff contact buyer after order.
+  - **Stage 6b item A — smoke-test (see &#167;10):** **`06b` ran** — full **numbered clicks** live under **`CLAUDE.md` &#167;10** → **Suggested next session → A** (“Detailed numbered steps”). hassan executes in browser → log **PASS** in &#167;9 when **WEB-…** order + stock check OK.
   - **Stage 6e — Public shop guest enquiries (2026-04-29 code, recovered from deleted chat):**
     `sql/06e_shop_guest_enquiries.sql` (`shop_guest_enquiries` table, idempotent),
     `shop/enquiry.php` (public message form — works for any part type),
@@ -270,12 +549,12 @@ project. Old project stays untouched as read-only reference. Built in
     `vehicles` + `vehicle_photos` — **no new SQL**.
   - **Deferred (not Stage 6 — see `docs/BACKLOG_POST_STAGE7.md`):** SMTP server email, PayFast/Stripe on checkout, supplier AP return tooling, richer dashboards, legacy data migration scripts.
 
-- **Stage 7 — Credit notes (linked returns):** ✅ **DONE & TESTED** *(hassan Test B PASS 2026-05-02 UTC+2)* — **`sql/07_credit_notes.sql`** on **`autowagen_master`** · **Reports → Credit notes** / **New credit note** · draft→finalize verified.
+- **Stage 7 — Credit notes (linked returns):** ✅ **DONE &amp; TESTED** *(hassan Test B PASS 2026-05-02 UTC+2)* — **`sql/07_credit_notes.sql`** on **`autowagen_master`** &#183; **Reports → Credit notes** / **New credit note** &#183; draft→finalize verified.
   - **Tables:** `sales_credit_notes`, `sales_credit_note_lines` — always tied to a **final** `sales_invoices` row; **`CN-YYYY-NNNNN`** on finalize.
   - **Files:** **`includes/credit_note_helpers.php`**, **`credit_notes_admin.php`**, **`credit_note_edit.php`**; **`invoice_edit.php`** — remaining = total − **all finalized** credits − payments (split summary when mixed types); **`customer_statement.php`** — **AR cr.** / **Refund cn.** columns + net **Balance**; **`includes/header.php`** — Reports → Credit notes.
   - **Rules:** restore **stock** for returned **part** lines on finalize; **AR reduction** vs **cash refund** (refund date/method for cash path); capped so credits do not exceed invoice face value net of earlier finals.
   - **Accounting display (with `07`):** **Net due** subtracts **all** finalized credits. **AR** + **statement** also show how much credit was **AR reduction** vs **cash refund** (same net). Handout: **`docs/credit_notes_ar_vs_cash_refund_print.html`**. Post–Stage 7 backlog: **`docs/BACKLOG_POST_STAGE7.md`**.
-  - **Print handout:** **`docs/credit_notes_system_guide_print.html`** · **`docs/credit_notes_ar_vs_cash_refund_print.html`** (locked net + split columns) · both indexed in **`docs/client_training_index.html`**.
+  - **Print handout:** **`docs/credit_notes_system_guide_print.html`** &#183; **`docs/credit_notes_ar_vs_cash_refund_print.html`** (locked net + split columns) &#183; both indexed in **`docs/client_training_index.html`**.
   - **Next for hassan:** on a **new PC/DB**, run **`07`** after **`05`**; otherwise optional deeper tests (void CN, multi-CN cap) as needed.
 
 **Owner account:** username `hassan`, role `owner` in `users` table.
@@ -299,24 +578,28 @@ autowagen-master/
 │  ├─ manual_supplier_purchase_screen.html   ← A–G training sheet (print → PDF)
 │  ├─ supplier_purchase_screen_full_guide.html ← supplier purchase What/Why/When/How
 │  ├─ invoice_screen_full_guide.html        ← Stage 5 invoice / POS (detailed zones S/P + figure placeholders; print → PDF)
+│  ├─ pos_invoice_marketing_walkthrough_print.html ← POS brochure: figures A–L + marketing-pos-*.png → Print PDF
 │  ├─ git_github_handout_print.html          ← Session handout (hosting + GitHub; Print → PDF)
 │  ├─ git_laragon_terminal_start_to_finish_print.html ← Laragon terminal: cd → status → add → commit -m → push + PAT (Print → PDF)
 │  ├─ CHANGELOG.md                           ← dated changes Markdown (pair with CHANGELOG.html; newest first)
-│  ├─ CHANGELOG.html                         ← HTML mirror · Print → PDF
+│  ├─ CHANGELOG.html                         ← HTML mirror &#183; Print → PDF
 │  ├─ developer_quick_sheet_print.html       ← laminate: Git + triple-changelog reminders (Print → PDF)
 │  ├─ add_users_staff_guide_print.html       ← add staff users / roles / phpMyAdmin / password hash (Print → PDF)
+│  ├─ live_db_password_rotation_secrets_print.html ← live host: rotate MySQL password + secrets.live.php (Print → PDF)
 │  ├─ database_update_backup_guide_print.html ← full DB replace vs incremental SQL / keep data (Print → PDF)
-│  ├─ session_pause_handoff_print.html          ← before PC shutdown: Git · §9 · optional md_backup · Export DB (Print → PDF)
+│  ├─ session_pause_handoff_print.html          ← before PC shutdown: Git &#183; &#167;9 &#183; optional md_backup &#183; Export DB (Print → PDF)
 │  ├─ reports_staff_guide_print.html         ← AP / AR / statement / web orders — steps + illustration samples (PDF)
 │  ├─ ar_report_and_customer_statement_explained_print.html ← AR report + statement: every section explained (PDF)
-│  ├─ credit_notes_system_guide_print.html    ← Stage 7 · credits · invoice/AR/statement · viewer vs shop → Print PDF
+│  ├─ customer_ar_report_explained_abcdef_print.html ← AR report zones A–F + sample figures (Print → PDF)
+│  ├─ supplier_ap_report_explained_print.html ← AP owed report: sections A–D + Print/PDF deploy note (Print → PDF)
+│  ├─ credit_notes_system_guide_print.html    ← Stage 7 &#183; credits &#183; invoice/AR/statement &#183; viewer vs shop → Print PDF
 │  ├─ credit_notes_ar_vs_cash_refund_print.html ← AR vs cash (locked net + split columns) → Print PDF
 │  ├─ rollout_execution_order_print.html      ← Live → test → backlog → test → polish (Print → PDF)
-│  ├─ saas_option_a_new_customer_checklist_print.html ← Option A SaaS: new DB + secrets per yard · SQL ladder · Print → PDF
-│  ├─ session_recap_valatone_2026-05-05_print.html   ← Narrative recap: valatone DB ladder + SaaS Option A arc · Print → PDF
-│  ├─ SESSION_2026-05-05_HANDOFF.md                  ← End-of-day handoff diary (Markdown) · Valatone local / Option A
-│  ├─ VALATONE_SAAS_WAY_FORWARD.md           ← Valatone SaaS planning: Option A hosted copies vs B multi-tenant · Cursor folder advice
-│  └─ BACKLOG_POST_STAGE7.md                  ← rollout ladder at top · supplier returns · SMTP · shop payments
+│  ├─ CURSOR_NEW_CHAT_MASTER_PROMPT.md          ← full “paste into new Cursor chat” project brain-dump
+│  ├─ CURSOR_NEW_CHAT_MASTER_PROMPT_print.html   ← same content → browser Print → Save as PDF
+│  ├─ BUILD_WHOLE_PROJECT_AI_PROMPT.md          ← **detailed** stage-by-stage spec for another AI (full rebuild)
+│  ├─ BACKLOG_POST_STAGE7.md                  ← rollout ladder at top &#183; supplier returns &#183; SMTP &#183; shop payments
+│  └─ SESSION_2026-05-04_HANDOFF.md           ← dated session diary &#183; deploy checklist &#183; resume &#183; defer Phase C until client talk (copy also in md_backups/2026-05-04/)
 ├─ .gitignore
 ├─ index.php                    ← auth-aware redirect
 ├─ main_dashboard.php
@@ -331,7 +614,7 @@ autowagen-master/
 │                                 SA ID/CIPC + Docs N/2; account customer + credit limit after **`06a`**)
 ├─ customer_quick_add.php        ← Stage 6 — minimal new customer from POS → back to draft invoice
 ├─ customer_ar_report.php        ← Stage 6 — AR: who owes us (balances by customer; **includes credits** after **`07`**)
-├─ sales_summary_report.php      ← Stage 6 — sales summary (invoice vs payments dates · finalized credits by credit_date after `07`)
+├─ sales_summary_report.php      ← Stage 6 — sales summary (invoice vs payments dates &#183; finalized credits by credit_date after `07`)
 ├─ customer_statement.php        ← Stage 6 (+7) — statement; **AR cr.** / **Refund cn.** + net **Balance** when **`07`** applied
 ├─ credit_notes_admin.php      ← Stage 7 — list / start credit note from invoice
 ├─ credit_note_edit.php          ← Stage 7 — draft → finalize (stock restore, CN- number)
@@ -357,7 +640,6 @@ autowagen-master/
 │  ├─ invoice-letterhead.png     ← fallback full banner if logo file missing
 │  └─ invoice-logo.png          ← logo strip for built HTML letterhead (print + screen)
 ├─ tools/                        ← optional one-off helpers (Laragon PHP CLI + GD)
-│  ├─ generate_password_hash.php ← CLI bcrypt for `users.password_hash` (insert new logins)
 │  ├─ trim_letterhead.php       ← crop empty vertical margins from banner PNG
 │  └─ extract_logo.php          ← extract logo row from banner → invoice-logo.png
 ├─ auth/
@@ -373,15 +655,15 @@ autowagen-master/
 │  ├─ epc_helpers.php           ← EPC_LEVELS, slugify, next_sort
 │  ├─ uploads.php               ← Stage 3b file-upload helper
 │  ├─ credit_note_helpers.php   ← Stage 7 — CN table check, totals, next CN no., line qty helpers
-│  ├─ header.php               ← Bootstrap nav (**Reports** dropdown 2026-05: AP · AR · invoices · statements shortcut · web orders/messages · etc.)
+│  ├─ header.php               ← Bootstrap nav (**Reports** dropdown 2026-05: AP &#183; AR &#183; invoices &#183; statements shortcut &#183; web orders/messages &#183; etc.)
 │  └─ footer.php
 ├─ uploads/                     ← gitignored (except .htaccess)
 │  ├─ .htaccess                 ← denies PHP execution in uploads
-│  ├─ vehicles/<id>/            ← created on demand (docs/, photos/)
-│  ├─ customers/<id>/docs/      ← Stage 3d compliance scans
-│  ├─ parts/<id>/photos/        ← Stage 4 part photos
-│  ├─ parts/<id>/docs/         ← Stage 4b TPP compliance scans (per-part)
-│  └─ supplier_purchases/<id>/docs/  ← Stage 4c purchase scans (if used)
+│  ├─ vehicles/&lt;id&gt;/            ← created on demand (docs/, photos/)
+│  ├─ customers/&lt;id&gt;/docs/      ← Stage 3d compliance scans
+│  ├─ parts/&lt;id&gt;/photos/        ← Stage 4 part photos
+│  ├─ parts/&lt;id&gt;/docs/         ← Stage 4b TPP compliance scans (per-part)
+│  └─ supplier_purchases/&lt;id&gt;/docs/  ← Stage 4c purchase scans (if used)
 ├─ backups/                     ← ZIP site backups (gitignored except .htaccess); HTTP denied — use backups_admin.php
 │  └─ .htaccess                 ← Require all denied (no direct download)
 └─ sql/
@@ -488,12 +770,12 @@ Stage 3c (after `sql/03c_proof_of_residence.sql` is run): on `vehicles` — `has
 
 ## 5. Conventions — apply to every new page
 
-- Every page starts with: `require_once __DIR__ . '/config/config.php';`
-  then (if private): `require_once __DIR__ . '/includes/auth_check.php';`
+- Every page starts with: `require_once __DIR__ . &#39;/config/config.php&#39;;`
+  then (if private): `require_once __DIR__ . &#39;/includes/auth_check.php&#39;;`
 - Use `$pdo` prepared statements **only** — never interpolate user input.
 - Output via `e($value)` (htmlspecialchars wrapper).
-- Every form: include `<input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">`
-  and check with `csrf_check($_POST['csrf'] ?? '')` before mutation.
+- Every form: include `&lt;input type=&quot;hidden&quot; name=&quot;csrf&quot; value=&quot;&lt;?= e(csrf_token()) ?&gt;&quot;&gt;`
+  and check with `csrf_check($_POST[&#39;csrf&#39;] ?? &#39;&#39;)` before mutation.
 - Bootstrap 5 + Bootstrap Icons via CDN. Brand colour `#c8102e`,
   dark nav `#0a0a0a`. Every page extends `includes/header.php` +
   `includes/footer.php`.
@@ -502,7 +784,7 @@ Stage 3c (after `sql/03c_proof_of_residence.sql` is run): on `vehicles` — `has
 - Soft delete only (`is_active = 0`). Never hard-DELETE master rows from
   the UI.
 - New table needs `created_by INT UNSIGNED NULL` FK to `users.id`,
-  set on insert from `$_SESSION['user_id']`.
+  set on insert from `$_SESSION[&#39;user_id&#39;]`.
 - Pagination: 50 rows per page, inline helper per page.
 
 ---
@@ -525,23 +807,23 @@ Stage 3c (after `sql/03c_proof_of_residence.sql` is run): on `vehicles` — `has
 ## 7. Update protocol — keep this file alive
 
 After **any** of these events, append a row to the Session log
-(section 9) **and** edit section 2 "Live state" so it matches reality:
+(section 9) **and** edit section 2 &quot;Live state&quot; so it matches reality:
 
 1. A SQL file is run (record date, time, file, result).
 2. A new PHP file is written or an existing one modified.
 3. A test passes or fails (record which test, the outcome).
-4. A stage flips status (NOT STARTED → IN PROGRESS → DONE & TESTED).
+4. A stage flips status (NOT STARTED → IN PROGRESS → DONE &amp; TESTED).
 5. The user reports an error or a fix is shipped.
-6. Any decision is made (e.g. "keep EPC seed", "skip feature X").
+6. Any decision is made (e.g. &quot;keep EPC seed&quot;, &quot;skip feature X&quot;).
 
 **Human changelog (pair):** Also append **the same dated entry** (newest at top)
 to **`docs/CHANGELOG.md`** and **`docs/CHANGELOG.html`** with **Recorder name**
 and **UTC+2 timestamp** — staff and git history can skim these without reading
-§9 verbatim. Agents still maintain §9 in **this** file as the authoritative
+&#167;9 verbatim. Agents still maintain &#167;9 in **this** file as the authoritative
 running memory.
 
 **Timestamp format:** `YYYY-MM-DD HH:MM TZ` (use UTC+2 / Johannesburg).
-For today's stamps, use the date shown in the chat header. **Never
+For today&#39;s stamps, use the date shown in the chat header. **Never
 guess** a timestamp — if uncertain, write `(time unknown)` and ask.
 
 If the file approaches ~200 lines, **prune** the Session log
@@ -549,87 +831,108 @@ If the file approaches ~200 lines, **prune** the Session log
 
 ---
 
-## 8. Common commands & URLs
+## 8. Common commands &amp; URLs
 
 - App home: `http://localhost/autowagen-master/`
 - Login page: `http://localhost/autowagen-master/auth/login.php`
+  (**Lockout:** six failed passwords for the **same username + IP** within **15 minutes** — then wait or clear `user_login_attempts` in phpMyAdmin; see `auth/login.php`.)
 - phpMyAdmin: `http://localhost/phpmyadmin` → DB `autowagen_master`
 - Run a SQL file: phpMyAdmin → click DB → **SQL** tab → paste contents
   of `sql/NN_*.sql` → click **Go**.
-- New chat handoff: **`HOW_TO_START_NEW_CHAT.md`** (STEP **2** grey box) + read **`CLAUDE.md`** §**10**. Rollout order: **`docs/BACKLOG_POST_STAGE7.md`** top / **`docs/rollout_execution_order_print.html`**.
+- New chat handoff: **`HOW_TO_START_NEW_CHAT.md`** (STEP **2** grey box) + read **`CLAUDE.md`** &#167;**10**. Rollout order: **`docs/BACKLOG_POST_STAGE7.md`** top / **`docs/rollout_execution_order_print.html`**.
 - **Site backup (ZIP):** `backups_admin.php` (owner or admin only) — **Dashboard** card or your **name** menu (top right).
 - **Client PC install (PDF):** open `docs/client_install_print.html` in browser → **Print** → **Save as PDF**.
 - **Staff manual + web shop (PDF):** open **`docs/complete_system_manual.html`** → **Ctrl+P** → **Save as PDF** (screenshots optional).
-- **Money reports for clients:** **`docs/reports_staff_guide_print.html`** (AP · AR · customer statement · web shop orders · sample layouts).
+- **Money reports for clients:** **`docs/reports_staff_guide_print.html`** (AP &#183; AR &#183; customer statement &#183; web shop orders &#183; sample layouts).
 - **Change log (browse / PDF):** **`docs/CHANGELOG.html`** or **`docs/CHANGELOG.md`** (Markdown is easiest for Git “go back” diffs).
 - **Add staff users (roles, phpMyAdmin, password hash):** **`docs/add_users_staff_guide_print.html`** → open in **Chrome/Edge** → **Ctrl+P** → Save as PDF (**Pages: All**, clear text selection first — Cursor-only print may clip pages).
 - **Database updates (full replace vs keep data):** **`docs/database_update_backup_guide_print.html`** — same PDF workflow as above.
-- **Pause before PC shutdown:** **`docs/session_pause_handoff_print.html`** — Git · §9 · optional snapshot · DB export.
+- **Live hosting — rotate MySQL password / `secrets.live.php` (after leaked creds):** **`docs/live_db_password_rotation_secrets_print.html`** — Print → PDF.
+- **Pause before PC shutdown:** **`docs/session_pause_handoff_print.html`** — Git &#183; &#167;9 &#183; optional snapshot &#183; DB export.
 - **Git terminal — start to finish (PDF):** **`docs/git_laragon_terminal_start_to_finish_print.html`** — Laragon/Cursor terminal → **`git push`** + PAT troubleshooting.
-- **Valatone / SaaS direction (planning draft, not built):** **`docs/VALATONE_SAAS_WAY_FORWARD.md`** — how SaaS differs from today’s app; Option A vs B; when to use same repo vs new Cursor folder.
+- **Master prompt → PDF:** **`docs/CURSOR_NEW_CHAT_MASTER_PROMPT_print.html`** — **Ctrl+P** → Save as PDF (linked from **`docs/client_training_index.html`**).
+- **Full project AI build spec:** **`docs/BUILD_WHOLE_PROJECT_AI_PROMPT.md`** — stage-by-stage implementation prompt for another agent.
 
 ---
 
 ## 9. Session log — append-only, newest at top
 
-> Each entry: `YYYY-MM-DD HH:MM TZ — short description (who, what, result)`.
+&gt; Each entry: `YYYY-MM-DD HH:MM TZ — short description (who, what, result)`.
 
-- **2026-05-05 (end of day) UTC+2** — **Session close — Valatone local:** **`valatone_master`** ladder done in **`valaotne-saas`** · Option A SaaS · docs **`saas_option_a_new_customer_checklist_print.html`**, **`session_recap_valatone_2026-05-05_print.html`** · **`SESSION_2026-05-05_HANDOFF.md`** · **`HOW_TO`** / **`CHANGELOG`** touched. **Next:** local polish + smoke tests (login · POS · shop) before live deploy · **`git push`**. **Recorder:** Hassan (Cursor).
+- **2026-05-04 (time unknown) UTC+2** — **`docs/BUILD_WHOLE_PROJECT_AI_PROMPT.md`** — detailed end-to-end build prompt (Stages 1–7, SQL order, SHGA/inventory/POS/shop/CN rules, backlog) for another AI; **`CLAUDE.md`** &#167;3/&#167;8/&#167;10 &#183; **`CHANGELOG`**. **Recorder:** Hassan (Cursor).
 
-- **2026-05-05 (time unknown) UTC+2** — **`docs/session_recap_valatone_2026-05-05_print.html`** (Print → PDF) + **`tools/generate_password_hash.php`** — recap of **`valatone_master`** ladder + SaaS Option A arc; bcrypt CLI helper for **`users.password_hash`**; **`docs/client_training_index.html`** · **`CLAUDE.md`** §3/§8. **Recorder:** Hassan (Cursor).
+- **2026-05-04 (time unknown) UTC+2** — **Master new-chat prompt — print/PDF:** **`docs/CURSOR_NEW_CHAT_MASTER_PROMPT_print.html`** (browser → Save as PDF); **`docs/CURSOR_NEW_CHAT_MASTER_PROMPT.md`** cross-link &#183; **`docs/client_training_index.html`** card &#183; **`CLAUDE.md`** &#167;3/&#167;8/&#167;10 &#183; **`CHANGELOG`**. **Recorder:** Hassan (Cursor).
 
-- **2026-05-05 (time unknown) UTC+2** — **SaaS Option A provisioning:** **`docs/saas_option_a_new_customer_checklist_print.html`** (Print → PDF) — new DB + secrets per customer, SQL ladder table with ☐ ticks, worksheet; **`docs/client_training_index.html`** card; **`docs/VALATONE_SAAS_WAY_FORWARD.md`** Phase **1a** cross-link. **`CHANGELOG`** pair updated. **Recorder:** Hassan (Cursor).
+- **2026-05-04 (time unknown) UTC+2** — **Master new-chat prompt:** **`docs/CURSOR_NEW_CHAT_MASTER_PROMPT.md`** (paste-everything brain-dump for future sessions) &#183; **`HOW_TO`** pointer &#183; **`CLAUDE.md`** &#167;10 quick table &#183; **`CHANGELOG`**. **Recorder:** Hassan (Cursor).
 
-- **2026-05-04 (time unknown) UTC+2** — **`docs/VALATONE_SAAS_WAY_FORWARD.md`** — added **§7** (Option B isolation: separate `valatone-saas` folder/repo + **new DB**, never share `autowagen_master` deploy path) so live Autowagen client is not touched. **Recorder:** Hassan (Cursor).
+- **2026-05-04 (time unknown) UTC+2** — **MD snapshot + session handoff:** **`docs/md_backups/2026-05-04/`** (CLAUDE &#183; ROADMAP &#183; HOW_TO &#183; TRAINING_SCREENSHOTS &#183; CHANGELOG &#183; **`SESSION_2026-05-04_HANDOFF.md`**) &#183; **`docs/md_backups/README.md`** latest &#183; **`HOW_TO`** pointer &#183; **`BACKLOG_POST_STAGE7.md`** Phase C = client-agree first &#183; Recorder: Hassan (Cursor).
 
-- **2026-05-04 (time unknown) UTC+2** — **`docs/VALATONE_SAAS_WAY_FORWARD.md`** — SaaS planning (hosted copies vs multi-tenant; commercial questions; Cursor/workspace advice). **`CLAUDE.md`** §3/§8/§10 cross-links. **Note:** `CLAUDE.md` restored from Git after accidental overwrite; re-merge any local diary lines if needed. **Recorder:** Hassan (Cursor).
+- **2026-05-04 (time unknown) UTC+2** — **AR printable A–F:** **`docs/customer_ar_report_explained_abcdef_print.html`** (zones A–F + mock tables → PDF); **`docs/client_training_index.html`** card &#183; **`reports_staff_guide_print.html`** &#167;2 &#183; **`CLAUDE.md`** &#167;3 &#183; **`CHANGELOG`**. **Recorder:** Hassan (Cursor).
 
-- **2026-05-02 (end of day) UTC+2** — **Session pause — hassan:** closing for the day. **When I return:** paste **`HOW_TO_START_NEW_CHAT.md`** STEP **2** into a new chat; read **`CLAUDE.md`** §**10** (**Pause — end of day**). **Next:** rollout **Phase A → B** (**`docs/BACKLOG_POST_STAGE7.md`** top / **`docs/rollout_execution_order_print.html`**). **Before PC off (optional):** **`HOW_TO`** “Before you shut down” · **`docs/session_pause_handoff_print.html`**. Repo pushed this session unless local edits pending.
+- **2026-05-04 (time unknown) UTC+2** — **AP report:** **`docs/supplier_ap_report_explained_print.html`** (A–D + deploy); toolbar **What A–D means** → handout; **`docs/client_training_index.html`** / **`reports_staff_guide_print.html`** &#183; **`CHANGELOG`** &#183; **`supplier_ap_report.php`**. **Recorder:** Hassan (Cursor).
 
-- **2026-05-02 (time unknown) UTC+2** — **Rollout ladder (hassan):** **`docs/BACKLOG_POST_STAGE7.md`** — phases **A–E** (Live/Ops → test → one backlog block → test → polish/docs); **`docs/rollout_execution_order_print.html`** · **`docs/client_training_index.html`** card · **`CLAUDE.md`** §3 + §10 table · **`CHANGELOG`**.
+- **2026-05-04 (time unknown) UTC+2** — **`supplier_ap_report.php`:** **Print / PDF** button + print CSS (hide nav/footer/filters/`Open` column; A4); on-screen **How to read this report** (**A–D**). **Recorder:** Hassan (Cursor).
 
-- **2026-05-02 (time unknown) UTC+2** — **Stage 6 closure:** **`sales_summary_report.php`** — finalized **credit notes** in chosen period by **`credit_date`** (totals · AR reduction vs cash refund · table · links to **`credit_note_edit.php`**) when **`cn_tables_ready`** · **`CLAUDE.md`** §2 Stage **6** marked **DONE & TESTED** · deferred SMTP/PayFast/supplier AP → **`BACKLOG_POST_STAGE7.md`** · **`ROADMAP.md`** Stage 6 bullet · **`reports_staff_guide_print.html`** · **`complete_system_manual.html`** · **`sales_summary_report_client_print.html`** · **`main_dashboard.php`** copy · **`CHANGELOG`**.
+- **2026-05-02 (time unknown) UTC+2** — **Print handout:** **`docs/live_db_password_rotation_secrets_print.html`** (live MySQL password + **`secrets.live.php`** server-only; GitHub purge link) &#183; **`docs/client_training_index.html`** &#183; **`CLAUDE.md`** &#167;3/table &#183; **`TRAINING_SCREENSHOTS`** &#183; **`CHANGELOG`**. **Recorder:** Hassan (Cursor).
 
-- **2026-05-02 (time unknown) UTC+2** — **Training PDF:** **`docs/git_laragon_terminal_start_to_finish_print.html`** — Laragon/Cursor terminal → **`cd`** → **`git status`** / **`git add .`** / **`git commit -m`** / **`git push`** · GitHub PAT · Credential Manager · “everything up-to-date” · Vim escape · **`docs/client_training_index.html`** · **`CHANGELOG`**.
+- **2026-05-02 (time unknown) UTC+2** — **Login lockout — MD docs synced:** **`CLAUDE.md`** &#167;2 Stage 1 + &#167;8 &#183; **`ROADMAP.md`** Stage 1 &#183; **`HOW_TO_START_NEW_CHAT.md`** (troubleshooting) &#183; **`docs/TRAINING_SCREENSHOTS.md`** &#183; **`CHANGELOG`** / **`CHANGELOG.html`** (deduped older “IP-only” row; added doc-sync bullets). **Recorder:** Hassan (Cursor).
 
-- **2026-05-02 (time unknown) UTC+2** — **Shutdown handoff pack:** **`docs/session_pause_handoff_print.html`** · **`HOW_TO_START_NEW_CHAT.md`** “Before you shut down” · **`CLAUDE.md`** §10 handoff block · **`docs/client_training_index.html`** · **`docs/md_backups/README.md`** numbered steps · **`ROADMAP.md`** · **`docs/TRAINING_SCREENSHOTS.md`**.
+- **2026-05-02 (time unknown) UTC+2** — **`auth/login.php` lockout:** **6** failed attempts / **15 min** per **lowercased username + IP**; **`LOGIN_MAX_FAILED_IN_WINDOW`**; success **clears** prior failures for that pair; **`CHANGELOG`**. **Recorder:** Hassan (Cursor).
 
-- **2026-05-02 (time unknown) UTC+2** — **Markdown sync:** **`CLAUDE.md`** §8 + §10 quick-docs table · **`HOW_TO_START_NEW_CHAT.md`** · **`ROADMAP.md`** · **`docs/TRAINING_SCREENSHOTS.md`** · **`docs/md_backups/README.md`** — pointers to **`add_users_staff_guide_print.html`** & **`database_update_backup_guide_print.html`** + browser PDF tip.
+- **2026-05-02 (time unknown) UTC+2** — **POS marketing PNGs filled in:** Copied hassan’s screenshots → **`docs/manual_screenshots/marketing-pos-a-…` through `…-l-…`**, enabled `&lt;img&gt;` in **`pos_invoice_marketing_walkthrough_print.html`**, **`MARKETING_POS_SOURCES.md`** lookup table. **Recorder:** Hassan (Cursor).
 
-- **2026-05-02 (time unknown) UTC+2** — **Training PDF:** **`docs/database_update_backup_guide_print.html`** — full DB replace vs incremental **`sql/*.sql`** (keep customers/data); **`docs/client_training_index.html`** card · **`CLAUDE.md`** §3.
+- **2026-05-02 (time unknown) UTC+2** — **Marketing POS PDF scaffold:** **`docs/pos_invoice_marketing_walkthrough_print.html`** — figures **A–L** + **`marketing-pos-*.png`** names &#183; **`docs/client_training_index.html`** &#183; **`docs/TRAINING_SCREENSHOTS.md`** &#183; **`CLAUDE.md`** &#167;3/UI table. **Recorder:** Hassan (Cursor).
 
-- **2026-05-01 (end of day) UTC+2** — **Session pause — hassan:** stopping for today. **Tomorrow:** open **`CLAUDE.md` §10** + paste from **`HOW_TO_START_NEW_CHAT.md`** Step 2. **Likely next actions (pick one):** (1) **Live deploy** — upload **`includes/header.php`** + **`main_dashboard.php`** if **Reports** missing on **`ahnwebdesigners.co.za`**. (2) Optional **web shop** smoke-test **`CLAUDE.md` §10 → A**. (3) **Backlog** — **`docs/BACKLOG_POST_STAGE7.md`** (supplier returns, SMTP, PayFast; **alternate** net-due rule = §7 **`docs/credit_notes_ar_vs_cash_refund_print.html`** — explicit go only). (4) **View-only user:** phpMyAdmin **`users.role`** = **`viewer`** (same login page). No code left half-finished this session.
+- **2026-05-02 (time unknown) UTC+2** — **`customers_admin.php` modal fix:** Wrapped **`modal-content`** in **one `&lt;form&gt;`**; **`Save`** = native **`type=&quot;submit&quot;`** (footer inside form; removes flaky **`.click()`** on **`visually-hidden`** submit); **Cancel / Close** = **`data-bs-dismiss=&quot;modal&quot;`** (no full-page link = no confuse with submit). **Recorder:** Hassan (Cursor).
 
-- **2026-05-01 (time unknown) UTC+2** — **Training PDF:** **`docs/ar_report_and_customer_statement_explained_print.html`** — AR screen + customer statement explained (A1–A7 · B1–B7) · **`docs/client_training_index.html`** card · **`CLAUDE.md`** §3 + §10 table row.
+- **2026-05-02 (time unknown) UTC+2** — **`customers_admin.php`** + **`invoice_edit.php`:** Draft POS workflow — **`Open customers`** (SHGA card) passes whitelisted **`return=invoice_edit.php?id=N`**; customers list shows **Back to invoice** bar; **`return`** preserved in search/pagination/edit/toggle/delete/save; modal footer **Back to invoice** + **Close** keeps query; after **Save** / **delete doc**, modal does **not** auto-re-open when **`return`** is set (avoid “stuck” in modal). **Recorder:** Hassan (Cursor).
 
-- **2026-05-01 (time unknown) UTC+2** — **Credit notes — AR/cash reporting split:** helpers `cn_finalized_ar_reduction_total_for_invoice` / `cn_finalized_cash_refund_total_for_invoice`; **Net due** unchanged; **AR report** + **statement** columns **AR cr.** / **Refund**; **`invoice_edit.php`** credits split · **`credit_note_edit.php`** confirm text · **`docs/BACKLOG_POST_STAGE7.md`** · **`docs/credit_notes_ar_vs_cash_refund_print.html`** (incl. §7 alternate rule) · **`ROADMAP`** · **`sales_summary_report.php`** footnote · **`CHANGELOG`**.
+- **2026-05-02 (end of day) UTC+2** — **Session pause — hassan:** closing for the day. **When I return:** paste **`HOW_TO_START_NEW_CHAT.md`** STEP **2** into a new chat; read **`CLAUDE.md`** &#167;**10** (**Pause — end of day**). **Next:** rollout **Phase A → B** (**`docs/BACKLOG_POST_STAGE7.md`** top / **`docs/rollout_execution_order_print.html`**). **Before PC off (optional):** **`HOW_TO`** “Before you shut down” &#183; **`docs/session_pause_handoff_print.html`**. Repo pushed this session unless local edits pending.
 
-- **2026-05-01 (time unknown) UTC+2** — **`main_dashboard.php`:** **Stages 1–7 live** badge · **What’s next** + note that **Stages 1–7** are **done** and the bottom row is **not** Stage 7 · **Future backlog** row uses badge **planned** (supplier returns / SMTP / PayFast). **Live site:** old hosting may lack **Reports** until **`includes/header.php`** is uploaded.
+- **2026-05-02 (time unknown) UTC+2** — **Rollout ladder (hassan):** **`docs/BACKLOG_POST_STAGE7.md`** — phases **A–E** (Live/Ops → test → one backlog block → test → polish/docs); **`docs/rollout_execution_order_print.html`** &#183; **`docs/client_training_index.html`** card &#183; **`CLAUDE.md`** &#167;3 + &#167;10 table &#183; **`CHANGELOG`**.
+
+- **2026-05-02 (time unknown) UTC+2** — **Stage 6 closure:** **`sales_summary_report.php`** — finalized **credit notes** in chosen period by **`credit_date`** (totals &#183; AR reduction vs cash refund &#183; table &#183; links to **`credit_note_edit.php`**) when **`cn_tables_ready`** &#183; **`CLAUDE.md`** &#167;2 Stage **6** marked **DONE &amp; TESTED** &#183; deferred SMTP/PayFast/supplier AP → **`BACKLOG_POST_STAGE7.md`** &#183; **`ROADMAP.md`** Stage 6 bullet &#183; **`reports_staff_guide_print.html`** &#183; **`complete_system_manual.html`** &#183; **`sales_summary_report_client_print.html`** &#183; **`main_dashboard.php`** copy &#183; **`CHANGELOG`**.
+
+- **2026-05-02 (time unknown) UTC+2** — **Training PDF:** **`docs/git_laragon_terminal_start_to_finish_print.html`** — Laragon/Cursor terminal → **`cd`** → **`git status`** / **`git add .`** / **`git commit -m`** / **`git push`** &#183; GitHub PAT &#183; Credential Manager &#183; “everything up-to-date” &#183; Vim escape &#183; **`docs/client_training_index.html`** &#183; **`CHANGELOG`**.
+
+- **2026-05-02 (time unknown) UTC+2** — **Shutdown handoff pack:** **`docs/session_pause_handoff_print.html`** &#183; **`HOW_TO_START_NEW_CHAT.md`** “Before you shut down” &#183; **`CLAUDE.md`** &#167;10 handoff block &#183; **`docs/client_training_index.html`** &#183; **`docs/md_backups/README.md`** numbered steps &#183; **`ROADMAP.md`** &#183; **`docs/TRAINING_SCREENSHOTS.md`**.
+
+- **2026-05-02 (time unknown) UTC+2** — **Markdown sync:** **`CLAUDE.md`** &#167;8 + &#167;10 quick-docs table &#183; **`HOW_TO_START_NEW_CHAT.md`** &#183; **`ROADMAP.md`** &#183; **`docs/TRAINING_SCREENSHOTS.md`** &#183; **`docs/md_backups/README.md`** — pointers to **`add_users_staff_guide_print.html`** &amp; **`database_update_backup_guide_print.html`** + browser PDF tip.
+
+- **2026-05-02 (time unknown) UTC+2** — **Training PDF:** **`docs/database_update_backup_guide_print.html`** — full DB replace vs incremental **`sql/*.sql`** (keep customers/data); **`docs/client_training_index.html`** card &#183; **`CLAUDE.md`** &#167;3.
+
+- **2026-05-01 (end of day) UTC+2** — **Session pause — hassan:** stopping for today. **Tomorrow:** open **`CLAUDE.md` &#167;10** + paste from **`HOW_TO_START_NEW_CHAT.md`** Step 2. **Likely next actions (pick one):** (1) **Live deploy** — upload **`includes/header.php`** + **`main_dashboard.php`** if **Reports** missing on **`ahnwebdesigners.co.za`**. (2) Optional **web shop** smoke-test **`CLAUDE.md` &#167;10 → A**. (3) **Backlog** — **`docs/BACKLOG_POST_STAGE7.md`** (supplier returns, SMTP, PayFast; **alternate** net-due rule = &#167;7 **`docs/credit_notes_ar_vs_cash_refund_print.html`** — explicit go only). (4) **View-only user:** phpMyAdmin **`users.role`** = **`viewer`** (same login page). No code left half-finished this session.
+
+- **2026-05-01 (time unknown) UTC+2** — **Training PDF:** **`docs/ar_report_and_customer_statement_explained_print.html`** — AR screen + customer statement explained (A1–A7 &#183; B1–B7) &#183; **`docs/client_training_index.html`** card &#183; **`CLAUDE.md`** &#167;3 + &#167;10 table row.
+
+- **2026-05-01 (time unknown) UTC+2** — **Credit notes — AR/cash reporting split:** helpers `cn_finalized_ar_reduction_total_for_invoice` / `cn_finalized_cash_refund_total_for_invoice`; **Net due** unchanged; **AR report** + **statement** columns **AR cr.** / **Refund**; **`invoice_edit.php`** credits split &#183; **`credit_note_edit.php`** confirm text &#183; **`docs/BACKLOG_POST_STAGE7.md`** &#183; **`docs/credit_notes_ar_vs_cash_refund_print.html`** (incl. &#167;7 alternate rule) &#183; **`ROADMAP`** &#183; **`sales_summary_report.php`** footnote &#183; **`CHANGELOG`**.
+
+- **2026-05-01 (time unknown) UTC+2** — **`main_dashboard.php`:** **Stages 1–7 live** badge &#183; **What’s next** + note that **Stages 1–7** are **done** and the bottom row is **not** Stage 7 &#183; **Future backlog** row uses badge **planned** (supplier returns / SMTP / PayFast). **Live site:** old hosting may lack **Reports** until **`includes/header.php`** is uploaded.
 
 
-- **2026-05-02 (time unknown) UTC+2** — **Test B PASS — Credit notes (§10 suggested next session B):** hassan — **`sql/07_credit_notes.sql`** applied on **`autowagen_master`** (tables visible in phpMyAdmin); **Reports → Credit notes** / **New credit note** from a **final** invoice; **draft → finalize** smoke-test **PASS** (stock restore + **CN-…** + balances on invoice / AR / statement as coded).
+- **2026-05-02 (time unknown) UTC+2** — **Test B PASS — Credit notes (&#167;10 suggested next session B):** hassan — **`sql/07_credit_notes.sql`** applied on **`autowagen_master`** (tables visible in phpMyAdmin); **Reports → Credit notes** / **New credit note** from a **final** invoice; **draft → finalize** smoke-test **PASS** (stock restore + **CN-…** + balances on invoice / AR / statement as coded).
 
-- **2026-05-02 (time unknown) UTC+2** — **Read `CLAUDE.md` & continue:** §10 **synced** — **Stage 7** credit notes reflected in SQL steps **8–9** (`06e`, `07`), UI table row, **Suggested next session B** (credit smoke-test), **Resume handoff** + **backlog** wording (customer CN shipped; supplier returns still manual). Prior break snapshot remains **`docs/md_backups/2026-05-01/`**.
+- **2026-05-02 (time unknown) UTC+2** — **Read `CLAUDE.md` &amp; continue:** &#167;10 **synced** — **Stage 7** credit notes reflected in SQL steps **8–9** (`06e`, `07`), UI table row, **Suggested next session B** (credit smoke-test), **Resume handoff** + **backlog** wording (customer CN shipped; supplier returns still manual). Prior break snapshot remains **`docs/md_backups/2026-05-01/`**.
 
-- **2026-05-01 (time unknown) UTC+2** — **Taking a break:** **Markdown snapshot** copied to **`docs/md_backups/2026-05-01/`** (`CLAUDE.md`, `ROADMAP.md`, `HOW_TO_START_NEW_CHAT.md`, **`docs/TRAINING_SCREENSHOTS.md`**, **`docs/CHANGELOG.md`**). **`docs/md_backups/README.md`** → latest **2026-05-01**. **Memory updated:** **`CLAUDE.md`** §2 **Stage 7 — Credit notes** (code shipped; ⛔ **`07_credit_notes.sql`**); §3/§4 paths + **`credit_notes_system_guide_print.html`**; AR/statement wording. **`ROADMAP.md`** / **`HOW_TO`** touch-ups. **Resume:** run **`sql/07_credit_notes.sql`** if needed → smoke-test credit note → **`CLAUDE.md` §10**.
+- **2026-05-01 (time unknown) UTC+2** — **Taking a break:** **Markdown snapshot** copied to **`docs/md_backups/2026-05-01/`** (`CLAUDE.md`, `ROADMAP.md`, `HOW_TO_START_NEW_CHAT.md`, **`docs/TRAINING_SCREENSHOTS.md`**, **`docs/CHANGELOG.md`**). **`docs/md_backups/README.md`** → latest **2026-05-01**. **Memory updated:** **`CLAUDE.md`** &#167;2 **Stage 7 — Credit notes** (code shipped; ⛔ **`07_credit_notes.sql`**); &#167;3/&#167;4 paths + **`credit_notes_system_guide_print.html`**; AR/statement wording. **`ROADMAP.md`** / **`HOW_TO`** touch-ups. **Resume:** run **`sql/07_credit_notes.sql`** if needed → smoke-test credit note → **`CLAUDE.md` &#167;10**.
 
-- **2026-05-01 (time unknown) UTC+2** — **Client Sales summary PDF handout:** **`docs/sales_summary_report_client_print.html`** (purpose · turnover vs payments · numbered clicks · illustrative mock · Print→PDF) · **`docs/client_training_index.html`** card · **`CHANGELOG`**.
+- **2026-05-01 (time unknown) UTC+2** — **Client Sales summary PDF handout:** **`docs/sales_summary_report_client_print.html`** (purpose &#183; turnover vs payments &#183; numbered clicks &#183; illustrative mock &#183; Print→PDF) &#183; **`docs/client_training_index.html`** card &#183; **`CHANGELOG`**.
 
-- **2026-05-01 (time unknown) UTC+2** — **`sales_summary_report.php`:** **Reports → Sales summary (period)** — POS-only read-only aggregates (invoice date range: final/draft/void totals, payments by paid date, top customers, line mix, 200-row list, Print/PDF). **`includes/header.php`** nav link · **`docs/complete_system_manual.html`** §9 pointers · **`docs/reports_staff_guide_print.html`** table row. **No new SQL.** **Stage 7 credit notes:** see §2 ( **`07_credit_notes.sql`** + guides); sales summary does not yet analyse CN lines separately.
+- **2026-05-01 (time unknown) UTC+2** — **`sales_summary_report.php`:** **Reports → Sales summary (period)** — POS-only read-only aggregates (invoice date range: final/draft/void totals, payments by paid date, top customers, line mix, 200-row list, Print/PDF). **`includes/header.php`** nav link &#183; **`docs/complete_system_manual.html`** &#167;9 pointers &#183; **`docs/reports_staff_guide_print.html`** table row. **No new SQL.** **Stage 7 credit notes:** see &#167;2 ( **`07_credit_notes.sql`** + guides); sales summary does not yet analyse CN lines separately.
 
-- **2026-05-01 (time unknown) UTC+2** — **`docs/session_report_reports_menu_print.html`:** printable session report (Reports nav · **no SQL** for that work · viewer login via `users.role` · repo doc map · **one** deploy/verify next step) for hassan **Print → PDF**.
+- **2026-05-01 (time unknown) UTC+2** — **`docs/session_report_reports_menu_print.html`:** printable session report (Reports nav &#183; **no SQL** for that work &#183; viewer login via `users.role` &#183; repo doc map &#183; **one** deploy/verify next step) for hassan **Print → PDF**.
 
-- **2026-05-01 (time unknown) UTC+2** — **Reports top menu (`includes/header.php`):** **`Reports`** dropdown — Accounts payable · Accounts receivable · Sales invoices · Customer statements shortcut (Customers list) · Web shop orders & messages (staff+) · deduped out of Inventory/POS; manuals + **`docs/reports_staff_guide_print.html`** + **`CLAUDE.md` §10** + **`ROADMAP.md`** aligned. **No SQL / no secrets change.**
+- **2026-05-01 (time unknown) UTC+2** — **Reports top menu (`includes/header.php`):** **`Reports`** dropdown — Accounts payable &#183; Accounts receivable &#183; Sales invoices &#183; Customer statements shortcut (Customers list) &#183; Web shop orders &amp; messages (staff+) &#183; deduped out of Inventory/POS; manuals + **`docs/reports_staff_guide_print.html`** + **`CLAUDE.md` &#167;10** + **`ROADMAP.md`** aligned. **No SQL / no secrets change.**
 
-- **2026-05-02 (time unknown) UTC+2** — **`CLAUDE.md` §10:** pinned **06e vs web messages** warning, **MVP not-built** (returns/SMTP/auto-deploy), expanded **“Quick — what open next”** doc table + changelog/laminate rows under UI table.
+- **2026-05-02 (time unknown) UTC+2** — **`CLAUDE.md` &#167;10:** pinned **06e vs web messages** warning, **MVP not-built** (returns/SMTP/auto-deploy), expanded **“Quick — what open next”** doc table + changelog/laminate rows under UI table.
 
-- **2026-05-01 (follow-up) UTC+2** — **`docs/developer_quick_sheet_print.html`:** one‑page laminatable Git + changelog (triple‑write) cheat sheet · linked from **`docs/client_training_index.html`**.
+- **2026-05-01 (follow-up) UTC+2** — **`docs/developer_quick_sheet_print.html`:** one‑page laminatable Git + changelog (triple‑write) cheat sheet &#183; linked from **`docs/client_training_index.html`**.
 
-- **2026-05-01 ~12:00 UTC+2** — **CHANGELOG pair + full manual expanded:** **`docs/CHANGELOG.md`** / **`docs/CHANGELOG.html`** (Recorder + UTC+2; newest-first; protocol mirrors **`CLAUDE.md` §7**). **`docs/complete_system_manual.html`** — TOC §§10–16: public shop guest flow, staff list/orders (`Inventory → Web shop orders`), stripping catalogue, **`Inventory → Web shop messages`**, AR/statements/backups pointers; roles moved to §16; optional **`full-31`…`full-36`** appendix. **`docs/TRAINING_SCREENSHOTS.md`**, **`docs/client_training_index.html`** synced. **`CLAUDE.md` §8** changelog URLs.
+- **2026-05-01 ~12:00 UTC+2** — **CHANGELOG pair + full manual expanded:** **`docs/CHANGELOG.md`** / **`docs/CHANGELOG.html`** (Recorder + UTC+2; newest-first; protocol mirrors **`CLAUDE.md` &#167;7**). **`docs/complete_system_manual.html`** — TOC &#167;&#167;10–16: public shop guest flow, staff list/orders (`Inventory → Web shop orders`), stripping catalogue, **`Inventory → Web shop messages`**, AR/statements/backups pointers; roles moved to &#167;16; optional **`full-31`…`full-36`** appendix. **`docs/TRAINING_SCREENSHOTS.md`**, **`docs/client_training_index.html`** synced. **`CLAUDE.md` &#167;8** changelog URLs.
 
-- **2026-05-01 UTC+2** — **`docs/git_github_handout_print.html`:** printable **full session** recap (CLAUDE/§10, Laragon URLs, hosting vs GitHub vs live server, shop/06e reminders, Git/GitHub setup + daily `add`/`commit`/`push`, PowerShell+Vim troubleshooting, reboot/new-chat behaviour, printing PDF tip; browser → Print → PDF).
+- **2026-05-01 UTC+2** — **`docs/git_github_handout_print.html`:** printable **full session** recap (CLAUDE/&#167;10, Laragon URLs, hosting vs GitHub vs live server, shop/06e reminders, Git/GitHub setup + daily `add`/`commit`/`push`, PowerShell+Vim troubleshooting, reboot/new-chat behaviour, printing PDF tip; browser → Print → PDF).
 
-- **2026-04-30 UTC+2 (session end)** — **Printable handoff sheet:** `docs/HANDOFF_2026-04-30_PRINT.html` (browser → Print → PDF); **markdown snapshot** refreshed → `docs/md_backups/2026-04-30/`. **Come-back prompt** = read `CLAUDE.md` §10 first (same text in that HTML §1).
+- **2026-04-30 UTC+2 (session end)** — **Printable handoff sheet:** `docs/HANDOFF_2026-04-30_PRINT.html` (browser → Print → PDF); **markdown snapshot** refreshed → `docs/md_backups/2026-04-30/`. **Come-back prompt** = read `CLAUDE.md` &#167;10 first (same text in that HTML &#167;1).
 
 - **2026-04-30 UTC+2** — ✅ **Web shop smoke-test PASS** (hassan). **Public Gearbox menu** shipped: **`shop/_layout.php`** dropdown (All gearbox / Complete / Parts loose) → **`category.php?slug=transmission-driveline`** + **`line=`**; **`includes/shop_helpers.php`** — `shop_normalize_gearbox_line`, `shop_gearbox_line_sql_condition`, `shop_category_submenu_context`; **`shop/category.php`** uses shared submenu + gearbox placeholders. Mock: **`docs/mockups/shop-gearbox-nav-mockup.html`**. **No new SQL** — uses EPC category **`transmission-driveline`** (from **`02b`**); staff must tag parts there + clear part titles for lanes.
 
@@ -645,20 +948,20 @@ If the file approaches ~200 lines, **prune** the Session log
   links; **`shop/enquiry.php`** prefills message when `name_hint` from vehicle.
   No SQL — uses `vehicles` + `vehicle_photos`.
 
-- **2026-04-29 15:37 UTC+2** — **Web checkout rule widened** at hassan's
+- **2026-04-29 15:37 UTC+2** — **Web checkout rule widened** at hassan&#39;s
   request: OEM new AND Replacement are now buyable online for
   conditions New / Good / Fair (was OEM new = New only). One code
   change in `includes/shop_helpers.php` (`shop_part_purchasable_online`)
   + cart error wording; six on-screen copy updates in `part_edit.php`,
   `parts_admin.php`, `shop/index.php`, `shop/part.php`, `shop/cart.php`,
-  `shop/enquiry.php`. Lints clean. **No SQL.** Effect on hassan's
+  `shop/enquiry.php`. Lints clean. **No SQL.** Effect on hassan&#39;s
   current data: OEM-0003 (starter v, Good) and OEM-0004 (bonnet, Good)
-  will now show "Web" badge after a browser refresh.
+  will now show &quot;Web&quot; badge after a browser refresh.
 
 - **2026-04-29 ~15:20 UTC+2** — **Recovered from deleted chat** (transcript
   `300f7b93-…jsonl` still on disk after Cursor UI delete). Logged
   Stage 6e (guest enquiries: `sql/06e_shop_guest_enquiries.sql`,
-  `shop/enquiry.php`, `shop_enquiries_admin.php`) into §2 and §3.
+  `shop/enquiry.php`, `shop_enquiries_admin.php`) into &#167;2 and &#167;3.
   Files were created by the deleted chat but never written into
   `CLAUDE.md`. ⛔ Reminder: hassan still needs to run `06e` SQL.
 
@@ -676,7 +979,7 @@ If the file approaches ~200 lines, **prune** the Session log
 
 - **2026-04-28 UTC+2** — **`customer_statement.php`:** printable account statement per customer; **WhatsApp** (`wa.me` + truncated text), **Email** (`mailto:`); links from **AR** + **Customers** list.
 
-- **2026-04-28 UTC+2** — **`customer_ar_report.php` fix (MySQL 8 / strict):** removed SQL literals `'0000-00-00'` (error 1525 on `prepare`); use `due_date >= '1900-01-01'` + `IS NOT NULL`; PHP helper `ar_due_is_meaningful()` for display/overdue rows.
+- **2026-04-28 UTC+2** — **`customer_ar_report.php` fix (MySQL 8 / strict):** removed SQL literals `&#39;0000-00-00&#39;` (error 1525 on `prepare`); use `due_date &gt;= &#39;1900-01-01&#39;` + `IS NOT NULL`; PHP helper `ar_due_is_meaningful()` for display/overdue rows.
 
 - **2026-04-28 UTC+2** — **`customer_ar_report.php`:** overdue-by-due-date (vs **As at**),
   **Overdue only** filter, **Overdue** column by customer, invoice table with days overdue + **Print / PDF**;
@@ -688,7 +991,7 @@ If the file approaches ~200 lines, **prune** the Session log
   ⛔ Run **`06a`** in phpMyAdmin before account UI / due-date finalize rule / AR “account only” filter.
 
 - **2026-04-29 (time unknown) UTC+2** — **`main_dashboard.php`:** “What’s next” roadmap synced — Stages **4** and **5** **done**;
-  badge **Stages 1–5 live · Stage 6 next** (replaced stale “Stage 3 active”).
+  badge **Stages 1–5 live &#183; Stage 6 next** (replaced stale “Stage 3 active”).
 
 - **2026-04-29 (time unknown) UTC+2** — **`epc_full_tree.php`** + **EPC → Full tree (reference)** in `includes/header.php`:
   read-only printable 6-level list (expand/collapse) from active `epc_*` + variants.
@@ -697,7 +1000,7 @@ If the file approaches ~200 lines, **prune** the Session log
   (counts, FK orphans, missing types/subsystems/components/variants, `epc_full_view` smoke).
 
 - **2026-04-28 UTC+2** — **`sql/02h_epc_subsystems_per_type.sql`:** Ensures each **Type** has a **Subsystem**
-  (gap-fill `parts-group`); **renames** those rows to **`<Type name> — parts`**; completes missing
+  (gap-fill `parts-group`); **renames** those rows to **`&lt;Type name&gt; — parts`**; completes missing
   **All items** / **OEM** / **Aftermarket** under new subsystems.
 
 - **2026-04-28 UTC+2** — **Fix `02g` MySQL #1267 collation:** `CREATE TEMPORARY TABLE epc_type_seed`
@@ -708,7 +1011,7 @@ If the file approaches ~200 lines, **prune** the Session log
   across all 12 categories (incl. Petrol/Diesel/Hydraulic/Exterior); doors slugs match **`02f`**. **After 02g, re-run `02d` + optional `02e`.**
 
 - **2026-04-28 UTC+2** — **`sql/02f_epc_body_doors_types.sql`:** Real **Level 3 Types** under
-  **Body → Doors & tailgate** (door shell, handle, lock, regulator, glass, hinges, seal) + spine to
+  **Body → Doors &amp; tailgate** (door shell, handle, lock, regulator, glass, hinges, seal) + spine to
   variants; clarifies ChatGPT-style lists vs generic **General** from `02d`.
 
 - **2026-04-28 UTC+2** — **EPC Step 4 (optional):** `sql/02e_epc_variants_dismantler.sql`
@@ -724,7 +1027,7 @@ If the file approaches ~200 lines, **prune** the Session log
   — ~72 new `epc_subcategories` rows via **`INSERT IGNORE`…`SELECT` on parent category `slug`** (no hard-coded category IDs). Keeps seed subs (Petrol, Diesel, Hydraulic, Exterior). **hassan:** run in phpMyAdmin after **02b**. Next: Step 3 = Types / subsystems / components / variants (by agreement).
 
 - **2026-04-28 UTC+2** — **EPC Step 1 (Level 1 only):** New file **`sql/02b_epc_categories_step1.sql`**
-  — adds nine `epc_categories` (Transmission & driveline → Accessories & consumables), updates
+  — adds nine `epc_categories` (Transmission &amp; driveline → Accessories &amp; consumables), updates
   `sort_order` on existing **Engine / Brakes / Body** so the 12-item list order matches; **`INSERT IGNORE`**
   safe on re-run. **hassan:** paste in phpMyAdmin when ready. **Next EPC step:** Level 2 subcategories
   (by agreement). Twelve categories = **first batch**; more top-level groups can be added later.
@@ -734,21 +1037,21 @@ If the file approaches ~200 lines, **prune** the Session log
   **`sales_invoice_payments`** (1). **No need to re-run `05_pos.sql`** on this database. Returns/credit-note
   tables still absent — expected (**deferred**).
 
-- **2026-04-28 (time unknown) UTC+2** — **Handoff / pause:** hassan **diverged** in-session (returns Q&A,
-  supplier vs customer returns, training PNGs/404, customer modal "No file chosen" UX, SHGA/finalize reminders).
-  **No in-flight code change** left open. **MDs updated** with **§10 "Resume handoff"** so the next chat
-  starts at one clear place. **Next:** smoke-test POS end-to-end or optional manual screenshots — see §10.
+- **2026-04-28 (time unknown) UTC+2** — **Handoff / pause:** hassan **diverged** in-session (returns Q&amp;A,
+  supplier vs customer returns, training PNGs/404, customer modal &quot;No file chosen&quot; UX, SHGA/finalize reminders).
+  **No in-flight code change** left open. **MDs updated** with **&#167;10 &quot;Resume handoff&quot;** so the next chat
+  starts at one clear place. **Next:** smoke-test POS end-to-end or optional manual screenshots — see &#167;10.
 
 - **2026-04-28 (time unknown) UTC+2** — **`parts_admin.php` → draft invoice:** When opened with
   `return=invoice_edit.php?id=N` and invoice is **draft**, new **Invoice** column: qty + **Add to invoice**
   (`POST add_line_part` to `invoice_edit.php`, same rules as modal — **Available** + stock). Non-available
   rows show status hint. Non-draft invoice shows warning banner.
 
-- **2026-04-28 (time unknown) UTC+2** — **Decision (hassan):** **Supplier returns** (extra/wrong goods, credits from supplier) — **defer** to later build; MVP stays manual (parts + purchase bill/payments). Logged under §10 backlog. Same era: customer returns/credit notes also backlog.
+- **2026-04-28 (time unknown) UTC+2** — **Decision (hassan):** **Supplier returns** (extra/wrong goods, credits from supplier) — **defer** to later build; MVP stays manual (parts + purchase bill/payments). Logged under &#167;10 backlog. Same era: customer returns/credit notes also backlog.
 
 - **2026-04-28 (time unknown) UTC+2** — **`docs/complete_system_manual.html`** — single **full** client manual (login → EPC → master data → inventory → purchases/AP → POS), **30 figure** PNG slots (`full-01`…`full-30`), appendix checklist; **`client_training_index.html`** links it first.
 
-- **2026-04-28 (time unknown) UTC+2** — **Training docs:** Expanded `docs/invoice_screen_full_guide.html` (zones **S** modal, **P** parts list + **Add to invoice**, **B** running total note, figure placeholders + commented `<img>` paths under `docs/manual_screenshots/`). New **`docs/TRAINING_SCREENSHOTS.md`** — explains AI cannot capture Laragon screens; hassan/staff add PNGs via Win+Shift+S; **`docs/manual_screenshots/.gitkeep`**. Updated **`CLAUDE.md`** §3, **`ROADMAP.md`**, **`HOW_TO_START_NEW_CHAT.md`**.
+- **2026-04-28 (time unknown) UTC+2** — **Training docs:** Expanded `docs/invoice_screen_full_guide.html` (zones **S** modal, **P** parts list + **Add to invoice**, **B** running total note, figure placeholders + commented `&lt;img&gt;` paths under `docs/manual_screenshots/`). New **`docs/TRAINING_SCREENSHOTS.md`** — explains AI cannot capture Laragon screens; hassan/staff add PNGs via Win+Shift+S; **`docs/manual_screenshots/.gitkeep`**. Updated **`CLAUDE.md`** &#167;3, **`ROADMAP.md`**, **`HOW_TO_START_NEW_CHAT.md`**.
 
 - **2026-04-28 (time unknown) UTC+2** — ✅ **hassan TEST: invoice → parts → Back to invoice** — Confirmed
   the **Select item…** modal source links and the **`parts_admin.php`** blue **Back to invoice** bar
@@ -765,7 +1068,7 @@ If the file approaches ~200 lines, **prune** the Session log
   `invoice_edit.php` — **Select item…** modal, **`unit_price_override`** on part lines,
   draft **`update_line_price`** (pencil), built letterhead (phone L / logo C / address R),
   **`print-color-adjust: exact`** for black bar on Print/PDF, on-screen banner preview;
-  fixed stray `<?php` after `header.php` (parse error). **`part_edit.php`** — soft
+  fixed stray `&lt;?php` after `header.php` (parse error). **`part_edit.php`** — soft
   **SKU vs source** prefix warning. Helpers: `tools/trim_letterhead.php`,
   `tools/extract_logo.php`. **Asset note:** use exact filename **`invoice-letterhead.png`**
   only — Windows “double `.png`” (`invoice-letterhead.png.png`) breaks detection. **hassan: letterhead Print/PDF OK.**
@@ -782,7 +1085,7 @@ If the file approaches ~200 lines, **prune** the Session log
   stock reversal. **⛔ hassan: run `05_pos.sql` in phpMyAdmin then smoke-test New sale.**
 
 - **2026-04-28 (time unknown) UTC+2** — **Stage 5 BUILD BRIEF — draft subsection**
-  **AR + reminders** added under **§10** (customers on account: prerequisites
+  **AR + reminders** added under **&#167;10** (customers on account: prerequisites
   invoices/payments/balance, email SMTP + log, WhatsApp **v1** = `wa.me` helper,
   **v2** = Cloud API TBD; four **hassan confirms** decision lines left as **TBD**).
   No application code.
@@ -792,7 +1095,7 @@ If the file approaches ~200 lines, **prune** the Session log
   payable (owed)** / Purchase **#2** walkthrough; agent explained sections and
   **Save purchase** vs **Payments → Add**. Wrote `docs/manual_supplier_purchase_screen.html`
   and `docs/supplier_purchase_screen_full_guide.html` (print to PDF from Chrome).
-  **Next:** Stage **5** = lock **BUILD BRIEF** (planning Q&A) then hassan says **go**
+  **Next:** Stage **5** = lock **BUILD BRIEF** (planning Q&amp;A) then hassan says **go**
   to code POS; optional: add a real payment line on Purchase #2 and confirm AP
   **Remaining** drops.
 
@@ -839,7 +1142,7 @@ If the file approaches ~200 lines, **prune** the Session log
   session** — hassan must paste `04b` in phpMyAdmin before testing.
   Next: path B (stretch OEM/REP/TPP) then C (Stage 5 plan).
 
-- **2026-04-27 13:21 UTC+2** — ✅ **Test 4 PASSED — STAGE 3 → DONE & TESTED.**
+- **2026-04-27 13:21 UTC+2** — ✅ **Test 4 PASSED — STAGE 3 → DONE &amp; TESTED.**
   hassan added supplier **HASSAN NIZAMIE** via `suppliers_admin.php`
   (screenshot 13:20). Green *Added supplier* alert; table shows 1
   supplier, Active. Section 2 + section 10 updated. Next: optional
@@ -855,7 +1158,7 @@ If the file approaches ~200 lines, **prune** the Session log
   step** (session log + live state + section 10 as needed). No code
   in this entry.
 
-- **2026-04-27 12:22 UTC+2** — ✅ **STAGE 3d DONE & TESTED + Test 3
+- **2026-04-27 12:22 UTC+2** — ✅ **STAGE 3d DONE &amp; TESTED + Test 3
   PASSED.** hassan picked option B (Stage 3d — customer compliance
   docs for SA Second-Hand Goods Act). YES on Q2 (separate SA ID for
   individuals / CIPC for businesses). Build sequence:
@@ -865,7 +1168,7 @@ If the file approaches ~200 lines, **prune** the Session log
        on the `customers` Structure tab.
     2. Extended `includes/uploads.php` with `customer_uploads_dir()`
        + `save_uploaded_customer_doc()` (mirror of vehicle helpers,
-       saves to `uploads/customers/<id>/docs/`).
+       saves to `uploads/customers/&lt;id&gt;/docs/`).
     3. Rewrote `customers_admin.php` (~750 lines) — multipart modal
        with type-driven SA ID / CIPC switch (cm-individual-only and
        cm-business-only CSS classes, JS toggleable), two upload
@@ -874,20 +1177,20 @@ If the file approaches ~200 lines, **prune** the Session log
        filter dropdown, modal title shows `Edit customer #N`.
     4. Mid-test bugs (both fixed in same session):
        - **Save button hidden:** original modal had the form wrap
-         the whole modal-content, which broke Bootstrap's
+         the whole modal-content, which broke Bootstrap&#39;s
          scrollable-modal flex layout — footer (with Save) fell
          off the bottom of the screen. Fix: form lives inside
          modal-body, footer is a sibling.
        - **Files not uploading:** Save button outside the form
-         using `form="cm-form"` HTML5 attribute caused some
+         using `form=&quot;cm-form&quot;` HTML5 attribute caused some
          browsers to drop multipart file fields. Fix: a real
-         `<button type="submit">` lives inside the form
-         (visually hidden), red footer button is `type="button"`
+         `&lt;button type=&quot;submit&quot;&gt;` lives inside the form
+         (visually hidden), red footer button is `type=&quot;button&quot;`
          and `.click()`s the inner submit. Also added
          `array_change_key_case` normaliser so any PDO casing
-         quirks don't break `$mv['id_doc_path']` checks.
+         quirks don&#39;t break `$mv[&#39;id_doc_path&#39;]` checks.
     5. Smoke test: hassan re-edited customer #3, picked an SA ID
-       copy file, ticked "I have this on file", picked a proof
+       copy file, ticked &quot;I have this on file&quot;, picked a proof
        of address file, hit Save. Both cards turned green
        `On file` with `View current scan` links. The customers
        list now shows customer #3 with green `Docs 2/2 ✓` badge.
@@ -895,7 +1198,7 @@ If the file approaches ~200 lines, **prune** the Session log
   data save flow. Test 4 (add a supplier) is the last residual
   Stage 3 task and unblocked.
 
-- **2026-04-27 10:30 UTC+2** — ✅ **STAGE 4 DONE & TESTED.** hassan
+- **2026-04-27 10:30 UTC+2** — ✅ **STAGE 4 DONE &amp; TESTED.** hassan
   was unable to switch to a fresh chat (UI confusion) so the build
   happened in the same session. From 09:45 to 10:30:
     1. Wrote `sql/04_inventory.sql` — 3 tables (parts, part_photos,
@@ -905,7 +1208,7 @@ If the file approaches ~200 lines, **prune** the Session log
     2. Wrote `parts_admin.php` (list / source+status+vehicle filters,
        pagination 50 / page) — loaded green, empty state.
     3. Updated `includes/header.php` to replace the greyed-out
-       "Inventory (Stage 4)" placeholder with a real dropdown
+       &quot;Inventory (Stage 4)&quot; placeholder with a real dropdown
        (All parts / Add part).
     4. Wrote `part_edit.php` (~620 lines, 7 cards, multipart form,
        conditional source-link block via JS, SKU auto-suggest with
@@ -914,18 +1217,18 @@ If the file approaches ~200 lines, **prune** the Session log
        picker writing to `part_epc_links`).
     5. Extended `includes/uploads.php` with `part_uploads_dir()` +
        `save_uploaded_part_photo()` (mirrors vehicle helpers).
-    6. Updated `vehicle_edit.php` to add the "PARTS STRIPPED FROM
-       THIS VEHICLE" card between Photos and EPC variants. Card
+    6. Updated `vehicle_edit.php` to add the &quot;PARTS STRIPPED FROM
+       THIS VEHICLE&quot; card between Photos and EPC variants. Card
        loads from a fresh `parts WHERE vehicle_id=? AND
-       source='stripped'` query, shows summary line + table.
+       source=&#39;stripped&#39;` query, shows summary line + table.
     7. Mid-test bugfix: SKU was auto-generating as `AWG-AWG-0002-P01`
        (double prefix) because vehicles store the stock_code WITH
        the AWG- prefix already. Fixed `suggest_sku()` and 3 other
-       places that prepended `'AWG-'` redundantly. hassan edited the
+       places that prepended `&#39;AWG-&#39;` redundantly. hassan edited the
        wrong-SKU part by hand to `AWG-0002-P01`.
     8. Smoke test: hassan created the headlight (AWG-0002-P01,
        Good, On vehicle, R 849.99, yard A2), uploaded 3 photos, and
-       confirmed the new card on the Toyota's page lists it.
+       confirmed the new card on the Toyota&#39;s page lists it.
   Lints clean throughout. NO REMAINING BLOCKERS for Stage 4.
 - **2026-04-27 09:00 UTC+2** — 🟢 Stage 4 spec FINALISED. hassan
   picked option B (plan-before-build). After 5 multiple-choice
@@ -947,19 +1250,19 @@ If the file approaches ~200 lines, **prune** the Session log
                            VAT can be flipped on later without rebuild.
   See section 10 for the full schema + page list + build order.
 - **2026-04-27 08:54 UTC+2** — ✅ Test 5 PASSED (unintentionally).
-  hassan opened the Toyota's edit page after the SQL ran, scrolled
+  hassan opened the Toyota&#39;s edit page after the SQL ran, scrolled
   past LEGAL PAPERS straight to LINKED EPC VARIANTS, and added a
   link via the cascade picker. Screenshot shows one row in the
   links table: **Engine / Petrol / Inline 4 / Cooling / Radiator /
-  Aftermarket** (linked at 08:47:15). He then asked "where's the
-  table of stripped parts?" — confused EPC tagging (Stage 3) with
+  Aftermarket** (linked at 08:47:15). He then asked &quot;where&#39;s the
+  table of stripped parts?&quot; — confused EPC tagging (Stage 3) with
   inventory (Stage 4, not built yet). Agent explained the
   difference (catalog tag vs physical sellable part with price/
   photo/SKU). hassan picked **option B** — pause testing, plan
   Stage 4 BEFORE coding. He also flagged a critical Stage 4
-  field requirement: needs a free-text **"Part Name"** field
-  (what they call the part themselves, e.g. "Front Radiator
-  Hilux", separate from the EPC tag).
+  field requirement: needs a free-text **&quot;Part Name&quot;** field
+  (what they call the part themselves, e.g. &quot;Front Radiator
+  Hilux&quot;, separate from the EPC tag).
   ⏭️ Stage 4 design discussion in progress. NO CODE until he
   signs off on the field list.
 - **2026-04-27 08:45 UTC+2** — ✅ Stage 3c SQL PASSED. After two
@@ -968,18 +1271,18 @@ If the file approaches ~200 lines, **prune** the Session log
   in 6 numbered steps. He pasted `sql/03c_proof_of_residence.sql`
   in phpMyAdmin → SQL tab and clicked Go. Screenshots show
   every prepared-statement block returning green
-  "MySQL returned an empty result set (i.e. zero rows)" — the
+  &quot;MySQL returned an empty result set (i.e. zero rows)&quot; — the
   expected success for DDL via PREPARE/EXECUTE. Both new
   columns confirmed via the SQL block contents:
   `ADD COLUMN has_proof_of_residence TINYINT(1) NOT NULL DEFAULT 0`
   and `ADD COLUMN proof_of_residence_path VARCHAR(255) DEFAULT NULL`.
   Harmless deprecation warning #1681 about Integer display width
   ignored (cosmetic). DB blocker lifted. Next = refresh Toyota
-  edit page, tick Seller's proof-of-residence box, upload a file,
+  edit page, tick Seller&#39;s proof-of-residence box, upload a file,
   Save changes.
 - **2026-04-27 08:35 UTC+2** — ✅ Stage 3c code shipped. hassan
-  picked option A — add a 4th legal-paper slot for "Seller's
-  proof of residence" (utility bill / bank statement). Files
+  picked option A — add a 4th legal-paper slot for &quot;Seller&#39;s
+  proof of residence&quot; (utility bill / bank statement). Files
   written: `sql/03c_proof_of_residence.sql` (2 columns,
   INFORMATION_SCHEMA-guarded prepared statements — same
   idempotent pattern as 3b), `vehicle_edit.php` (defaults,
@@ -995,8 +1298,8 @@ If the file approaches ~200 lines, **prune** the Session log
   full-dark UI sample is reference only, not a redesign brief.
 - **2026-04-27 ~08:25 UTC+2** — ✅ Doc-upload pipeline tested.
   hassan uploaded a picture into the Logbook slot on the
-  Toyota's edit page, clicked Save changes, got green "Saved"
-  flash, "View current scan" link appeared. Confirms file
+  Toyota&#39;s edit page, clicked Save changes, got green &quot;Saved&quot;
+  flash, &quot;View current scan&quot; link appeared. Confirms file
   upload + checkbox auto-tick + DB path persistence works.
   He then asked whether re-uploading deletes the previous
   file (yes — confirmed in code) AND whether we can add a
@@ -1005,9 +1308,9 @@ If the file approaches ~200 lines, **prune** the Session log
 - **2026-04-27 08:11 UTC+2** — ✅ Test 2c Part A PASSED. hassan
   re-opened `vehicle_edit.php`, used unique VIN `TOY1234567` +
   plate `ND 1111` + stock code `0002` (year 2001 — minor typo
-  vs. plan's 2002, no impact). Save succeeded. Screenshot of
+  vs. plan&#39;s 2002, no impact). Save succeeded. Screenshot of
   `vehicles_admin.php` shows both vehicles in the list with
-  all Stage 3b columns rendering: AWG-0002, "Being stripped"
+  all Stage 3b columns rendering: AWG-0002, &quot;Being stripped&quot;
   badge, red Papers 3/3 badge, yard `bay 3`, 12,345 km, Active.
   Toyota plate ND 1111, VIN TOY1234567 confirmed unique. hassan
   then asked whether he needs to fill the EPC catalogue now.
@@ -1030,22 +1333,22 @@ If the file approaches ~200 lines, **prune** the Session log
   sections (TOYOTA hilux 2002 bakkie, status `stripping`, fuel
   petrol, mileage 12345, private seller hassan SA-ID
   1234567890123, price 1234, papers all ticked, yard `bay 3`),
-  clicked Create vehicle. Save FAILED with red banner *"Stock
-  code, VIN or plate is already used by another vehicle"*. Root
-  cause: re-used VW md's VIN `1234567890` + plate `ND 0000`.
+  clicked Create vehicle. Save FAILED with red banner *&quot;Stock
+  code, VIN or plate is already used by another vehicle&quot;*. Root
+  cause: re-used VW md&#39;s VIN `1234567890` + plate `ND 0000`.
   phpMyAdmin confirms vehicles table still has only the 1 VW row.
   Duplicate-key guard working as designed. Form bounced back
   blank with auto-suggested stock code AWG-0001 (which is also
-  reserved). User confused that upload sections weren't showing —
-  that's expected (intentional, requires saved vehicle ID).
+  reserved). User confused that upload sections weren&#39;t showing —
+  that&#39;s expected (intentional, requires saved vehicle ID).
 - **2026-04-27 07:23 UTC+2** — Test 2c partial. `vehicle_edit.php`
   new-vehicle form opened, all 5 sections render correctly per
-  screenshots. Form helper text confirms "Upload becomes available
-  after the first save" + "Photos and EPC variant links can be
-  attached after the vehicle is created" — intentional UX.
+  screenshots. Form helper text confirms &quot;Upload becomes available
+  after the first save&quot; + &quot;Photos and EPC variant links can be
+  attached after the vehicle is created&quot; — intentional UX.
 - **2026-04-27 07:18 UTC+2** — Test 2b PASSED. After SQL fix,
   hassan re-pasted `sql/03b_vehicle_extras.sql` in phpMyAdmin and
-  clicked Go. Result: green "MySQL returned an empty result set"
+  clicked Go. Result: green &quot;MySQL returned an empty result set&quot;
   (success indicator for prepared-statement DDL). Verified via
   screenshots: `vehicle_photos` table now appears in left sidebar;
   `vehicles` Structure tab shows all 19 new columns
@@ -1056,7 +1359,7 @@ If the file approaches ~200 lines, **prune** the Session log
   has_seller_id_copy, seller_id_copy_path, yard_location). DB
   blocker fully lifted. Moving to Test 2c (vehicle form re-test).
 - **2026-04-27 06:51 UTC+2** — hassan ran `sql/03b_vehicle_extras.sql`
-  in phpMyAdmin. Got `#1064 syntax error near 'IF NOT EXISTS' at
+  in phpMyAdmin. Got `#1064 syntax error near &#39;IF NOT EXISTS&#39; at
   line 26`. Root cause: original file used MariaDB-only
   `ADD COLUMN IF NOT EXISTS` syntax but Laragon ships **MySQL**
   (not MariaDB), which rejects it. Fix shipped the same chat:
@@ -1064,16 +1367,16 @@ If the file approaches ~200 lines, **prune** the Session log
   the same INFORMATION_SCHEMA-guarded `PREPARE/EXECUTE` pattern that
   was already used for indexes/FKs further down the file. Now
   compatible with MySQL 5.7+, MySQL 8+, and MariaDB 10.x. File is
-  still idempotent. hassan needs to re-paste & re-run it.
+  still idempotent. hassan needs to re-paste &amp; re-run it.
 - **2026-04-27 06:30 UTC+2** — hassan asked to switch to a fresh chat.
   Current chat updating .md files and handing off. Next agent must
   start by running `sql/03b_vehicle_extras.sql` (not by writing more
-  code). hassan got stuck on Step 1 ("I can't open phpMyAdmin / I
-  don't know the URL") — next agent must walk him through opening
+  code). hassan got stuck on Step 1 (&quot;I can&#39;t open phpMyAdmin / I
+  don&#39;t know the URL&quot;) — next agent must walk him through opening
   `http://localhost/phpmyadmin` first.
 - **2026-04-27 06:28 UTC+2** — hassan loaded `vehicles_admin.php`
   before running `sql/03b_vehicle_extras.sql`. Got
-  `PDOException: SQLSTATE[42S22]: Column not found: 'stock_code'`.
+  `PDOException: SQLSTATE[42S22]: Column not found: &#39;stock_code&#39;`.
   Expected behaviour — new PHP queries new columns. Resolution:
   run the SQL. Code unchanged.
 - **2026-04-27 06:42 UTC+2** — Stage 3b code shipped. Wrote
@@ -1088,29 +1391,29 @@ If the file approaches ~200 lines, **prune** the Session log
 - **2026-04-27 06:35 UTC+2** — Schema decision finalised: 17 extra
   fields on `vehicles` + new `vehicle_photos` table. Stock code
   format AWG-XXXX (UNIQUE). hassan approved field list verbatim
-  (clicked "Go — build it exactly as listed" after asking for
+  (clicked &quot;Go — build it exactly as listed&quot; after asking for
   plain-English explanations).
 - **2026-04-27 06:14 UTC+2** — hassan answered: business type **1
-  (strip & sell parts)**. Provided detailed SA legal requirements
-  (log book, seller's receipt, seller SA ID copy), 7-photo cap,
+  (strip &amp; sell parts)**. Provided detailed SA legal requirements
+  (log book, seller&#39;s receipt, seller SA ID copy), 7-photo cap,
   and stock-code format AWG-XXXX.
 - **2026-04-26 18:42 UTC+2** — hassan stopping for the day. Session
-  paused mid-Stage-3 testing. Awaiting his answer to "what kind of
-  business are you running?" (decides extra vehicle fields). When
-  he's back, resume at section 10 below.
+  paused mid-Stage-3 testing. Awaiting his answer to &quot;what kind of
+  business are you running?&quot; (decides extra vehicle fields). When
+  he&#39;s back, resume at section 10 below.
 - **2026-04-26 18:09 UTC+2** — Test 2 PASSED. hassan created vehicle
   `VW md, 2004, WHITE, plate ND 0000, mileage 120000` via
   `vehicle_edit.php`. He then requested MORE fields on the vehicle
   form. Agent asked which business type (1–5) before changing schema.
 - **2026-04-26 18:08 UTC+2** — Test 1 PASSED. Top nav shows
   `Master data → Vehicles / Customers / Suppliers`. Vehicles list
-  page loaded with "Add vehicle" button. Confirmed via screenshot.
-- **2026-04-26 17:56 UTC+2** — Created `CLAUDE.md` as the project's
+  page loaded with &quot;Add vehicle&quot; button. Confirmed via screenshot.
+- **2026-04-26 17:56 UTC+2** — Created `CLAUDE.md` as the project&#39;s
   go-to memory file. Researched current best-practice structure
   (Anthropic Claude Code docs + 2026 community guides). Updated
   `HOW_TO_START_NEW_CHAT.md` to point new chats at `CLAUDE.md` first.
 - **2026-04-26 17:47 UTC+2** — hassan ran `sql/03_master_data.sql` in
-  phpMyAdmin. Result: green success + harmless "Table already exists"
+  phpMyAdmin. Result: green success + harmless &quot;Table already exists&quot;
   notes (CREATE TABLE IF NOT EXISTS as designed). Tables `vehicles`,
   `customers`, `suppliers`, `vehicle_epc_links` confirmed visible
   in left sidebar of phpMyAdmin via screenshot.
@@ -1129,19 +1432,17 @@ If the file approaches ~200 lines, **prune** the Session log
 
 ### Handoff — PC shutdown / end of day (always)
 
-Before switching off: **`HOW_TO_START_NEW_CHAT.md`** → **“Before you shut down the PC”** — Git **`commit`** + **`push`**, append **§9 Session log** (one line + what’s next), optional **`docs/md_backups/YYYY-MM-DD/`** copy and phpMyAdmin **Export**. **Print:** **`docs/session_pause_handoff_print.html`**. Next session: read **§10** then **`HOW_TO_START_NEW_CHAT.md`** Step **2** paste into a **new chat**.
+Before switching off: **`HOW_TO_START_NEW_CHAT.md`** → **“Before you shut down the PC”** — Git **`commit`** + **`push`**, append **&#167;9 Session log** (one line + what’s next), optional **`docs/md_backups/YYYY-MM-DD/`** copy and phpMyAdmin **Export**. **Print:** **`docs/session_pause_handoff_print.html`**. Next session: read **&#167;10** then **`HOW_TO_START_NEW_CHAT.md`** Step **2** paste into a **new chat**.
 
 ### Pause — end of day (hassan — latest)
 
-**Stopped 2026-05-05 (end of day) UTC+2.** **Valatone / local track:** **`valaotne-saas`** + DB **`valatone_master`** — full **`sql/`** ladder applied (Stages **1–7**); **Option A SaaS** (provision DB + secrets per customer); printable **`docs/saas_option_a_new_customer_checklist_print.html`**, **`docs/session_recap_valatone_2026-05-05_print.html`**; **`tools/generate_password_hash.php`**; handoff diary **`docs/SESSION_2026-05-05_HANDOFF.md`**.
+**Stopped for today.** When you come back:
 
-**When you come back:**
+1. Open **`HOW_TO_START_NEW_CHAT.md`** → **STEP 2** → select the whole **grey box** → copy → **new Cursor chat** → paste → **Enter**.
+2. Or paste the shorter **“overnight”** block under Step 2 in that file (says you are back and continue rollout).
+3. The assistant will read **`CLAUDE.md`** (especially **section 10** and **section 2**). **Your next build order** is already written at the **top** of **`docs/BACKLOG_POST_STAGE7.md`**: **Phase A** Live/Ops → **Phase B** test → later **Phase C** backlog → **Phase D** test → **Phase E** polish. Printable: **`docs/rollout_execution_order_print.html`**.
 
-1. Open **`docs/SESSION_2026-05-05_HANDOFF.md`** (today’s package) **or** **`CLAUDE.md`** §**10** first.
-2. New chat: **`HOW_TO_START_NEW_CHAT.md`** → **STEP 2** → grey box → paste → add one line: *continuing **local** smoke tests / polish on **`valatone_master`*** (before live hosting).
-3. **Next concrete work (your choice this week):** confirm **`users`** login · Dashboard · POS · **`/shop/`** · Reports · optional uploads / invoice PDF · then **`git push`**. **Live Autowagen rollout** (Phase **A**→**B**) stays in **`docs/BACKLOG_POST_STAGE7.md`** when you switch context back to hosted deploy.
-
-**No half-finished code** this session — docs + SQL-on-local-DB + handoff only.
+**No code left half-finished this session** (last pushes: rollout ladder docs + Stage 6 sales-summary credits block).
 
 ### Pause — 2026-05-01 end of day (archived note)
 
@@ -1150,12 +1451,12 @@ Older pause text — see **Pause — end of day (latest)** above. Rollout ladder
 ### Where we are
 
 - **Resume handoff (2026-04-28 UTC+2, amended 2026-05-01)** — If you **stopped mid-chat** or **jumped topics**, read this once:
-  **Early session note:** **customer credit notes** are now **Stage 7 — code shipped** (see §2); run **`sql/07_credit_notes.sql`** before using them. **Supplier returns** remain **not built**; MVP = manual AP / part edits.
+  **Early session note:** **customer credit notes** are now **Stage 7 — code shipped** (see &#167;2); run **`sql/07_credit_notes.sql`** before using them. **Supplier returns** remain **not built**; MVP = manual AP / part edits.
   **Docs/PDF:** `404` on `manual_screenshots/*.png` means the file was not saved yet — follow
-  **`docs/TRAINING_SCREENSHOTS.md`**. **Customer modal** still shows "No file chosen" after save — normal;
+  **`docs/TRAINING_SCREENSHOTS.md`**. **Customer modal** still shows &quot;No file chosen&quot; after save — normal;
   **On file** + **View current scan** mean the upload worked. **SHGA finalize:** same customer on the
   invoice must have **ID copy + proof of address** on file. **`Add to invoice`** on parts list =
-  **Available** + **qty > 0** (source e.g. stripped vs OEM does not block; **Sold** / **On vehicle** do).
+  **Available** + **qty &gt; 0** (source e.g. stripped vs OEM does not block; **Sold** / **On vehicle** do).
   **Nothing was left half-implemented in code** — next work is **your choice** from the numbered list below.
 
 - **Stages 1–5** — Stage **5 POS** code is on disk. On **hassan’s current `autowagen_master` DB**, **`05_pos.sql` is already applied** *(confirmed 2026-04-28 UTC+2 — phpMyAdmin screenshot: `sales_invoices` 14 rows, lines 9, payments 1).* On a **new empty** database, **⛔ run `sql/05_pos.sql`**, then **POS → New sale**.
@@ -1164,7 +1465,7 @@ Older pause text — see **Pause — end of day (latest)** above. Rollout ladder
 - **Staff training (whole system):** **`docs/complete_system_manual.html`** — one document login → POS; **Print → PDF**; figures **`full-01`…`full-30`**; index **`docs/client_training_index.html`**.
 - **2026-04-28:** Stage **4d** UI + client HTML guides done earlier; POS MVP + search modal + letterhead polish same era.
 - **Stage 6** (reports, polish) still **after** Stage 5 polish — not the final stage.
-- **`06b` + item A (2026-04-29 UTC+2):** hassan ran **`06b_web_shop.sql`** on `autowagen_master`. **Smoke-test** = **§10** → **Suggested next session** → **A**, including **“Detailed numbered steps (staff + guest)”** below — run those clicks and log **PASS** or an issue in **§9**.
+- **`06b` + item A (2026-04-29 UTC+2):** hassan ran **`06b_web_shop.sql`** on `autowagen_master`. **Smoke-test** = **&#167;10** → **Suggested next session** → **A**, including **“Detailed numbered steps (staff + guest)”** below — run those clicks and log **PASS** or an issue in **&#167;9**.
 
 **Is Stage 5 the “last” thing?** No — **Stage 6** follows (reports, optional shop, polish).
 
@@ -1180,8 +1481,8 @@ In phpMyAdmin on **`autowagen_master`**, run each file’s contents once
 5. `sql/05_pos.sql` — `sales_invoices`, `sales_invoice_lines`, `sales_invoice_payments`  
 6. `sql/06a_customer_account.sql` — `customers.account_customer`, `credit_limit_zar` (Stage 6a AR / on-account)
 7. `sql/06b_web_shop.sql` — `parts.list_online`, `shop_orders`, `shop_order_lines` (public web shop)
-8. `sql/06e_shop_guest_enquiries.sql` — `shop_guest_enquiries` (**after `06b`** · guest enquiries + **Reports → Web shop messages**)
-9. `sql/07_credit_notes.sql` — `sales_credit_notes`, `sales_credit_note_lines` (**after `05`** · **Reports → Credit notes**)
+8. `sql/06e_shop_guest_enquiries.sql` — `shop_guest_enquiries` (**after `06b`** &#183; guest enquiries + **Reports → Web shop messages**)
+9. `sql/07_credit_notes.sql` — `sales_credit_notes`, `sales_credit_note_lines` (**after `05`** &#183; **Reports → Credit notes**)
 
 If **`parts_admin`** or purchase screens show **unknown table/column** errors,
 the matching **04\*** script above was not run. If **POS** pages show **missing
@@ -1198,28 +1499,28 @@ run **`06a_customer_account.sql`**. If **`list_online` / shop** errors, run **`0
 | **This session report (Print → PDF)** | **`docs/session_report_reports_menu_print.html`** — Reports nav, SQL impact, viewer login, doc map, single next-step path |
 | **New sale / invoices** | **POS** → **New sale** or **Sales invoices** → `invoice_edit.php` / `invoices_admin.php` (same list also under **Reports → Sales invoices**). |
 | **New customer during a sale** | On a **draft** invoice, under Customer: **New customer (quick)** → `customer_quick_add.php` → returns with buyer selected; full record + SHGA scans: **Master data → Customers**. |
-| **Sales summary (period, POS)** | **Reports** → **Sales summary (period)** → `sales_summary_report.php` (**`05_pos.sql`** · finalized **credit notes** block needs **`07_credit_notes.sql`** · **no extra SQL**) |
+| **Sales summary (period, POS)** | **Reports** → **Sales summary (period)** → `sales_summary_report.php` (**`05_pos.sql`** &#183; finalized **credit notes** block needs **`07_credit_notes.sql`** &#183; **no extra SQL**) |
 | **Who owes us (AR)** | **Reports** → **Accounts receivable (owed)** → `customer_ar_report.php` (needs **`05_pos.sql`**; optional **`06a`** for “account only” filter + `invoice_edit` due-date rule). |
 | **Customer account statement** | `customer_statement.php?id=N` — **Statement** link on AR report / next to name on **Customers** list; or **Reports → Customer statements (Customers list)**. **Print / PDF**; **WhatsApp** (text summary); **Email** (`mailto:`). Attach PDF from Print for full copy. |
 | **Site backup (ZIP)** | **Dashboard** → **Open backup**, or your **name** (top right) → **Site backup (ZIP)** → `backups_admin.php` (**owner / admin**). Files: `autowagen_backup_YYYY-MM-DD_HHMMSS.zip`. Database not included — export SQL separately in phpMyAdmin if needed. |
-| **Add part to invoice (search)** | On a **draft** invoice: **Select item…** opens modal; type to search; click row; set qty & **Price ex VAT**; **Add to invoice**. |
+| **Add part to invoice (search)** | On a **draft** invoice: **Select item…** opens modal; type to search; click row; set qty &amp; **Price ex VAT**; **Add to invoice**. |
 | **Supplier batch purchase** (one purchase, many parts; company or private) | **Inventory** → **Supplier purchases** or **New supplier purchase** |
 | **Bill + payments (ZAR, AP)** | Open a purchase → **`supplier_purchase_edit.php`**: set **Bill (ZAR)** / dates → add rows under **Payments (ZAR)** (one row per payment; split EFT = two rows, same ref in **notes**). |
 | **Who you owe (report)** | **Reports** → **Accounts payable (owed)** → `supplier_ap_report.php` (**owner / admin / manager / staff**). |
 | **Parts list** | **Inventory** → **All parts** (`parts_admin.php` defensively avoids a fatal JOIN if `supplier_purchases` is missing — run **4c** for full **Purchase #** links). |
 | **Public spares shop** | **`/shop/`** (e.g. `http://localhost/autowagen-master/shop/`) — no login; **New + non-stripped** parts with **List on website**. Staff: **Reports** → **Web shop orders** → `shop_orders_admin.php`. |
-| **Parts from invoice (browse & return)** | Draft invoice → **Select item…** → coloured **Stripped** / **Third Party** / **OEM** / **Replacement** links → **`parts_admin.php`** with blue **Back to invoice**; per-row **Add to invoice** (qty + POST) for **Available** parts with stock. |
+| **Parts from invoice (browse &amp; return)** | Draft invoice → **Select item…** → coloured **Stripped** / **Third Party** / **OEM** / **Replacement** links → **`parts_admin.php`** with blue **Back to invoice**; per-row **Add to invoice** (qty + POST) for **Available** parts with stock. |
 | **Printable POS manual** | **`docs/invoice_screen_full_guide.html`** (+ optional PNGs per **`docs/TRAINING_SCREENSHOTS.md`**) |
+| **POS marketing / brochure PDF (A–L figures)** | **`docs/pos_invoice_marketing_walkthrough_print.html`** |
 | **Printable full-system manual** | **`docs/complete_system_manual.html`** — staff + POS + web shop + AR/backups — figures **`full-01`…`full-36`** (optional PNGs); entry **`docs/client_training_index.html`** |
-| **Credit notes (returns)** | **Reports → Credit notes** (`credit_notes_admin.php`) · **New credit note** · **`docs/credit_notes_system_guide_print.html`** + **`docs/credit_notes_ar_vs_cash_refund_print.html`** → Print PDF |
-| **Sales summary — client PDF briefing** | **`docs/sales_summary_report_client_print.html`** — what the report measures, how to run it, sample mock screen · **Print → PDF** for clients/partners |
+| **Credit notes (returns)** | **Reports → Credit notes** (`credit_notes_admin.php`) &#183; **New credit note** &#183; **`docs/credit_notes_system_guide_print.html`** + **`docs/credit_notes_ar_vs_cash_refund_print.html`** → Print PDF |
+| **Sales summary — client PDF briefing** | **`docs/sales_summary_report_client_print.html`** — what the report measures, how to run it, sample mock screen &#183; **Print → PDF** for clients/partners |
 | **Changelog + timestamp discipline** | **`docs/CHANGELOG.md`** (Markdown); **`docs/CHANGELOG.html`** (Print/PDF mirror); laminate **`docs/developer_quick_sheet_print.html`** |
 
 ### Pinned reminders — reopen anytime (hassan)
 
 - **Guest enquiries / Web shop messages:** If **`sql/06e_shop_guest_enquiries.sql`** was **never** run on **that** database, the guest enquiry form and **`Reports → Web shop messages`** may **error** until phpMyAdmin runs **`06e`** once (`06b` ≠ `06e`).
-- **Not built in MVP:** **Supplier** returns / AP credit automation (**manual** workaround). **SMTP** outbound email & auto reminders; **no magic deploy** — **GitHub** backs up **code** only; **live hosting** still needs **FTP/upload** or server **`git pull`** (+ host MySQL + server secrets).
-- **Multi-tenant SaaS (Valatone):** Not implemented — strategy draft only: **`docs/VALATONE_SAAS_WAY_FORWARD.md`**.
+- **Not built in MVP:** **Supplier** returns / AP credit automation (**manual** workaround). **SMTP** outbound email &amp; auto reminders; **no magic deploy** — **GitHub** backs up **code** only; **live hosting** still needs **FTP/upload** or server **`git pull`** (+ host MySQL + server secrets).
 
 ### Quick — what path to open next (`docs/` on disk)
 
@@ -1228,30 +1529,32 @@ run **`06a_customer_account.sql`**. If **`list_online` / shop** errors, run **`0
 | **Full “how to use Autowagen” manual** | **`docs/complete_system_manual.html`** → Print PDF optional |
 | **Menu / links to all guides** | **`docs/client_training_index.html`** |
 | POS invoice screen only | **`docs/invoice_screen_full_guide.html`** |
+| POS story for brochures (A–L screenshots) | **`docs/pos_invoice_marketing_walkthrough_print.html`** |
 | Supplier purchases | **`docs/manual_supplier_purchase_screen.html`** or **`supplier_purchase_screen_full_guide.html`** |
 | New PC install | **`docs/client_install_print.html`** |
-| Git workflow + triple changelog (Markdown/HTML/CLAUDE §9) | **`docs/developer_quick_sheet_print.html`** (+ **`CHANGELOG.md`**) |
+| Git workflow + triple changelog (Markdown/HTML/CLAUDE &#167;9) | **`docs/developer_quick_sheet_print.html`** (+ **`CHANGELOG.md`**) |
 | **Git terminal — Laragon → GitHub start to finish** | **`docs/git_laragon_terminal_start_to_finish_print.html`** |
-| **AR report & statement — section-by-section PDF** | **`docs/ar_report_and_customer_statement_explained_print.html`** — Alerts, filters, every column · statement toolbar & table |
-| **Add staff users (viewer/staff · phpMyAdmin · hashes)** | **`docs/add_users_staff_guide_print.html`** |
+| **AR report &amp; statement — section-by-section PDF** | **`docs/ar_report_and_customer_statement_explained_print.html`** — Alerts, filters, every column &#183; statement toolbar &amp; table |
+| **AR report — zones A–F (sample layout) PDF** | **`docs/customer_ar_report_explained_abcdef_print.html`** — Title/help/filters/totals/tables explained with illustration |
+| **Supplier AP report — sections A–D (PDF)** | **`docs/supplier_ap_report_explained_print.html`** — Payable vs receivable &#183; deploy note for **Print / PDF** button |
+| **Add staff users (viewer/staff &#183; phpMyAdmin &#183; hashes)** | **`docs/add_users_staff_guide_print.html`** |
+| **Live site: rotate MySQL password after leaked credentials** | **`docs/live_db_password_rotation_secrets_print.html`** — cPanel → `secrets.live.php` on server only |
 | **SQL / DB: full replace vs incremental (keep customer data)** | **`docs/database_update_backup_guide_print.html`** |
-| **Pause / shutdown — resume next session** | **`docs/session_pause_handoff_print.html`** · **`HOW_TO_START_NEW_CHAT.md`** (before shutdown block) |
-| **Rollout order (Live → test → backlog → polish)** | **`docs/rollout_execution_order_print.html`** · top of **`docs/BACKLOG_POST_STAGE7.md`** |
-| **SaaS Option A — new customer (provision DB + secrets)** | **`docs/saas_option_a_new_customer_checklist_print.html`** · Print → PDF |
-| **Session recap · Valatone DB + SaaS Option A · 2026-05-05** | **`docs/session_recap_valatone_2026-05-05_print.html`** · Print → PDF |
-| **Session handoff diary · 2026-05-05 (Markdown)** | **`docs/SESSION_2026-05-05_HANDOFF.md`** — closing for today |
-| **Valatone SaaS — way forward (draft)** | **`docs/VALATONE_SAAS_WAY_FORWARD.md`** — not implemented yet; defines Option A vs B |
-| AI/project diary & “what next” | Repo root **`CLAUDE.md`** · especially **§10** |
+| **Pause / shutdown — resume next session** | **`docs/session_pause_handoff_print.html`** &#183; **`HOW_TO_START_NEW_CHAT.md`** (before shutdown block) |
+| **Rollout order (Live → test → backlog → polish)** | **`docs/rollout_execution_order_print.html`** &#183; top of **`docs/BACKLOG_POST_STAGE7.md`** |
+| **Paste-everything prompt (full project context for a new chat)** | **`docs/CURSOR_NEW_CHAT_MASTER_PROMPT.md`** &#183; **Print/PDF:** **`docs/CURSOR_NEW_CHAT_MASTER_PROMPT_print.html`** — long handoff; **`CLAUDE.md`** still wins if conflict |
+| **Full rebuild spec for another AI agent (stages 1–7 + SQL order)** | **`docs/BUILD_WHOLE_PROJECT_AI_PROMPT.md`** |
+| AI/project diary &amp; “what next” | Repo root **`CLAUDE.md`** &#183; especially **&#167;10** |
 
 ### Suggested next session (pick one)
 
-**B — Credit notes smoke-test (Stage 7 · run `07` first)**
+**B — Credit notes smoke-test (Stage 7 &#183; run `07` first)**
 
 1. Open **`http://localhost/phpmyadmin`** → click database **`autowagen_master`** → **SQL** tab.  
 2. Open project file **`sql/07_credit_notes.sql`** in Notepad/Cursor, copy all, paste into phpMyAdmin, click **Go**. Expect green success (no “table doesn’t exist” errors on refresh).  
 3. In the app: **Reports → Credit notes** (or open any **final** invoice → **New credit note**).  
 4. Pick return quantities, **Save draft**, then **Finalize** on a test line; confirm **CN-…** number, **stock** on the part increased, and **invoice** **Remaining** / **AR** / **Statement** show the credit.  
-5. Log **PASS** in **`CLAUDE.md` §9** when satisfied.
+5. Log **PASS** in **`CLAUDE.md` &#167;9** when satisfied.
 
 **A — Web shop smoke-test (`06b` already ran on hassan’s DB)**
 
@@ -1268,7 +1571,7 @@ run **`06a_customer_account.sql`**. If **`list_online` / shop** errors, run **`0
 3. In the black top navigation bar, click **Inventory**.
 4. In the dropdown, click **Add part**.
 
-   *If you prefer to reuse an existing part:* **Inventory → All parts** → **skip rows where Web = N/A** (cannot go online — wrong source/condition). Click the row’s dark **pencil** button → go to section **“5. Yard location & notes”** → step **13**.
+   *If you prefer to reuse an existing part:* **Inventory → All parts** → **skip rows where Web = N/A** (cannot go online — wrong source/condition). Click the row’s dark **pencil** button → go to section **“5. Yard location &amp; notes”** → step **13**.
 
 5. In **Section 1** (part identity): type a **Part name** you will recognise later (example: **`Web shop test bulb`**).
 6. Set **Source** to **OEM new**, **Replacement**, or **Third party** — **do not** choose **Stripped from vehicle**.
@@ -1277,7 +1580,7 @@ run **`06a_customer_account.sql`**. If **`list_online` / shop** errors, run **`0
 9. Set **Lifecycle status** to **Available**.
 10. Set **Qty on hand** to at least **1** (try **2** if you want to see stock drop but not zero).
 11. Set **Selling price — asking (ex VAT)** to something simple (example **`100`**).
-12. Scroll down to card **“5. Yard location & notes”**.
+12. Scroll down to card **“5. Yard location &amp; notes”**.
 13. Put a tick in the box labelled **“List on public website”** (hint text explains **New** + **not stripped**).
 14. Scroll to the bottom and click the red button **Create part** (new part) or **Save changes** (existing part).
 15. Wait for the green success message.
@@ -1287,7 +1590,7 @@ run **`06a_customer_account.sql`**. If **`list_online` / shop** errors, run **`0
 16. Open the shop in **either** way: (**a**) press **Ctrl+T**, type **`http://localhost/autowagen-master/shop/`**, Enter **or** (**b**) stay in your staff tab → **Inventory** → **Public shop (website)** — that opens **`/shop/`** in a **new tab** automatically.
 17. You should see **“Spares for sale”**. Use **Search SKU or name** or scroll until you see **your part title** from step 5.
 18. Click that part until the **detail** page loads (address bar ends with **`/shop/part.php?id=…`**).
-19. Under **Qty**, leave **1** (or increase if you deliberately set qty on hand **>** 1 in step 10).
+19. Under **Qty**, leave **1** (or increase if you deliberately set qty on hand **&gt;** 1 in step 10).
 20. Click the red **Add to cart** button (expect a green **Added to cart** banner).
 21. Open the cart: click **Cart** (with trolley icon) in the grey shop bar **or** go to **`http://localhost/autowagen-master/shop/cart.php`**.
 22. Check the table shows **SKU**, **name**, **Qty**, and a line total.
@@ -1302,7 +1605,7 @@ run **`06a_customer_account.sql`**. If **`list_online` / shop** errors, run **`0
 28. Switch to your **logged-in staff** browser tab (or log in again at **`/auth/login.php`** if you closed it).
 29. Click **Reports** → **Web shop orders**.
 30. Find the row whose **Order** column matches **`WEB-…`** from step 27. On the far right, click **Open**.
-31. On the order detail page (lines table + totals), scroll down until you see the red-bordered **Cancel order & restore stock** button — *(optional test)* click it → **OK** in the confirmation popup → you should see a green **Order cancelled and stock restored** message.
+31. On the order detail page (lines table + totals), scroll down until you see the red-bordered **Cancel order &amp; restore stock** button — *(optional test)* click it → **OK** in the confirmation popup → you should see a green **Order cancelled and stock restored** message.
 32. Click **Inventory** → **All parts** and locate your test part — compare **Qty on hand** and **Lifecycle status** to what you **expect** (**Sold** only if qty went to **0**). If you did step **31**, qty should rise again and status **Available**.
 
 **If you want the single “what next” answer:** On **this PC’s `autowagen_master`**, **skip running `05_pos.sql`** — tables are already there *(2026-04-28 screenshot).* Do a **POS → New sale** practice run when you feel up to it, or **optional** training PDF PNGs (`TRAINING_SCREENSHOTS.md`). Later: **AR brief** or **Stage 6**.
@@ -1313,8 +1616,8 @@ run **`06a_customer_account.sql`**. If **`list_online` / shop** errors, run **`0
 
 ### Stage 5 BUILD BRIEF (draft — not locked)
 
-> Fill in **hassan confirms** lines; replace **TBD** when decided. Core POS topics
-> (invoice vs quote, SHGA at sale, VAT, etc.) still go here as they are agreed.
+&gt; Fill in **hassan confirms** lines; replace **TBD** when decided. Core POS topics
+&gt; (invoice vs quote, SHGA at sale, VAT, etc.) still go here as they are agreed.
 
 #### AR + reminders (customers **on account** — money they owe **you**)
 
@@ -1363,15 +1666,20 @@ reminders** — not built yet; lock this block before that work.
 
 ### Hard rules for the next agent
 
-- ❌ Don't touch legacy `autowagengit/` or `autowagen` DB.
+- ❌ Don&#39;t touch legacy `autowagengit/` or `autowagen` DB.
 - ✅ Use the existing patterns (PDO prepared, CSRF, e(), soft-delete,
   Bootstrap 5 cards, `#c8102e` red, `#0a0a0a` nav).
 - ✅ For any new SQL: additive + idempotent + INFORMATION_SCHEMA-guarded
   for ALTER (mirror the pattern in `sql/03b_vehicle_extras.sql`).
-- ✅ For new uploads: extend `includes/uploads.php`, don't reinvent.
-- ✅ When putting a `<form enctype="multipart/form-data">` inside a
+- ✅ For new uploads: extend `includes/uploads.php`, don&#39;t reinvent.
+- ✅ When putting a `&lt;form enctype=&quot;multipart/form-data&quot;&gt;` inside a
   Bootstrap modal, **the real submit button must live INSIDE the
   form** (visually hidden is fine). The visible footer button is
-  `type="button"` and `.click()`s the inner one. Otherwise some
+  `type=&quot;button&quot;` and `.click()`s the inner one. Otherwise some
   browsers drop file inputs. (This is the bug we just fixed in
   `customers_admin.php` — see Stage 3d session log for details.)
+</pre>
+
+<div class="foot">End of combined export.</div>
+</body>
+</html>
